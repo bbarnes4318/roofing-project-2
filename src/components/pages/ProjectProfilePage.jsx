@@ -892,27 +892,13 @@ const ProjectProfilePage = ({
                                         </button>
                                     </div>
 
-                                    {/* Addresses and Project Manager (side-by-side) */}
+                                    {/* Primary Customer Name and Lead Source */}
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                        {/* Project Address */}
+                                        {/* Primary Customer Name */}
                                         <div>
-                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Project Address</div>
-                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                                                {(() => {
-                                                    // Prioritize customer address over project address to avoid project name contamination
-                                                    const address = selectedProject.customer?.address || selectedProject.client?.address || selectedProject.location || selectedProject.address;
-                                                    if (!address || address === selectedProject.projectName) return 'Address not available';
-                                                    const parts = address.split(',');
-                                                    if (parts.length >= 2) {
-                                                        return (
-                                                            <div>
-                                                                <div>{parts[0]?.trim()}</div>
-                                                                <div>{parts.slice(1).join(',').trim()}</div>
-                                                            </div>
-                                                        );
-                                                    }
-                                                    return address;
-                                                })()}
+                                            <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Primary Customer</div>
+                                            <div className={`${colorMode ? 'text-white' : 'text-gray-900'} font-semibold`}>
+                                                {selectedProject.customer?.primaryName || selectedProject.customer?.name || 'Not Set'}
                                             </div>
                                         </div>
 

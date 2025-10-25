@@ -9,6 +9,7 @@ import WorkflowDataService from '../../services/workflowDataService';
 import toast from 'react-hot-toast';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
+import GoogleMapModal from '../ui/GoogleMapModal';
 import { CloudArrowUpIcon } from '@heroicons/react/24/outline';
 import { 
   PhoneIcon, 
@@ -27,6 +28,7 @@ import {
 } from '../common/Icons';
 
 const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
+  const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [activeSection] = useState('overview');
   // Match Projects by Phase progress behavior (keyed expansion + visibility management)
   const progressChartRefs = useRef({});
@@ -325,9 +327,18 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         <MapPinIcon className="w-4 h-4 text-blue-600 flex-shrink-0" />
               {!isEditingAddress ? (
           <div className="flex items-center gap-2 min-w-0 w-full">
-            <span className="truncate">
-                    {(project.address || project.customer?.address || 'Address not provided').trim()}
-                  </span>
+            <button
+              onClick={() => {
+                const address = (project.address || project.customer?.address || '').trim();
+                if (address) {
+                  setIsMapModalOpen(true);
+                }
+              }}
+              className="truncate text-blue-600 hover:text-blue-800 hover:underline cursor-pointer text-left"
+              title="Click to view map"
+            >
+              {(project.address || project.customer?.address || 'Address not provided').trim()}
+            </button>
                   <button
                     onClick={handleEditAddress}
               className="px-2 py-0.5 text-[11px] font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded"
@@ -1350,6 +1361,13 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           setIsDocumentModalOpen(false);
           setSelectedDocument(null);
         }}
+      />
+      
+      {/* Google Map Modal */}
+      <GoogleMapModal
+        isOpen={isMapModalOpen}
+        onClose={() => setIsMapModalOpen(false)}
+        address={project.address || project.customer?.address || ''}
       />
     </div>
   );
