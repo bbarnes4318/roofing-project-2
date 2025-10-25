@@ -404,20 +404,21 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     });
   }
 
-  // Build update data object - only include fields that are actually provided
-  const updateData = {};
+  // Build update data object - always include all fields to ensure they're saved
+  const updateData = {
+    firstName: firstName ? firstName.substring(0, 100) : '',
+    lastName: lastName ? lastName.substring(0, 100) : '',
+    phone: phone || '',
+    email: email || '',
+    language: language || 'en',
+    timezone: timezone || 'UTC'
+  };
   
-  if (firstName !== undefined) updateData.firstName = firstName ? firstName.substring(0, 100) : '';
-  if (lastName !== undefined) updateData.lastName = lastName ? lastName.substring(0, 100) : '';
-  if (phone !== undefined) updateData.phone = phone || '';
+  // Only include optional fields if they're provided
   if (position !== undefined) updateData.position = position || '';
   if (department !== undefined) updateData.department = department || '';
   if (bio !== undefined) updateData.bio = bio || '';
   if (theme !== undefined) updateData.theme = theme;
-  if (language !== undefined) updateData.language = language;
-  if (timezone !== undefined) updateData.timezone = timezone;
-  // displayName not supported in User model; intentionally ignored
-  if (email !== undefined) updateData.email = email || '';
 
   console.log('🔍 PROFILE UPDATE: Starting update for user:', req.user.id);
   console.log('🔍 PROFILE UPDATE: Update data:', updateData);
@@ -444,6 +445,7 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     });
     
     console.log('🔍 PROFILE UPDATE: Update completed successfully');
+    console.log('🔍 PROFILE UPDATE: Updated user:', updatedUser);
     
     res.json({
       success: true,

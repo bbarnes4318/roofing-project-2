@@ -279,8 +279,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         lastName: lastName || '',
         email: email || '',
         phone: phone || '',
-        timezone,
-        language
+        timezone: timezone || 'UTC',
+        language: language || 'en'
         // Note: displayName is not supported in the backend User model
       };
       console.log('🔍 PROFILE SAVE: Sending payload:', payload);
@@ -288,6 +288,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       console.log('🔍 PROFILE SAVE: API response:', res);
       if (res?.success && res?.data?.user) {
         const updated = res.data.user;
+        console.log('🔍 PROFILE SAVE: Updated user data:', updated);
         setFirstName(updated.firstName || '');
         setLastName(updated.lastName || '');
         setEmail(updated.email || '');
@@ -307,7 +308,12 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       }
     } catch (err) {
       console.error('Profile save failed:', err);
-      setSuccessMessage(String(err?.message || 'Failed to save'));
+      console.error('Profile save error details:', {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status
+      });
+      setSuccessMessage(String(err?.message || 'Failed to save profile'));
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } finally {
