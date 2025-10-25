@@ -333,22 +333,9 @@ const ActivityFeedSection = ({
                   </div>
                 );
               } else if (item.type === 'feedback') {
-                // Feedback item with colored stripe and soft background
-                return (
-                  <div key={item.id} className={`relative rounded-xl border ${style.container} overflow-hidden shadow-md`}>
-                    <div className={`absolute left-0 top-0 bottom-0 w-1 ${style.stripe}`} />
-                    <FeedbackItem
-                      item={item}
-                      projects={projects || []}
-                      colorMode={colorMode}
-                      onProjectSelect={handleProjectSelectWithScroll}
-                      availableUsers={availableUsers}
-                      currentUser={currentUser}
-                      onDelete={() => handleDeleteItem(item)}
-                      isDeleting={isDeleting}
-                    />
-                  </div>
-                );
+                // Feedback items are no longer displayed in the activity feed
+                // They have their own dedicated Feedback Hub page
+                return null;
               }
               
               return null;

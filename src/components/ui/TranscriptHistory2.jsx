@@ -198,12 +198,12 @@ export default function TranscriptHistory2({ projectId = null, onTranscriptSelec
     .sort((a, b) => b.newest - a.newest);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+    <div className="fixed inset-0 z-[999999] flex items-center justify-center px-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Modal Card */}
-      <div className="relative z-[61] w-full max-w-lg rounded-xl shadow-2xl border bg-white">
+      <div className="relative z-[999999] w-full max-w-lg rounded-xl shadow-2xl border bg-white">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <div>
             <div className="font-semibold">Transcript History</div>

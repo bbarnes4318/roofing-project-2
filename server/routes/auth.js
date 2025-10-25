@@ -404,20 +404,20 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     });
   }
 
-  // Truncate fields to fit database constraints and filter out undefined values
+  // Build update data object - only include fields that are actually provided
   const updateData = {};
   
-  if (firstName !== undefined) updateData.firstName = firstName ? firstName.substring(0, 100) : null;
-  if (lastName !== undefined) updateData.lastName = lastName ? lastName.substring(0, 100) : null;
-  if (phone !== undefined) updateData.phone = phone ? phone.substring(0, 20) : null;
-  if (position !== undefined) updateData.position = position ? position.substring(0, 100) : null;
-  if (department !== undefined) updateData.department = department ? department.substring(0, 100) : null;
-  if (bio !== undefined) updateData.bio = bio ? bio.substring(0, 500) : null;
+  if (firstName !== undefined) updateData.firstName = firstName ? firstName.substring(0, 100) : '';
+  if (lastName !== undefined) updateData.lastName = lastName ? lastName.substring(0, 100) : '';
+  if (phone !== undefined) updateData.phone = phone || '';
+  if (position !== undefined) updateData.position = position || '';
+  if (department !== undefined) updateData.department = department || '';
+  if (bio !== undefined) updateData.bio = bio || '';
   if (theme !== undefined) updateData.theme = theme;
   if (language !== undefined) updateData.language = language;
   if (timezone !== undefined) updateData.timezone = timezone;
   // displayName not supported in User model; intentionally ignored
-  if (email !== undefined) updateData.email = email ? email.substring(0, 255) : null;
+  if (email !== undefined) updateData.email = email || '';
 
   console.log('🔍 PROFILE UPDATE: Starting update for user:', req.user.id);
   console.log('🔍 PROFILE UPDATE: Update data:', updateData);

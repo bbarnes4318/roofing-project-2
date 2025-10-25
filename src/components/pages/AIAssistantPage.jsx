@@ -2610,7 +2610,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         )}
            {showTranscript && (liveTranscriptText || voiceTranscript.length > 0) && (
   <div className="w-full">
-    <div className="rounded-xl px-4 py-3 border bg-blue-50 border-blue-200 text-blue-800">
+    <div className="rounded-xl px-4 py-3 border bg-white border-blue-200 text-black">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
         <span className="text-sm font-medium">Live Transcription</span>

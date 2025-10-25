@@ -853,12 +853,12 @@ const BubblesChat = ({
     <div className={`fixed bottom-4 right-4 z-50 ${className}`} style={{ paddingRight: 'env(safe-area-inset-right)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className={`rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 backdrop-blur-xl ${
         colorMode
-          ? 'bg-slate-900/90 border-blue-400/30 text-white shadow-blue-500/20'
-          : 'bg-white/90 border-gray-200/80 text-gray-900 shadow-blue-200/40'
+          ? 'bg-white border-blue-400/30 text-gray-900 shadow-blue-500/20'
+          : 'bg-white border-gray-200/80 text-gray-900 shadow-blue-200/40'
       }`} style={{ width: 'min(94vw, 420px)', height: 'min(86vh, 680px)' }}>
         {/* Header */}
         <div className={`flex items-center justify-between p-4 border-b rounded-t-2xl sticky top-0 z-10 ${
-          colorMode ? 'border-blue-400/20 bg-slate-900/70' : 'border-gray-200/80 bg-white/70'
+          colorMode ? 'border-blue-400/20 bg-white' : 'border-gray-200/80 bg-white'
         }`}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0089D1] to-[#0069B5]">

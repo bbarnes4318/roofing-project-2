@@ -838,41 +838,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         }
       });
       
-      // Add feedback items to activity feed
-      console.log('🔍 FEEDBACK DEBUG: realFeedback:', realFeedback);
-      if (Array.isArray(realFeedback) && realFeedback.length > 0) {
-        console.log('🔍 FEEDBACK DEBUG: Adding', realFeedback.length, 'feedback items to activity feed');
-        realFeedback.forEach(feedback => {
-          const key = `feedback:${feedback.id}`;
-          if (!seenKeys.has(key)) {
-            console.log('🔍 FEEDBACK DEBUG: Adding feedback item:', feedback.title);
-            realItems.push({
-              id: `feedback_${feedback.id}`,
-              type: 'feedback',
-              title: feedback.title,
-              subject: feedback.title,
-              content: feedback.description,
-              description: feedback.description,
-              user: feedback.author ? `${feedback.author.firstName} ${feedback.author.lastName}` : 'Anonymous',
-              timestamp: feedback.createdAt || feedback.timestamp || new Date().toISOString(),
-              projectId: feedback.projectId,
-              projectName: feedback.projectName,
-              priority: feedback.severity || 'medium',
-              // Feedback-specific fields
-              feedbackType: feedback.type,
-              severity: feedback.severity,
-              status: feedback.status,
-              voteCount: feedback.voteCount || 0,
-              commentCount: feedback.commentCount || 0,
-              authorId: feedback.authorId || feedback.author?.id,
-              tags: feedback.tags || []
-            });
-            markSeen('feedback', feedback.id);
-          }
-        });
-      } else {
-        console.log('🔍 FEEDBACK DEBUG: No feedback data available');
-      }
+      // FEEDBACK ITEMS REMOVED FROM ACTIVITY FEED
+      // Feedback Hub messages should not appear in the activity feed
+      // They have their own dedicated Feedback Hub page
+      console.log('🔍 FEEDBACK DEBUG: Feedback items excluded from activity feed as requested');
       
       // Fallback to synthesized activities if no real data
       if (realItems.length === 0) {

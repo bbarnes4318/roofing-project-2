@@ -13,6 +13,8 @@ import {
 import { assetsService } from '../../services/assetsService';
 import { CheatSheetModal } from '../common/CheatSheet';
 import DocumentViewerModal from '../ui/DocumentViewerModal';
+import FileRenameModal from '../ui/FileRenameModal';
+import { getFileTypeInfo } from '../../utils/fileTypeUtils';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -33,6 +35,8 @@ const DocumentsResourcesPage = () => {
   const [newFolderName, setNewFolderName] = useState('');
   const [previewDocument, setPreviewDocument] = useState(null);
   const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const [renameModalOpen, setRenameModalOpen] = useState(false);
+  const [filesToRename, setFilesToRename] = useState([]);
 
   // Load folders for sidebar tree - optimized with smaller limit
   const loadAllFolders = async () => {
@@ -437,33 +441,46 @@ const DocumentsResourcesPage = () => {
                 })}
                 
                 {/* Files */}
-                {filteredFiles.map(file => (
-                  <div
-                    key={file.id}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, file)}
-                    className={`p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition group relative ${
-                      draggedItem?.id === file.id ? 'opacity-50' : ''
-                    }`}
-                    onClick={() => {
-                      setPreviewDocument(file);
-                      setIsViewerOpen(true);
-                    }}
-                  >
-                    <DocumentIcon className="h-12 w-12 text-blue-500 mx-auto mb-2" />
-                    <p className="text-sm font-medium text-center truncate mb-1">{file.title}</p>
-                    <p className="text-xs text-slate-500 text-center">{(file.fileSize / 1024 / 1024).toFixed(2)} MB</p>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDelete(file.id);
+                {filteredFiles.map(file => {
+                  const fileTypeInfo = getFileTypeInfo(file.mimeType, file.title);
+                  
+                  return (
+                    <div
+                      key={file.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, file)}
+                      className={`p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md hover:border-slate-300 transition group relative ${
+                        draggedItem?.id === file.id ? 'opacity-50' : ''
+                      }`}
+                      onClick={() => {
+                        setPreviewDocument(file);
+                        setIsViewerOpen(true);
                       }}
-                      className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
                     >
-                      <TrashIcon className="h-4 w-4 text-red-600" />
-                    </button>
-                  </div>
-                ))}
+                      <div className="flex flex-col items-center">
+                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center mb-2 ${
+                          fileTypeInfo.color.replace('text-', 'bg-').replace('-500', '-100')
+                        }`}>
+                          <span className="text-2xl">{fileTypeInfo.icon}</span>
+                        </div>
+                        <p className="text-xs font-medium text-center text-gray-600 mb-1">
+                          {fileTypeInfo.type}
+                        </p>
+                      </div>
+                      <p className="text-sm font-medium text-center truncate mb-1">{file.title}</p>
+                      <p className="text-xs text-slate-500 text-center">{(file.fileSize / 1024 / 1024).toFixed(2)} MB</p>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(file.id);
+                        }}
+                        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 bg-red-50 rounded hover:bg-red-100"
+                      >
+                        <TrashIcon className="h-4 w-4 text-red-600" />
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -478,16 +495,16 @@ const DocumentsResourcesPage = () => {
             <input
               type="file"
               multiple
-              onChange={(e) => setSelectedFiles(Array.from(e.target.files))}
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                if (files.length > 0) {
+                  setFilesToRename(files);
+                  setUploadModalOpen(false);
+                  setRenameModalOpen(true);
+                }
+              }}
               className="mb-4 w-full"
             />
-            {selectedFiles.length > 0 && (
-              <div className="mb-4 space-y-2">
-                {selectedFiles.map((f, i) => (
-                  <div key={i} className="text-sm text-slate-600">{f.name}</div>
-                ))}
-              </div>
-            )}
             <div className="flex gap-3">
               <button
                 onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
@@ -495,19 +512,28 @@ const DocumentsResourcesPage = () => {
               >
                 Cancel
               </button>
-              <button
-                onClick={handleUpload}
-                disabled={!selectedFiles.length || uploading}
-                className="flex-1 px-6 py-3 bg-[#7ED242] text-white rounded-xl font-medium hover:bg-[#6BC22E] hover:shadow-lg disabled:bg-slate-300 disabled:cursor-not-allowed transition"
-              >
-                {uploading ? 'Uploading...' : 'Upload'}
-              </button>
             </div>
           </div>
         </div>
       )}
 
       <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={false} />
+
+      <FileRenameModal
+        isOpen={renameModalOpen}
+        onClose={() => setRenameModalOpen(false)}
+        files={filesToRename}
+        onConfirm={async (renamedFiles) => {
+          setSelectedFiles(renamedFiles);
+          setRenameModalOpen(false);
+          await handleUpload();
+        }}
+        onCancel={() => {
+          setRenameModalOpen(false);
+          setFilesToRename([]);
+        }}
+        colorMode={false}
+      />
 
       <DocumentViewerModal
         document={previewDocument}

@@ -92,11 +92,16 @@ model Customer {
   updatedAt      DateTime    @updatedAt
   primaryName    String      @db.VarChar(100)
   primaryEmail   String      @unique @db.VarChar(320)
+  primaryEmailType String?   @db.VarChar(20) // PERSONAL or WORK
   primaryPhone   String      @db.VarChar(20)
+  primaryPhoneType String?   @db.VarChar(20) // MOBILE, HOME, or WORK
   secondaryName  String?     @db.VarChar(100)
   secondaryEmail String?     @db.VarChar(320)
+  secondaryEmailType String? @db.VarChar(20) // PERSONAL or WORK
   secondaryPhone String?     @db.VarChar(20)
+  secondaryPhoneType String? @db.VarChar(20) // MOBILE, HOME, or WORK
   primaryContact ContactType @default(PRIMARY)
+  primaryPhoneContact String? @db.VarChar(20) // PRIMARY or SECONDARY for phone
   address        String      @db.VarChar(500)
   notes          String?
   isActive       Boolean     @default(true)

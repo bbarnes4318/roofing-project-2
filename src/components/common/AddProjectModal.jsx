@@ -4,15 +4,20 @@ import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
 const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [formData, setFormData] = useState({
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
+    primaryName: '',
+    primaryEmail: '',
+    primaryEmailType: 'PERSONAL', // PERSONAL or WORK
+    primaryPhone: '',
+    primaryPhoneType: 'MOBILE', // MOBILE, HOME, or WORK
     customerTypeOfContact: 'PRIMARY_CONTACT',
     secondaryName: '',
     secondaryEmail: '',
+    secondaryEmailType: 'PERSONAL', // PERSONAL or WORK
     secondaryPhone: '',
+    secondaryPhoneType: 'MOBILE', // MOBILE, HOME, or WORK
     secondaryTypeOfContact: 'SECONDARY_CONTACT',
     primaryContact: 'PRIMARY', // PRIMARY or SECONDARY
+    primaryPhoneContact: 'PRIMARY', // PRIMARY or SECONDARY for phone
     address: '',
     addressComponents: {}, // Store parsed address components
     projectTypes: [], // Multiple trade types
@@ -315,16 +320,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
     if (step === 1) {
       // Validate primary customer
-      if (!formData.customerName.trim()) {
-        newErrors.customerName = 'Primary customer name is required';
+      if (!formData.primaryName.trim()) {
+        newErrors.primaryName = 'Primary customer name is required';
         newRequirements.push('Enter primary customer name');
       }
-      if (!formData.customerEmail.trim()) {
-        newErrors.customerEmail = 'Primary customer email is required';
+      if (!formData.primaryEmail.trim()) {
+        newErrors.primaryEmail = 'Primary customer email is required';
         newRequirements.push('Enter primary customer email');
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.customerEmail)) {
-        newErrors.customerEmail = 'Please enter a valid email address';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
+        newErrors.primaryEmail = 'Please enter a valid email address';
         newRequirements.push('Enter a valid email address');
+      }
+      if (!formData.primaryPhone.trim()) {
+        newErrors.primaryPhone = 'Primary customer phone number is required';
+        newRequirements.push('Enter primary customer phone number');
       }
       if (!formData.address.trim()) {
         newErrors.address = 'Project address is required';
@@ -390,10 +399,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     try {
       // Create customer first - ensure all fields match backend expectations
       const customerData = {
-        primaryName: formData.customerName.trim(),
-        primaryEmail: formData.customerEmail.trim(),
-        primaryPhone: formData.customerPhone ? formData.customerPhone.trim() : '555-555-5555',
+        primaryName: formData.primaryName.trim(),
+        primaryEmail: formData.primaryEmail.trim(),
+        primaryEmailType: formData.primaryEmailType,
+        primaryPhone: formData.primaryPhone ? formData.primaryPhone.trim() : '555-555-5555',
+        primaryPhoneType: formData.primaryPhoneType,
         primaryContact: formData.primaryContact,
+        primaryPhoneContact: formData.primaryPhoneContact,
         address: formData.address.trim()
       };
       
@@ -403,9 +415,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       }
       if (formData.secondaryEmail && formData.secondaryEmail.trim()) {
         customerData.secondaryEmail = formData.secondaryEmail.trim();
+        customerData.secondaryEmailType = formData.secondaryEmailType;
       }
       if (formData.secondaryPhone && formData.secondaryPhone.trim()) {
         customerData.secondaryPhone = formData.secondaryPhone.trim();
+        customerData.secondaryPhoneType = formData.secondaryPhoneType;
       }
 
       console.log('🔍 Sending customer data:', customerData);
@@ -497,15 +511,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   const resetForm = () => {
     setFormData({
-      customerName: '',
-      customerEmail: '',
-      customerPhone: '',
+      primaryName: '',
+      primaryEmail: '',
+      primaryEmailType: 'PERSONAL',
+      primaryPhone: '',
+      primaryPhoneType: 'MOBILE',
       customerTypeOfContact: 'PRIMARY_CONTACT',
       secondaryName: '',
       secondaryEmail: '',
+      secondaryEmailType: 'PERSONAL',
       secondaryPhone: '',
+      secondaryPhoneType: 'MOBILE',
       secondaryTypeOfContact: 'SECONDARY_CONTACT',
       primaryContact: 'PRIMARY',
+      primaryPhoneContact: 'PRIMARY',
       address: '',
       projectTypes: [],
       description: '',
@@ -600,20 +619,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </label>
                       <input
                         type="text"
-                        name="customerName"
-                        value={formData.customerName}
+                        name="primaryName"
+                        value={formData.primaryName}
                         onChange={handleInputChange}
                         className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
-                          errors.customerName ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                          errors.primaryName ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
                         }`}
                         placeholder="Primary customer full name"
                       />
-                      {errors.customerName && (
+                      {errors.primaryName && (
                         <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          {errors.customerName}
+                          {errors.primaryName}
                         </p>
                       )}
                     </div>
@@ -622,38 +641,73 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
                         Email <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="email"
-                        name="customerEmail"
-                        value={formData.customerEmail}
-                        onChange={handleInputChange}
-                        className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
-                          errors.customerEmail ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                        placeholder="primary@email.com"
-                      />
-                      {errors.customerEmail && (
+                      <div className="flex gap-2">
+                        <input
+                          type="email"
+                          name="primaryEmail"
+                          value={formData.primaryEmail}
+                          onChange={handleInputChange}
+                          className={`flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
+                            errors.primaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          placeholder="primary@email.com"
+                          required
+                        />
+                        <select
+                          name="primaryEmailType"
+                          value={formData.primaryEmailType}
+                          onChange={handleInputChange}
+                          className="w-20 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                        >
+                          <option value="PERSONAL">Personal</option>
+                          <option value="WORK">Work</option>
+                        </select>
+                      </div>
+                      {errors.primaryEmail && (
                         <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
                           <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                           </svg>
-                          {errors.customerEmail}
+                          {errors.primaryEmail}
                         </p>
                       )}
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-700 mb-1">
-                        Phone
+                        Phone <span className="text-red-500">*</span>
                       </label>
-                      <input
-                        type="tel"
-                        name="customerPhone"
-                        value={formData.customerPhone}
-                        onChange={handleInputChange}
-                        className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
-                        placeholder="(865) 555-1212"
-                      />
+                      <div className="flex gap-2">
+                        <input
+                          type="tel"
+                          name="primaryPhone"
+                          value={formData.primaryPhone}
+                          onChange={handleInputChange}
+                          className={`flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
+                            errors.primaryPhone ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                          }`}
+                          placeholder="(865) 555-1212"
+                          required
+                        />
+                        <select
+                          name="primaryPhoneType"
+                          value={formData.primaryPhoneType}
+                          onChange={handleInputChange}
+                          className="w-24 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                        >
+                          <option value="MOBILE">Mobile</option>
+                          <option value="HOME">Home</option>
+                          <option value="WORK">Work</option>
+                        </select>
+                      </div>
+                      {errors.primaryPhone && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          </svg>
+                          {errors.primaryPhone}
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -812,16 +866,27 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
                           Email
                         </label>
-                        <input
-                          type="email"
-                          name="secondaryEmail"
-                          value={formData.secondaryEmail}
-                          onChange={handleInputChange}
-                          className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
-                            errors.secondaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
-                          }`}
-                          placeholder="secondary@email.com"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="email"
+                            name="secondaryEmail"
+                            value={formData.secondaryEmail}
+                            onChange={handleInputChange}
+                            className={`flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 text-sm ${
+                              errors.secondaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-200 hover:border-gray-300'
+                            }`}
+                            placeholder="secondary@email.com"
+                          />
+                          <select
+                            name="secondaryEmailType"
+                            value={formData.secondaryEmailType}
+                            onChange={handleInputChange}
+                            className="w-20 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          >
+                            <option value="PERSONAL">Personal</option>
+                            <option value="WORK">Work</option>
+                          </select>
+                        </div>
                         {errors.secondaryEmail && (
                           <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
                             <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
@@ -836,14 +901,26 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         <label className="block text-xs font-semibold text-gray-700 mb-1">
                           Phone
                         </label>
-                        <input
-                          type="tel"
-                          name="secondaryPhone"
-                          value={formData.secondaryPhone}
-                          onChange={handleInputChange}
-                          className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
-                          placeholder="(865) 555-1212"
-                        />
+                        <div className="flex gap-2">
+                          <input
+                            type="tel"
+                            name="secondaryPhone"
+                            value={formData.secondaryPhone}
+                            onChange={handleInputChange}
+                            className="flex-1 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                            placeholder="(865) 555-1212"
+                          />
+                          <select
+                            name="secondaryPhoneType"
+                            value={formData.secondaryPhoneType}
+                            onChange={handleInputChange}
+                            className="w-24 p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
+                          >
+                            <option value="MOBILE">Mobile</option>
+                            <option value="HOME">Home</option>
+                            <option value="WORK">Work</option>
+                          </select>
+                        </div>
                       </div>
 
                       <div>
@@ -881,6 +958,49 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           </select>
                         </div>
                       )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Primary Phone Selection - Show when both customers have phone numbers */}
+                {(formData.primaryPhone && formData.secondaryPhone) && (
+                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                    <h4 className="text-base font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                      </svg>
+                      Primary Phone Number
+                    </h4>
+                    <p className="text-sm text-yellow-700 mb-2">
+                      Both customers have phone numbers. Please select which one should be the primary contact number:
+                    </p>
+                    <div className="flex gap-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="primaryPhoneContact"
+                          value="PRIMARY"
+                          checked={formData.primaryPhoneContact === 'PRIMARY'}
+                          onChange={handleInputChange}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">
+                          {formData.primaryPhone} ({formData.primaryPhoneType})
+                        </span>
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="primaryPhoneContact"
+                          value="SECONDARY"
+                          checked={formData.primaryPhoneContact === 'SECONDARY'}
+                          onChange={handleInputChange}
+                          className="mr-2"
+                        />
+                        <span className="text-sm">
+                          {formData.secondaryPhone} ({formData.secondaryPhoneType})
+                        </span>
+                      </label>
                     </div>
                   </div>
                 )}

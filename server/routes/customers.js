@@ -42,11 +42,16 @@ const transformCustomerForFrontend = (customer) => {
     // Full customer structure
     primaryName: customer.primaryName,
     primaryEmail: customer.primaryEmail,
+    primaryEmailType: customer.primaryEmailType,
     primaryPhone: customer.primaryPhone,
+    primaryPhoneType: customer.primaryPhoneType,
     secondaryName: customer.secondaryName,
     secondaryEmail: customer.secondaryEmail,
+    secondaryEmailType: customer.secondaryEmailType,
     secondaryPhone: customer.secondaryPhone,
+    secondaryPhoneType: customer.secondaryPhoneType,
     primaryContact: customer.primaryContact,
+    primaryPhoneContact: customer.primaryPhoneContact,
     
     // Address
     address: customer.address,
@@ -346,11 +351,16 @@ router.post('/', asyncHandler(async (req, res, next) => {
       customerData = {
         primaryName: req.body.primaryName,
         primaryEmail: req.body.primaryEmail,
+        primaryEmailType: req.body.primaryEmailType || 'PERSONAL',
         primaryPhone: req.body.primaryPhone || '555-555-5555', // Default phone if not provided
+        primaryPhoneType: req.body.primaryPhoneType || 'MOBILE',
         secondaryName: req.body.secondaryName || null,
         secondaryEmail: req.body.secondaryEmail || null,
+        secondaryEmailType: req.body.secondaryEmailType || 'PERSONAL',
         secondaryPhone: req.body.secondaryPhone || null,
+        secondaryPhoneType: req.body.secondaryPhoneType || 'MOBILE',
         primaryContact: req.body.primaryContact || 'PRIMARY',
+        primaryPhoneContact: req.body.primaryPhone || 'PRIMARY',
         address: req.body.address || 'No address provided',
         notes: req.body.notes || null
       };
@@ -359,11 +369,16 @@ router.post('/', asyncHandler(async (req, res, next) => {
       customerData = {
         primaryName: req.body.name,
         primaryEmail: req.body.email,
+        primaryEmailType: 'PERSONAL',
         primaryPhone: req.body.phone || '555-555-5555',
+        primaryPhoneType: 'MOBILE',
         secondaryName: null,
         secondaryEmail: null,
+        secondaryEmailType: 'PERSONAL',
         secondaryPhone: null,
+        secondaryPhoneType: 'MOBILE',
         primaryContact: 'PRIMARY',
+        primaryPhoneContact: 'PRIMARY',
         address: req.body.address || 'No address provided',
         notes: req.body.notes || null
       };
