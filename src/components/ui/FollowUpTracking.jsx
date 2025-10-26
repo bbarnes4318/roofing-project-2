@@ -117,30 +117,6 @@ const FollowUpTracking = ({ colorMode }) => {
 
   return (
     <div className="space-y-2">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
-          <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Total</div>
-          <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.total || 0}</div>
-        </div>
-        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
-          <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Pending</div>
-          <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.pending || 0}</div>
-        </div>
-        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
-          <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Completed</div>
-          <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.completed || 0}</div>
-        </div>
-        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
-          <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Cancelled</div>
-          <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.cancelled || 0}</div>
-        </div>
-        <div className={`p-2 rounded border ${colorMode ? 'bg-[#181f3a] border-[#3b82f6]' : 'bg-white border-gray-200'}`}>
-          <div className={`text-xs font-semibold ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>Overdue</div>
-          <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>{stats.overdue || 0}</div>
-        </div>
-      </div>
-
       {/* Follow-up List */}
       <div className="space-y-2">
         {tracking.length === 0 ? (
