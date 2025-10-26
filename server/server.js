@@ -140,6 +140,7 @@ const workflowDataRoutes = require('./routes/workflow-data');
 const excelDataRoutes = require('./routes/excelDataManager');
 const completeExcelDataRoutes = require('./routes/completeExcelDataManager');
 const oauthRoutes = require('./routes/oauth');
+const formSubmissionsRoutes = require('./routes/formSubmissions');
 
 let workflowRoutes;
 try {
@@ -885,6 +886,8 @@ app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/feedback', require('./routes/comments'));
 app.use('/api/users', require('./routes/userProfile'));
 app.use('/api/oauth', oauthRoutes);
+app.use('/api/form-submissions', formSubmissionsRoutes);
+console.log('✅ SERVER: Form submissions routes registered at /api/form-submissions');
 // RAG + Files + Upload microservice endpoints
 app.use('/api', uploadRoutes);
 app.use('/api', filesRoutes);
