@@ -75,7 +75,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const uploadRes = await fetch('/api/auth/upload-avatar', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           body: formData
         });
@@ -123,7 +123,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       const response = await fetch('/api/auth/remove-avatar', {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
           'Content-Type': 'application/json'
         }
       });
@@ -244,7 +244,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const uploadRes = await fetch('/api/auth/upload-avatar', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${localStorage.getItem('authToken')}`
           },
           body: formData
         });
@@ -327,7 +327,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   // New function to save array-based role assignments
   const saveRoleAssignments = async (newRoleAssignments) => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
       console.log('💾 Saving role assignments:', newRoleAssignments);
 
       // Convert role assignments to the format expected by the backend
@@ -384,7 +384,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       setRoleAssignments(newAssignments);
 
       // Get existing token (don't create new one)
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
       console.log(`🔑 DEBUGGING: Token exists: ${!!token}`);
 
       if (!token) {
@@ -467,7 +467,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   // Function to load just role assignments
   const loadRoleAssignments = async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
       if (!token) {
         console.log('⚠️ No token available for loading role assignments');
         return;
@@ -534,7 +534,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         setUsersLoading(true);
 
         // Get auth token; do not create demo tokens
-        const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+        const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
         if (!token) {
           console.warn('⚠️ No auth token found');
         }
@@ -705,7 +705,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     try {
       const response = await fetch('/api/follow-up/settings', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
       const data = await response.json();
@@ -725,7 +725,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken') || localStorage.getItem('authToken')}`
         },
         body: JSON.stringify(followUpSettings)
       });
@@ -1095,7 +1095,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     setIsClearingData(true);
 
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
       
       // Delete all tasks
       const tasksResponse = await fetch(`${API_BASE_URL}/tasks`, {
