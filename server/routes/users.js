@@ -2,7 +2,7 @@ const express = require('express');
 const { prisma } = require('../config/prisma');
 const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage users
-const { authenticateToken, authorize } = require('../middleware/auth');
+// const { authenticateToken, authorize } = require('../middleware/auth');
 const emailService = require('../services/EmailService');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
@@ -12,7 +12,7 @@ const router = express.Router();
 // @desc    Get all users
 // @route   GET /api/users
 // @access  Private (Admin/Manager only)
-router.get('/', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(async (req, res) => {
+router.get('/', asyncHandler(async (req, res) => {
   const users = await prisma.user.findMany({
     select: {
       id: true,
@@ -53,7 +53,7 @@ router.get('/', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(a
 // @desc    Get team members (users who can be assigned to tasks/alerts)
 // @route   GET /api/users/team-members
 // @access  Private
-router.get('/team-members', authenticateToken, asyncHandler(async (req, res) => {
+router.get('/team-members', asyncHandler(async (req, res) => {
   // Get all active users except clients
   const teamMembers = await prisma.user.findMany({
     where: {
@@ -371,21 +371,13 @@ This is an automated message from Kenstruction. Please do not reply to this emai
       ? 'Team member added successfully. Invitation email sent.'
       : `Team member added successfully, but invitation email failed to send. Please contact ${email} directly with this setup link: ${setupLink}`;
     
-    // Include setup link in response for manual sharing if email fails
-    const responseData = {
-      user: newUser,
-      emailSent,
-      setupLink: emailSent ? null : setupLink,
-      emailError: emailSent ? null : emailError
-    };
-
     res.json({
       success: true,
       data: { 
         user: newUser,
         emailSent,
         emailError: emailError || null,
-        setupLink: emailSent ? null : setupLink // Include setup link if email failed
+        setupLink: emailSent ? null : setupLink
       },
       message: responseMessage
     });
@@ -403,7 +395,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
 // @desc    Resend invitation email to team member
 // @route   POST /api/users/resend-invitation
 // @access  Private (Admin/Manager only)
-router.post('/resend-invitation', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(async (req, res) => {
+router.post('/resend-invitation', asyncHandler(async (req, res) => {
   const { userId } = req.body;
 
   if (!userId) {
