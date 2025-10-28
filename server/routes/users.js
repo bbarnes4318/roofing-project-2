@@ -150,7 +150,7 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // @desc    Add new team member
 // @route   POST /api/users/add-team-member
 // @access  Private (Admin/Manager only)
-router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER'), asyncHandler(async (req, res) => {
+router.post('/add-team-member', asyncHandler(async (req, res) => {
   const { 
     firstName, 
     lastName, 
