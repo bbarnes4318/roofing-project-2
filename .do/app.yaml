@@ -4,7 +4,7 @@ services:
   source_dir: /
   github:
     repo: bbarnes4318/roofing-project-2
-    branch: bubbles-sep29
+    branch: oct10
   build_command: REACT_APP_GOOGLE_MAPS_API_KEY=${REACT_APP_GOOGLE_MAPS_API_KEY} npm install && npm run build && mkdir -p server/public && cp -r build/* server/public/
   run_command: NODE_ENV=production node server/server.js
   environment_slug: node-js
