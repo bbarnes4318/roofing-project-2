@@ -9,8 +9,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     phone: '',
     secondaryPhone: '',
     preferredPhone: '',
-    role: 'WORKER',
-    password: '' // Temporary password for Supabase signup
+    role: 'WORKER'
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,14 +70,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
       setError('Please enter a valid email address');
       return false;
     }
-    if (!formData.password.trim()) {
-      setError('Temporary password is required');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
     if (formData.phone && formData.secondaryPhone && !formData.preferredPhone) {
       setError('Please select which phone number is preferred for customer communications');
       return false;
@@ -118,8 +109,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
           phone: formData.phone || null,
           secondaryPhone: formData.secondaryPhone || null,
           preferredPhone: formData.preferredPhone || formData.phone || null,
-          role: formData.role,
-          password: formData.password // Include password for Supabase signup
+          role: formData.role
         })
       });
 
@@ -142,8 +132,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
           phone: '',
           secondaryPhone: '',
           preferredPhone: '',
-          role: 'WORKER',
-          password: ''
+          role: 'WORKER'
         });
       } else {
         throw new Error(result.message || 'Failed to add team member');
@@ -357,25 +346,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
                 </div>
               </div>
             )}
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Temporary Password *
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Minimum 6 characters"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                The team member will use this password to log in initially. They can change it later.
-              </p>
-            </div>
 
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
