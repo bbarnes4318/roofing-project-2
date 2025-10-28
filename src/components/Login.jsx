@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { supabase, getCurrentUser, isUserVerified, signOut, sendPasswordResetEmail } from '../lib/supabaseClient';
+import React, { useState } from 'react';
+import { API_BASE_URL } from '../services/api';
 
 const Login = ({ onLoginSuccess }) => {
   const [mode, setMode] = useState('login'); // 'login', 'signup', 'forgot'
@@ -10,24 +10,6 @@ const Login = ({ onLoginSuccess }) => {
   const [lastName, setLastName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
-  const [user, setUser] = useState(null);
-
-  // Check for current user on mount
-  useEffect(() => {
-    checkUser();
-    
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const checkUser = async () => {
-    const currentUser = await getCurrentUser();
-    setUser(currentUser);
-  };
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -46,24 +28,31 @@ const Login = ({ onLoginSuccess }) => {
     setMessage({ type: '', text: '' });
 
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            first_name: firstName.trim(),
-            last_name: lastName.trim(),
-          }
+      // Use our backend API for registration
+      const response = await fetch(`${API_BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: email.trim(),
+          password: password,
+          role: 'WORKER'
+        })
       });
 
-      if (error) throw error;
+      const result = await response.json();
 
-      if (data?.user) {
+      if (!response.ok) {
+        throw new Error(result.message || 'Registration failed');
+      }
+
+      if (result.success) {
         setMessage({ 
           type: 'success', 
-          text: 'Account created! Please check your email to verify your account.' 
+          text: 'Account created! You can now log in.' 
         });
         setEmail('');
         setPassword('');
@@ -85,26 +74,35 @@ const Login = ({ onLoginSuccess }) => {
     setMessage({ type: '', text: '' });
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Use our backend API for login
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: password
+        })
       });
 
-      if (error) throw error;
+      const result = await response.json();
 
-      if (data?.user) {
-        if (!isUserVerified(data.user)) {
-          setMessage({ 
-            type: 'warning', 
-            text: 'Please verify your email before logging in. Check your inbox for the verification link.' 
-          });
-          await signOut();
-        } else {
-          setMessage({ type: 'success', text: 'Login successful!' });
-          // Call the parent's login success handler with the user
-          if (onLoginSuccess) {
-            onLoginSuccess(data.user);
-          }
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+
+      if (result.success && result.data.token) {
+        // Store token and user data
+        localStorage.setItem('authToken', result.data.token);
+        sessionStorage.setItem('authToken', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+        
+        setMessage({ type: 'success', text: 'Login successful!' });
+        
+        // Call the parent's login success handler
+        if (onLoginSuccess) {
+          onLoginSuccess(result.data.user);
         }
       }
     } catch (error) {
@@ -116,259 +114,23 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleForgotPassword = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setMessage({ type: '', text: '' });
-
-    try {
-      await sendPasswordResetEmail(email);
-      setMessage({ 
-        type: 'success', 
-        text: 'Password reset email sent! Please check your inbox.' 
-      });
-      setEmail('');
-      setTimeout(() => setMode('login'), 5000);
-    } catch (error) {
-      setMessage({ type: 'error', text: error.message });
-    } finally {
-      setLoading(false);
-    }
+    setMessage({ type: 'info', text: 'Password reset functionality coming soon.' });
   };
-
-  const handleSignOut = async () => {
-    setLoading(true);
-    try {
-      await signOut();
-      setMessage({ type: 'success', text: 'Signed out successfully!' });
-      setUser(null);
-    } catch (error) {
-      setMessage({ type: 'error', text: error.message });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // If user is logged in and parent callback exists, call it
-  if (user && isUserVerified(user)) {
-    if (onLoginSuccess) {
-      // Call the parent's login success handler
-      onLoginSuccess(user);
-      return null; // Don't render anything, let parent handle the navigation
-    }
-    
-    // Fallback: show user info and logout button (only if no parent callback)
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-gray-800 mb-2">Welcome!</h2>
-            <p className="text-gray-600">You are logged in</p>
-          </div>
-          
-          <div className="bg-gray-50 rounded-lg p-4 mb-6">
-            <p className="text-sm text-gray-600 mb-1">Logged in as:</p>
-            <p className="text-lg font-semibold text-gray-800">
-              {user.user_metadata?.first_name && user.user_metadata?.last_name 
-                ? `${user.user_metadata.first_name} ${user.user_metadata.last_name}`
-                : user.email}
-            </p>
-            {user.user_metadata?.first_name && user.user_metadata?.last_name && (
-              <p className="text-sm text-gray-500">{user.email}</p>
-            )}
-          </div>
-
-          <button
-            onClick={handleSignOut}
-            disabled={loading}
-            className="w-full py-3 px-4 bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
-          >
-            {loading ? 'Signing out...' : 'Sign Out'}
-          </button>
-
-          {message.text && (
-            <div className={`mt-4 p-3 rounded-lg text-sm ${
-              message.type === 'error' ? 'bg-red-100 text-red-700' :
-              message.type === 'success' ? 'bg-green-100 text-green-700' :
-              'bg-yellow-100 text-yellow-700'
-            }`}>
-              {message.text}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 max-w-md w-full">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">
-            {mode === 'login' ? 'Welcome Back' : 
-             mode === 'signup' ? 'Create Account' : 
-             'Reset Password'}
-          </h1>
+        <div className="text-center mb-6">
+          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+            {mode === 'login' ? 'Welcome Back' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
+          </h2>
           <p className="text-gray-600">
-            {mode === 'login' ? 'Sign in to your account' : 
-             mode === 'signup' ? 'Sign up for a new account' : 
-             'Enter your email to reset password'}
+            {mode === 'login' ? 'Sign in to your account' : mode === 'signup' ? 'Join our platform' : 'Enter your email to reset password'}
           </p>
         </div>
 
-        {/* Form */}
-        <form onSubmit={
-          mode === 'login' ? handleLogin : 
-          mode === 'signup' ? handleSignUp : 
-          handleForgotPassword
-        }>
-          <div className="space-y-4">
-            {mode === 'signup' && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                      First Name
-                    </label>
-                    <input
-                      id="firstName"
-                      type="text"
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="John"
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                      Last Name
-                    </label>
-                    <input
-                      id="lastName"
-                      type="text"
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                      placeholder="Doe"
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="you@example.com"
-              />
-            </div>
-
-            {mode !== 'forgot' && (
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="••••••••"
-                  minLength={6}
-                />
-              </div>
-            )}
-
-            {mode === 'signup' && (
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  required
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                  placeholder="••••••••"
-                  minLength={6}
-                />
-              </div>
-            )}
-          </div>
-
-          {/* Forgot Password Link */}
-          {mode === 'login' && (
-            <div className="mt-4 text-right">
-              <button
-                type="button"
-                onClick={() => setMode('forgot')}
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-6 py-3 px-4 bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700 text-white font-semibold rounded-lg transition-colors duration-200 disabled:opacity-50"
-          >
-            {loading ? 'Processing...' : 
-             mode === 'login' ? 'Sign In' : 
-             mode === 'signup' ? 'Sign Up' : 
-             'Send Reset Email'}
-          </button>
-        </form>
-
-        {/* Mode Switch */}
-        <div className="mt-6 text-center">
-          {mode === 'login' ? (
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <button
-                onClick={() => setMode('signup')}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Sign up
-              </button>
-            </p>
-          ) : mode === 'signup' ? (
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <button
-                onClick={() => setMode('login')}
-                className="text-blue-600 hover:text-blue-700 font-medium"
-              >
-                Sign in
-              </button>
-            </p>
-          ) : (
-            <button
-              onClick={() => setMode('login')}
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              Back to login
-            </button>
-          )}
-        </div>
-
-        {/* Message Display */}
         {message.text && (
-          <div className={`mt-6 p-3 rounded-lg text-sm ${
+          <div className={`mb-4 p-3 rounded-lg ${
             message.type === 'error' ? 'bg-red-100 text-red-700' :
             message.type === 'success' ? 'bg-green-100 text-green-700' :
             message.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
@@ -376,6 +138,188 @@ const Login = ({ onLoginSuccess }) => {
           }`}>
             {message.text}
           </div>
+        )}
+
+        {mode === 'login' && (
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setMode('forgot')}
+                className="text-blue-600 hover:text-blue-800 text-sm"
+              >
+                Forgot password?
+              </button>
+            </div>
+            <div className="text-center">
+              <span className="text-gray-600 text-sm">Don't have an account? </span>
+              <button
+                type="button"
+                onClick={() => setMode('signup')}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Sign up
+              </button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'signup' && (
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  id="firstName"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  id="lastName"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  required
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                minLength="6"
+              />
+            </div>
+            <div>
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-1">
+                Confirm Password
+              </label>
+              <input
+                type="password"
+                id="confirmPassword"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+                minLength="6"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Creating account...' : 'Create Account'}
+            </button>
+            <div className="text-center">
+              <span className="text-gray-600 text-sm">Already have an account? </span>
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Sign in
+              </button>
+            </div>
+          </form>
+        )}
+
+        {mode === 'forgot' && (
+          <form onSubmit={handleForgotPassword} className="space-y-4">
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Sending...' : 'Send Reset Email'}
+            </button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => setMode('login')}
+                className="text-blue-600 hover:text-blue-800 text-sm"
+              >
+                Back to Sign In
+              </button>
+            </div>
+          </form>
         )}
       </div>
     </div>
