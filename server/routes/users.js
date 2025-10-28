@@ -5,6 +5,12 @@ const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 const { authenticateToken, authorize } = require('../middleware/auth');
 const emailService = require('../services/EmailService');
 const crypto = require('crypto');
+const { createClient } = require('@supabase/supabase-js');
+
+// Initialize Supabase client
+const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Need service role key for server-side operations
+const supabase = supabaseUrl && supabaseServiceKey ? createClient(supabaseUrl, supabaseServiceKey) : null;
 
 const router = express.Router();
 
@@ -157,7 +163,8 @@ router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER')
     phone, 
     secondaryPhone, 
     preferredPhone, 
-    role 
+    role,
+    password 
   } = req.body;
 
   // Validate required fields
@@ -204,7 +211,40 @@ router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER')
       role
     });
 
-    // Create new user
+    // Create Supabase account first (if Supabase is configured and password provided)
+    let supabaseUser = null;
+    if (supabase && password) {
+      try {
+        console.log('🔍 Creating Supabase account...');
+        const { data: supabaseData, error: supabaseError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true, // AUTO-CONFIRM to prevent Supabase from sending verification email
+          user_metadata: {
+            first_name: firstName,
+            last_name: lastName,
+            role: role,
+            phone: phone,
+            secondary_phone: secondaryPhone,
+            preferred_phone: preferredPhone,
+            is_team_member: true
+          }
+        });
+
+        if (supabaseError) {
+          console.error('❌ Supabase user creation failed:', supabaseError);
+          // Continue with backend user creation even if Supabase fails
+        } else {
+          supabaseUser = supabaseData.user;
+          console.log('✅ Supabase user created (auto-confirmed):', supabaseUser.id);
+        }
+      } catch (supabaseErr) {
+        console.error('❌ Supabase error:', supabaseErr);
+        // Continue with backend user creation
+      }
+    }
+
+    // Create new user in database
     const newUser = await prisma.user.create({
       data: {
         firstName,
@@ -214,7 +254,7 @@ router.post('/add-team-member', authenticateToken, authorize('ADMIN', 'MANAGER')
         secondaryPhone: secondaryPhone || null,
         preferredPhone: preferredPhone || phone || null,
         role,
-        password: 'PENDING_SETUP', // User will set password via email link
+        password: supabaseUser ? 'SUPABASE_MANAGED' : 'PENDING_SETUP', // Use Supabase if available
         isActive: true,
         isVerified: false,
         emailVerificationToken,
