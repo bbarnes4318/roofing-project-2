@@ -38,10 +38,22 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
   // Load comments when component mounts
   useEffect(() => {
     const loadComments = async () => {
-      // Use real API database
-      const response = await feedbackService.getComments(feedback.id);
-      console.log('Comments loaded via API:', response.data);
-      setComments(Array.isArray(response.data) ? response.data : []);
+      try {
+        // Use real API database
+        const response = await feedbackService.getComments(feedback.id);
+        console.log('Comments loaded via API:', response.data);
+        
+        // Check if response has expected structure
+        if (response.data && response.data.success && Array.isArray(response.data.data)) {
+          setComments(response.data.data);
+        } else {
+          console.error('Invalid comments response structure:', response.data);
+          setComments([]);
+        }
+      } catch (error) {
+        console.error('Failed to load comments:', error);
+        setComments([]);
+      }
     };
 
     loadComments();
@@ -147,8 +159,15 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
       console.log('Comment ID from API:', response.data?.data?.id);
       console.log('Full comment object:', JSON.stringify(response.data, null, 2));
       
-      if (!response.data?.data?.id) {
-        console.error('Comment created but no ID returned from API');
+      // Check if the response has the expected structure
+      if (!response.data || !response.data.success) {
+        console.error('Invalid API response structure:', response.data);
+        toast.error('Invalid response from server');
+        return;
+      }
+      
+      if (!response.data.data || !response.data.data.id) {
+        console.error('Comment created but no ID returned from API:', response.data);
         toast.error('Comment created but missing ID');
         return;
       }
@@ -425,63 +444,72 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
 
               {/* Comments List */}
               <div className="space-y-4">
-                {Array.isArray(comments) && comments.map((comment, index) => {
-                  console.log('Rendering comment:', comment.id, 'at index:', index);
-                  return (
-                  <div key={comment.id || `comment-${index}-${Date.now()}`} className={`p-4 rounded-lg border ${
-                    comment.isPinned 
-                      ? 'border-yellow-300 bg-yellow-50' 
-                      : colorMode 
-                      ? 'bg-slate-700 border-slate-600' 
-                      : 'bg-white border-gray-200'
-                  }`}>
-                    <div className="flex items-start space-x-3">
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                        comment.isDeveloper
-                          ? 'bg-blue-500 text-white'
-                          : colorMode 
-                          ? 'bg-slate-600 text-white' 
-                          : 'bg-gray-200 text-gray-700'
-                      }`}>
-                        {comment.author?.name?.charAt(0) || 'U'}
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <span className={`font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                            {comment.author?.name || 'Anonymous'}
-                          </span>
-                          {comment.isDeveloper && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              Developer
-                            </span>
-                          )}
-                          {comment.isPinned && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              <Pin className="h-3 w-3 mr-1" />
-                              Pinned
-                            </span>
-                          )}
-                          <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            {(() => {
-                              try {
-                                if (!comment.createdAt) return 'Just now';
-                                const date = new Date(comment.createdAt);
-                                if (isNaN(date.getTime())) return 'Just now';
-                                return formatDistanceToNow(date, { addSuffix: true });
-                              } catch (error) {
-                                return 'Just now';
-                              }
-                            })()}
-                          </span>
+                {console.log('Total comments in state:', comments.length, comments)}
+                {Array.isArray(comments) && comments.length > 0 ? (
+                  comments.map((comment, index) => {
+                    console.log('Rendering comment:', comment.id, 'at index:', index);
+                    return (
+                    <div key={comment.id || `comment-${index}-${Date.now()}`} className={`p-4 rounded-lg border ${
+                      comment.isPinned 
+                        ? 'border-yellow-300 bg-yellow-50' 
+                        : colorMode 
+                        ? 'bg-slate-700 border-slate-600' 
+                        : 'bg-white border-gray-200'
+                    }`}>
+                      <div className="flex items-start space-x-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                          comment.isDeveloper
+                            ? 'bg-blue-500 text-white'
+                            : colorMode 
+                            ? 'bg-slate-600 text-white' 
+                            : 'bg-gray-200 text-gray-700'
+                        }`}>
+                          {comment.author?.name?.charAt(0) || 'U'}
                         </div>
-                        <div className={`whitespace-pre-wrap ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                          {comment.body}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <span className={`font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                              {comment.author?.name || 'Anonymous'}
+                            </span>
+                            {comment.isDeveloper && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                Developer
+                              </span>
+                            )}
+                            {comment.isPinned && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <Pin className="h-3 w-3 mr-1" />
+                                Pinned
+                              </span>
+                            )}
+                            <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              {(() => {
+                                try {
+                                  if (!comment.createdAt) return 'Just now';
+                                  const date = new Date(comment.createdAt);
+                                  if (isNaN(date.getTime())) return 'Just now';
+                                  return formatDistanceToNow(date, { addSuffix: true });
+                                } catch (error) {
+                                  return 'Just now';
+                                }
+                              })()}
+                            </span>
+                          </div>
+                          <div className={`whitespace-pre-wrap ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {comment.body}
+                          </div>
                         </div>
                       </div>
                     </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-center py-8">
+                    <MessageCircle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                    <p className="text-gray-500">No comments yet</p>
+                    <p className="text-sm text-gray-400 mt-2">Be the first to comment on this feedback</p>
                   </div>
-                  );
-                })}
+                )}
               </div>
             </div>
           </div>
