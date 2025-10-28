@@ -354,7 +354,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
           text: emailText,
           tags: {
             type: 'team_member_invitation',
-            sentBy: req.user.id,
+            sentBy: 'system',
             newUserId: newUser.id
           }
         });
@@ -522,7 +522,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
           text: emailText,
           tags: {
             type: 'team_member_invitation_resent',
-            sentBy: req.user.id,
+            sentBy: 'system',
             userId: user.id
           }
         });
