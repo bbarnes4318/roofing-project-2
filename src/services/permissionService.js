@@ -9,7 +9,7 @@ class PermissionService {
    * Get authentication headers
    */
   getAuthHeaders() {
-    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
     console.log('🔍 PERMISSION SERVICE: Token found:', token ? 'Yes' : 'No');
     return {
       'Content-Type': 'application/json',
