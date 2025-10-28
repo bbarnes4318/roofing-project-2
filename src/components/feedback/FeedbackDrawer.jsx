@@ -144,16 +144,16 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
       });
       
       console.log('Comment created via API:', response.data);
-      console.log('Comment ID from API:', response.data?.id);
+      console.log('Comment ID from API:', response.data?.data?.id);
       console.log('Full comment object:', JSON.stringify(response.data, null, 2));
       
-      if (!response.data?.id) {
+      if (!response.data?.data?.id) {
         console.error('Comment created but no ID returned from API');
         toast.error('Comment created but missing ID');
         return;
       }
       
-      const comment = response.data;
+      const comment = response.data.data;
       console.log('Adding comment to state:', comment);
       setComments(prev => {
         const newComments = [comment, ...prev];
