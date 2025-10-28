@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { API_BASE_URL } from '../../services/api';
 
 const AddTeamMemberPage = ({ colorMode }) => {
   const [formData, setFormData] = useState({
@@ -9,8 +9,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     phone: '',
     secondaryPhone: '',
     preferredPhone: '',
-    role: 'WORKER',
-    password: '' // Temporary password for Supabase signup
+    role: 'WORKER'
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -71,14 +70,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
       setError('Please enter a valid email address');
       return false;
     }
-    if (!formData.password.trim()) {
-      setError('Temporary password is required');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
     if (formData.phone && formData.secondaryPhone && !formData.preferredPhone) {
       setError('Please select which phone number is preferred for customer communications');
       return false;
@@ -97,32 +88,43 @@ const AddTeamMemberPage = ({ colorMode }) => {
     setIsSubmitting(true);
 
     try {
-      // Use Supabase to create the user account
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            first_name: formData.firstName.trim(),
-            last_name: formData.lastName.trim(),
-            role: formData.role,
-            phone: formData.phone,
-            secondary_phone: formData.secondaryPhone,
-            preferred_phone: formData.preferredPhone,
-            is_team_member: true // Flag to identify team members
-          }
-        },
-      });
-
-      if (error) {
-        throw error;
+      // Get auth token
+      const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+      
+      if (!token) {
+        throw new Error('Authentication required. Please log in again.');
       }
 
-      if (data?.user) {
+      // Use backend API to create team member
+      const response = await fetch(`${API_BASE_URL}/users/add-team-member`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          firstName: formData.firstName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          phone: formData.phone || null,
+          secondaryPhone: formData.secondaryPhone || null,
+          preferredPhone: formData.preferredPhone || formData.phone || null,
+          role: formData.role
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to add team member');
+      }
+
+      if (result.success) {
         setSuccess(true);
-        setEmailStatus(true);
-        setSetupLink(`${window.location.origin}/dashboard`);
+        setEmailStatus(result.data.emailSent);
+        setSetupLink(result.data.setupLink || '');
+        
+        // Reset form
         setFormData({
           firstName: '',
           lastName: '',
@@ -130,9 +132,10 @@ const AddTeamMemberPage = ({ colorMode }) => {
           phone: '',
           secondaryPhone: '',
           preferredPhone: '',
-          role: 'WORKER',
-          password: ''
+          role: 'WORKER'
         });
+      } else {
+        throw new Error(result.message || 'Failed to add team member');
       }
     } catch (err) {
       setError(err.message || 'Failed to add team member');
@@ -163,25 +166,28 @@ const AddTeamMemberPage = ({ colorMode }) => {
             {emailStatus ? (
               <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  ✅ A Supabase account has been created for {formData.email}. They will receive an email to verify their account and can then log in with the temporary password you provided.
+                  ✅ Team member has been added to the system and invitation email sent successfully!
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  The team member should check their email for verification instructions and can log in at: <code className="bg-gray-100 px-1 rounded">{window.location.origin}/login</code>
+                  The team member should check their email for the setup link to complete their profile and set their password.
                 </p>
               </div>
             ) : (
               <div>
                 <p className="text-sm text-yellow-600 mb-4">
-                  ⚠️ Team member account was created, but there may have been an issue with email delivery. They can still log in with the temporary password you provided.
+                  ⚠️ Team member was added to the system, but the invitation email failed to send.
                 </p>
                 <div className="bg-gray-100 p-3 rounded-md mb-4">
-                  <p className="text-xs text-gray-600">Login URL: <code className="break-all">{setupLink}</code></p>
+                  <p className="text-xs text-gray-600">Manual setup link: <code className="break-all">{setupLink}</code></p>
                 </div>
+                <p className="text-xs text-gray-500 mb-4">
+                  Please share this link with the team member so they can complete their profile setup.
+                </p>
                 <button
                   onClick={() => navigator.clipboard.writeText(setupLink)}
                   className="text-blue-600 hover:text-blue-800 text-sm underline"
                 >
-                  Copy Login URL
+                  Copy Setup Link
                 </button>
               </div>
             )}
@@ -265,25 +271,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-                Temporary Password *
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                placeholder="Minimum 6 characters"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-              <p className="text-xs text-gray-500 mt-1">
-                The team member will use this password to log in initially. They can change it later.
-              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
