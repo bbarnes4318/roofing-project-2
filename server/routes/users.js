@@ -4,6 +4,7 @@ const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage users
 // const { authenticateToken, authorize } = require('../middleware/auth');
 const emailService = require('../services/EmailService');
+const supabaseService = require('../services/supabaseService');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
@@ -196,57 +197,76 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
   const emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
   try {
-    console.log('🔍 ADD-TEAM-MEMBER: Creating user with data:', {
+    console.log('🔍 ADD-TEAM-MEMBER: Creating user in Supabase with data:', {
+      email,
       firstName,
       lastName,
-      email,
-      phone,
-      secondaryPhone,
-      preferredPhone,
       role
     });
 
-    // Create new user in database (NO SUPABASE BULLSHIT!)
-    const newUser = await prisma.user.create({
-      data: {
-        firstName,
-        lastName,
-        email,
-        phone: phone || null,
-        secondaryPhone: secondaryPhone || null,
-        preferredPhone: preferredPhone || phone || null,
-        role,
-        password: await bcrypt.hash(password || 'TempPassword123!', 12), // Hash the password properly
-        isActive: true,
-        isVerified: false,
-        emailVerificationToken,
-        emailVerificationExpires,
-        theme: 'LIGHT',
-        language: 'en',
-        timezone: 'UTC'
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        secondaryPhone: true,
-        preferredPhone: true,
-        isActive: true,
-        isVerified: false,
-        createdAt: true
-      }
+    // 1. Create user in Supabase
+    const tempPassword = password || crypto.randomBytes(16).toString('hex');
+    const supabaseUser = await supabaseService.createUser(email, tempPassword, {
+      firstName,
+      lastName,
+      role
     });
 
-    console.log('✅ ADD-TEAM-MEMBER: User created successfully:', {
+    console.log('✅ ADD-TEAM-MEMBER: Supabase user created successfully:', { id: supabaseUser.id });
+
+    // 2. Create user in local database
+    let newUser;
+    try {
+      newUser = await prisma.user.create({
+        data: {
+          firstName,
+          lastName,
+          email,
+          phone: phone || null,
+          secondaryPhone: secondaryPhone || null,
+          preferredPhone: preferredPhone || phone || null,
+          role,
+          password: 'SUPABASE_MANAGED', // Supabase handles auth
+          isActive: true,
+          isVerified: false,
+          emailVerificationToken,
+          emailVerificationExpires,
+          theme: 'LIGHT',
+          language: 'en',
+          timezone: 'UTC'
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          phone: true,
+          secondaryPhone: true,
+          preferredPhone: true,
+          isActive: true,
+          isVerified: false,
+          createdAt: true
+        }
+      });
+    } catch (dbError) {
+      console.error("Error creating user in local DB, attempting to delete from Supabase:", dbError);
+      if (supabaseUser && supabaseUser.id) {
+        try {
+          await supabaseService.supabase.auth.admin.deleteUser(supabaseUser.id);
+          console.log(`Successfully deleted Supabase user ${supabaseUser.id} after local DB error.`);
+        } catch (deleteError) {
+          console.error(`CRITICAL: Failed to delete Supabase user ${supabaseUser.id} after local DB error. Manual cleanup required.`, deleteError);
+        }
+      }
+      throw dbError; // Re-throw the original error
+    }
+
+    console.log('✅ ADD-TEAM-MEMBER: User created successfully in local DB:', {
       id: newUser.id,
       name: `${newUser.firstName} ${newUser.lastName}`,
       email: newUser.email,
       role: newUser.role,
-      isActive: newUser.isActive,
-      isVerified: newUser.isVerified
     });
 
     // Send invitation email

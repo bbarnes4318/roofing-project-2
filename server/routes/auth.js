@@ -18,6 +18,7 @@ const {
   generateToken, 
   userRateLimit 
 } = require('../middleware/auth');
+const supabaseService = require('../services/supabaseService');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 // Dev fallback store when DB is not connected
@@ -133,20 +134,42 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
     return next(new AppError('User already exists with this email', 400));
   }
 
-  // Create user
-  const user = await prisma.user.create({
-    data: {
-      firstName,
-      lastName,
-      email,
-      password: await bcrypt.hash(password, 12),
-      role: role ? role.toUpperCase() : 'WORKER',
-      phone,
-      position,
-      emailVerificationToken: crypto.randomBytes(32).toString('hex'),
-      emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
-    }
+  // 1. Create user in Supabase
+  const supabaseUser = await supabaseService.createUser(email, password, {
+    firstName,
+    lastName,
+    role: role ? role.toUpperCase() : 'WORKER'
   });
+
+  // 2. Create user in local database
+  let user;
+  try {
+    user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        password: 'SUPABASE_MANAGED', // Supabase handles auth
+        role: role ? role.toUpperCase() : 'WORKER',
+        phone,
+        position,
+        emailVerificationToken: crypto.randomBytes(32).toString('hex'),
+        emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      }
+    });
+  } catch (dbError) {
+    console.error("Error creating user in local DB, attempting to delete from Supabase:", dbError);
+    if (supabaseUser && supabaseUser.id) {
+      try {
+        await supabaseService.supabase.auth.admin.deleteUser(supabaseUser.id);
+        console.log(`Successfully deleted Supabase user ${supabaseUser.id} after local DB error.`);
+      } catch (deleteError) {
+        console.error(`CRITICAL: Failed to delete Supabase user ${supabaseUser.id} after local DB error. Manual cleanup required.`, deleteError);
+      }
+    }
+    throw dbError; // Re-throw the original error
+  }
+
 
   // Generate token
   const token = generateToken(user.id);
