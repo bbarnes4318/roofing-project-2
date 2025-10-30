@@ -4,7 +4,6 @@ const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
 // Authentication middleware removed - all users can manage users
 // const { authenticateToken, authorize } = require('../middleware/auth');
 const emailService = require('../services/EmailService');
-const supabaseService = require('../services/supabaseService');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 
@@ -148,6 +147,8 @@ router.get('/:id', asyncHandler(async (req, res) => {
   });
 }));
 
+const { createSupabaseUser, deleteSupabaseUser } = require('../services/supabaseService');
+
 // @desc    Add new team member
 // @route   POST /api/users/add-team-member
 // @access  Private (Admin/Manager only)
@@ -180,7 +181,7 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     });
   }
 
-  // Check if user already exists
+  // Check if user already exists in local DB
   const existingUser = await prisma.user.findUnique({
     where: { email }
   });
@@ -192,84 +193,57 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     });
   }
 
-  // Generate email verification token
-  const emailVerificationToken = crypto.randomBytes(32).toString('hex');
-  const emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+  // Generate a temporary password if not provided
+  const temporaryPassword = password || crypto.randomBytes(16).toString('hex');
 
+  let supabaseUser;
   try {
-    console.log('🔍 ADD-TEAM-MEMBER: Creating user in Supabase with data:', {
-      email,
+    // Step 1: Create user in Supabase
+    supabaseUser = await createSupabaseUser(email, temporaryPassword, {
       firstName,
       lastName,
-      role
+      role,
     });
 
-    // 1. Create user in Supabase
-    const tempPassword = password || crypto.randomBytes(16).toString('hex');
-    const supabaseUser = await supabaseService.createUser(email, tempPassword, {
-      firstName,
-      lastName,
-      role
-    });
+    // Step 2: Create user in local Prisma database
+    const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+    const emailVerificationExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    console.log('✅ ADD-TEAM-MEMBER: Supabase user created successfully:', { id: supabaseUser.id });
-
-    // 2. Create user in local database
-    let newUser;
-    try {
-      newUser = await prisma.user.create({
-        data: {
-          firstName,
-          lastName,
-          email,
-          phone: phone || null,
-          secondaryPhone: secondaryPhone || null,
-          preferredPhone: preferredPhone || phone || null,
-          role,
-          password: 'SUPABASE_MANAGED', // Supabase handles auth
-          isActive: true,
-          isVerified: false,
-          emailVerificationToken,
-          emailVerificationExpires,
-          theme: 'LIGHT',
-          language: 'en',
-          timezone: 'UTC'
-        },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
-          phone: true,
-          secondaryPhone: true,
-          preferredPhone: true,
-          isActive: true,
-          isVerified: false,
-          createdAt: true
-        }
-      });
-    } catch (dbError) {
-      console.error("Error creating user in local DB, attempting to delete from Supabase:", dbError);
-      if (supabaseUser && supabaseUser.id) {
-        try {
-          await supabaseService.supabase.auth.admin.deleteUser(supabaseUser.id);
-          console.log(`Successfully deleted Supabase user ${supabaseUser.id} after local DB error.`);
-        } catch (deleteError) {
-          console.error(`CRITICAL: Failed to delete Supabase user ${supabaseUser.id} after local DB error. Manual cleanup required.`, deleteError);
-        }
+    const newUser = await prisma.user.create({
+      data: {
+        id: supabaseUser.id, // Use the ID from Supabase
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+        secondaryPhone: secondaryPhone || null,
+        preferredPhone: preferredPhone || phone || null,
+        role,
+        password: await bcrypt.hash(temporaryPassword, 12),
+        isActive: true,
+        isVerified: false,
+        emailVerificationToken,
+        emailVerificationExpires,
+        theme: 'LIGHT',
+        language: 'en',
+        timezone: 'UTC'
+      },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        secondaryPhone: true,
+        preferredPhone: true,
+        isActive: true,
+        isVerified: false,
+        createdAt: true
       }
-      throw dbError; // Re-throw the original error
-    }
-
-    console.log('✅ ADD-TEAM-MEMBER: User created successfully in local DB:', {
-      id: newUser.id,
-      name: `${newUser.firstName} ${newUser.lastName}`,
-      email: newUser.email,
-      role: newUser.role,
     });
 
-    // Send invitation email
+    // Step 3: Send invitation email
     const setupLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/setup-profile?token=${emailVerificationToken}`;
     
     const emailHtml = `
@@ -331,78 +305,44 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
 
     const emailText = `
 Welcome to Kenstruction!
-
 Hello ${firstName}!
-
 You've been added to our Kenstruction team as a ${role}. We're excited to have you on board!
-
 To get started, please complete your profile setup by visiting this link:
 ${setupLink}
-
-What you'll need to do:
-- Set up your password
-- Complete your profile information  
-- Review your contact preferences
-
-Your contact information:
-- Primary Phone: ${phone || 'Not provided'}
-${secondaryPhone ? `- Secondary Phone: ${secondaryPhone}` : ''}
-- Preferred Contact: ${preferredPhone || phone || 'Not specified'}
-
 This link will expire in 7 days. If you have any questions, please contact your team administrator.
-
-This is an automated message from Kenstruction. Please do not reply to this email.
     `;
-
-    // Check if email service is available
-    console.log('🔍 Email service available:', emailService.isAvailable());
-    console.log('🔍 RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
     
-    // Send the invitation email - now with built-in retry logic
     let emailSent = false;
     let emailError = null;
-    
-    if (!emailService.isAvailable()) {
-      emailError = 'Email service not configured - missing RESEND_API_KEY';
-      console.error('❌ Email service not available:', emailError);
-    } else {
-      try {
-        await emailService.sendEmail({
-          to: email,
-          subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
-          html: emailHtml,
-          text: emailText,
-          tags: {
-            type: 'team_member_invitation',
-            sentBy: 'system',
-            newUserId: newUser.id
-          }
-        });
-        emailSent = true;
-        console.log(`✅ Team member invitation email sent successfully to: ${email}`);
-      } catch (emailErr) {
-        emailError = emailErr.message;
-        console.error(`❌ Failed to send team member invitation email:`, emailErr.message);
-      }
+
+    try {
+      await emailService.sendEmail({
+        to: email,
+        subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+        html: emailHtml,
+        text: emailText,
+      });
+      emailSent = true;
+    } catch (err) {
+      emailError = err.message;
     }
 
-    // Return success with accurate email status
-    const responseMessage = emailSent 
-      ? 'Team member added successfully. Invitation email sent.'
-      : `Team member added successfully, but invitation email failed to send. Please contact ${email} directly with this setup link: ${setupLink}`;
-    
     res.json({
       success: true,
       data: { 
         user: newUser,
         emailSent,
-        emailError: emailError || null,
-        setupLink: emailSent ? null : setupLink
+        emailError,
+        setupLink: emailSent ? null : setupLink,
       },
-      message: responseMessage
+      message: 'Team member added successfully.'
     });
 
   } catch (error) {
+    // If any step fails, roll back the Supabase user creation
+    if (supabaseUser) {
+      await deleteSupabaseUser(supabaseUser.id);
+    }
     console.error('Error adding team member:', error);
     res.status(500).json({
       success: false,

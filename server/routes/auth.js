@@ -7,6 +7,7 @@ const { PutObjectCommand } = require('@aws-sdk/client-s3');
 const { getS3 } = require('../config/spaces');
 const { generateUniqueFilename } = require('../utils/fileUtils');
 const { prisma } = require('../config/prisma');
+const emailService = require('../services/EmailService');
 const { 
   asyncHandler, 
   AppError, 
@@ -18,7 +19,6 @@ const {
   generateToken, 
   userRateLimit 
 } = require('../middleware/auth');
-const supabaseService = require('../services/supabaseService');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } }); // 5MB limit
 // Dev fallback store when DB is not connected
@@ -49,7 +49,7 @@ const registerValidation = [
     .withMessage('Password must be at least 6 characters'),
   body('role')
     .optional()
-    .isIn(['admin', 'manager', 'project_manager', 'foreman', 'worker', 'client'])
+    .isIn(['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT', 'TEAM_MEMBER'])
     .withMessage('Invalid role specified')
 ];
 
@@ -79,6 +79,8 @@ const resetPasswordValidation = [
     .withMessage('Password must be at least 6 characters')
 ];
 
+const { createSupabaseUser, deleteSupabaseUser } = require('../services/supabaseService');
+
 // @desc    Register a new user
 // @route   POST /api/auth/register
 // @access  Public
@@ -95,61 +97,29 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
 
   const { firstName, lastName, email, password, role, phone, position } = req.body;
 
-  // If DB unavailable, use dev fallback
-  if (global.__DB_CONNECTED__ === false && DevUserStore) {
-    try {
-      const existingUser = await DevUserStore.findUserByEmail(email);
-      if (existingUser) {
-        return next(new AppError('User already exists with this email', 400));
-      }
-      const user = await DevUserStore.createUser({ firstName, lastName, email, password, role: (role || 'WORKER').toUpperCase(), phone, position });
-      const token = generateToken(user.id, user.role);
-      return res.status(201).json({
-        success: true,
-        message: 'User registered successfully (dev store)',
-        data: {
-          user: {
-            id: user.id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            role: user.role,
-            isVerified: user.isVerified
-          },
-          token
-        }
-      });
-    } catch (err) {
-      if (err?.code === 'USER_EXISTS') {
-        return next(new AppError('User already exists with this email', 400));
-      }
-      return next(new AppError('Registration failed (dev store)', 500));
-    }
-  }
-
-  // Normal DB-backed path
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
     return next(new AppError('User already exists with this email', 400));
   }
 
-  // 1. Create user in Supabase
-  const supabaseUser = await supabaseService.createUser(email, password, {
-    firstName,
-    lastName,
-    role: role ? role.toUpperCase() : 'WORKER'
-  });
-
-  // 2. Create user in local database
-  let user;
+  let supabaseUser;
   try {
-    user = await prisma.user.create({
+    // Step 1: Create user in Supabase
+    supabaseUser = await createSupabaseUser(email, password, {
+      firstName,
+      lastName,
+      role: role ? role.toUpperCase() : 'WORKER',
+    });
+
+    // Step 2: Create user in local Prisma database
+    const user = await prisma.user.create({
       data: {
+        id: supabaseUser.id, // Use the ID from Supabase
         firstName,
         lastName,
         email,
-        password: 'SUPABASE_MANAGED', // Supabase handles auth
+        password: await bcrypt.hash(password, 12),
         role: role ? role.toUpperCase() : 'WORKER',
         phone,
         position,
@@ -157,38 +127,48 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
         emailVerificationExpires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
       }
     });
-  } catch (dbError) {
-    console.error("Error creating user in local DB, attempting to delete from Supabase:", dbError);
-    if (supabaseUser && supabaseUser.id) {
-      try {
-        await supabaseService.supabase.auth.admin.deleteUser(supabaseUser.id);
-        console.log(`Successfully deleted Supabase user ${supabaseUser.id} after local DB error.`);
-      } catch (deleteError) {
-        console.error(`CRITICAL: Failed to delete Supabase user ${supabaseUser.id} after local DB error. Manual cleanup required.`, deleteError);
+
+    // Send welcome email
+    const setupLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/verify-email/${user.emailVerificationToken}`;
+    const emailHtml = `<h1>Welcome to Kenstruction, ${user.firstName}!</h1><p>Please click this link to verify your email address: <a href="${setupLink}">${setupLink}</a></p>`;
+    const emailText = `Welcome to Kenstruction, ${user.firstName}!\n\nPlease copy and paste this link to verify your email address: ${setupLink}`;
+
+    try {
+      await emailService.sendEmail({
+        to: user.email,
+        subject: 'Welcome to Kenstruction - Verify Your Email',
+        html: emailHtml,
+        text: emailText,
+      });
+    } catch (emailError) {
+      console.error('Failed to send verification email:', emailError);
+      // Don't block the registration if the email fails
+    }
+    // Generate token
+    const token = generateToken(user.id);
+
+    res.status(201).json({
+      success: true,
+      message: 'User registered successfully',
+      data: {
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          role: user.role,
+          isVerified: user.isVerified
+        },
+        token
       }
+    });
+  } catch (error) {
+    // If any step fails, roll back the Supabase user creation
+    if (supabaseUser) {
+      await deleteSupabaseUser(supabaseUser.id);
     }
-    throw dbError; // Re-throw the original error
+    next(error);
   }
-
-
-  // Generate token
-  const token = generateToken(user.id);
-
-  res.status(201).json({
-    success: true,
-    message: 'User registered successfully',
-    data: {
-      user: {
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email,
-        role: user.role,
-        isVerified: user.isVerified
-      },
-      token
-    }
-  });
 }));
 
 // @desc    Login user
