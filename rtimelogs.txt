@@ -1,0 +1,660 @@
+Oct 29 04:27:38  10.244.3.89 - - [29/Oct/2025:04:27:38 +0000] "GET /api/users/team-members HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:38  Error in follow-up settings route: TypeError: Cannot read properties of undefined (reading 'findUnique')
+Oct 29 04:27:38      at /app/routes/followUp.js:25:48
+Oct 29 04:27:38      at /app/middleware/errorHandler.js:151:19
+Oct 29 04:27:38      at Layer.handle [as handle_request] (/app/node_modules/express/lib/router/layer.js:95:5)
+Oct 29 04:27:38      at next (/app/node_modules/express/lib/router/route.js:149:13)
+Oct 29 04:27:38      at authenticateToken (/app/middleware/auth.js:189:5)
+Oct 29 04:27:38  10.244.3.89 - - [29/Oct/2025:04:27:38 +0000] "GET /api/follow-up/settings HTTP/1.1" 500 120 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:38  🔍 ROLES API: Fetching role assignments
+Oct 29 04:27:38  ✅ ROLES API: Found 21 role assignments
+Oct 29 04:27:38  10.244.3.89 - - [29/Oct/2025:04:27:38 +0000] "GET /api/roles HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:40  10.244.20.18 - - [29/Oct/2025:04:27:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:50  10.244.20.18 - - [29/Oct/2025:04:27:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:00  10.244.20.18 - - [29/Oct/2025:04:28:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:10  10.244.20.18 - - [29/Oct/2025:04:28:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:00  10.244.25.189 - - [29/Oct/2025:04:17:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:10  10.244.25.189 - - [29/Oct/2025:04:17:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:20  10.244.25.189 - - [29/Oct/2025:04:17:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:30  10.244.25.189 - - [29/Oct/2025:04:17:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:40  10.244.25.189 - - [29/Oct/2025:04:17:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:17:50  10.244.25.189 - - [29/Oct/2025:04:17:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:18:00  10.244.25.189 - - [29/Oct/2025:04:18:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:18:10  10.244.25.189 - - [29/Oct/2025:04:18:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:18:20  10.244.25.189 - - [29/Oct/2025:04:18:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:18:30  10.244.25.189 - - [29/Oct/2025:04:18:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:18:40  10.244.25.189 - - [29/Oct/2025:04:18:40 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:18:50  10.244.25.189 - - [29/Oct/2025:04:18:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:19:00  10.244.25.189 - - [29/Oct/2025:04:19:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:19:10  10.244.25.189 - - [29/Oct/2025:04:19:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:19:20  10.244.25.189 - - [29/Oct/2025:04:19:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:19:30  10.244.25.189 - - [29/Oct/2025:04:19:30 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:19:40  10.244.25.189 - - [29/Oct/2025:04:19:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:19:50  10.244.25.189 - - [29/Oct/2025:04:19:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:20  10.244.20.18 - - [29/Oct/2025:04:28:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:25  10.244.30.98 - - [29/Oct/2025:04:28:25 +0000] "GET /?firstName=Jonas&lastName=James&email=nedged81%40gmail.com&phone=%28865%29+223-5467&secondaryPhone=&preferredPhone=%28865%29+223-5467&role=ADMIN HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:25  10.244.26.231 - - [29/Oct/2025:04:28:25 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:25  10.244.3.89 - - [29/Oct/2025:04:28:25 +0000] "GET /kenstruction-logo.png HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+Oct 29 04:28:26  👥 ROLES API: Fetching available users
+Oct 29 04:28:26  📅 CALENDAR: GET /api/calendar-events - Request received
+Oct 29 04:28:26  ✅ ROLES API: Found 22 active users
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/roles/users HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  10.244.0.217 - - [29/Oct/2025:04:28:26 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 588 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
+Oct 29 04:28:26  🔍 ACTIVITIES: User from request: {
+Oct 29 04:20:00  🔍 Checking workflow alerts...
+Oct 29 04:20:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 29 04:20:00  🚀 Generating alerts for 36 active projects
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10036
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10034
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10032
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10030
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10001
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10026
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10024
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10035
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10033
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10031
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10029
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10027
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10025
+Oct 29 04:28:26    id: 'cmfld60ef0000bi0d8ky8hlot',
+Oct 29 04:28:26    firstName: 'jimbosky35',
+Oct 29 04:28:26    lastName: '',
+Oct 29 04:28:26    email: 'jimbosky35@gmail.com',
+Oct 29 04:28:26    role: 'WORKER',
+Oct 29 04:28:26    permissions: [],
+Oct 29 04:28:26    isActive: true,
+Oct 29 04:28:26    theme: 'LIGHT',
+Oct 29 04:28:26    lastLogin: 2025-10-28T14:37:48.850Z,
+Oct 29 04:28:26    createdAt: 2025-09-15T16:54:10.310Z,
+Oct 29 04:28:26    updatedAt: 2025-10-28T14:37:48.852Z
+Oct 29 04:28:26  }
+Oct 29 04:28:26  🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🔍 Where clause: { archived: false }
+Oct 29 04:28:26  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 29 04:28:26  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/activities HTTP/1.1" 200 732 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh57wkhv0001830d59jc1g5m
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10028
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10002
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10021
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Upload Pictures on project 10012
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 29 04:20:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10014
+Oct 29 04:20:00  No new alerts to create
+Oct 29 04:20:00  ✅ Generated 0 new alerts
+Oct 29 04:20:00  10.244.25.189 - - [29/Oct/2025:04:20:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:20:10  10.244.25.189 - - [29/Oct/2025:04:20:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmgenlnpt0002j8m0p69qemgx',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh57wkhv0001830d59jc1g5m',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:20:20  10.244.25.189 - - [29/Oct/2025:04:20:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:20:30  10.244.25.189 - - [29/Oct/2025:04:20:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:20:40  10.244.25.189 - - [29/Oct/2025:04:20:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:20:50  10.244.25.189 - - [29/Oct/2025:04:20:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:21:00  10.244.25.189 - - [29/Oct/2025:04:21:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:21:10  10.244.25.189 - - [29/Oct/2025:04:21:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:21:20  10.244.25.189 - - [29/Oct/2025:04:21:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:21:30  10.244.25.189 - - [29/Oct/2025:04:21:30 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:21:40  10.244.25.189 - - [29/Oct/2025:04:21:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:21:50  10.244.25.189 - - [29/Oct/2025:04:21:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:22:00  10.244.25.189 - - [29/Oct/2025:04:22:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:22:07  🔄 Running scheduled overdue alert check...
+Oct 29 04:22:07  ✅ No overdue alerts found
+Oct 29 04:22:10  10.244.25.189 - - [29/Oct/2025:04:22:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:22:20  10.244.25.189 - - [29/Oct/2025:04:22:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:22:30  10.244.25.189 - - [29/Oct/2025:04:22:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh57wkhv0001830d59jc1g5m HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh05unam0002ay0d30cimgaf
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh2seymg00057h0dtca5hpcz
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh05unam0002ay0d30cimgaf',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh05unam0002ay0d30cimgaf HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh53wi2p0002d80dbadzai3g
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:22:40  10.244.25.189 - - [29/Oct/2025:04:22:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:22:50  10.244.25.189 - - [29/Oct/2025:04:22:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:00  10.244.25.189 - - [29/Oct/2025:04:23:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:10  10.244.25.189 - - [29/Oct/2025:04:23:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:20  10.244.25.189 - - [29/Oct/2025:04:23:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:30  10.244.25.189 - - [29/Oct/2025:04:23:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:40  10.244.25.189 - - [29/Oct/2025:04:23:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:23:50  10.244.25.189 - - [29/Oct/2025:04:23:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:00  10.244.25.189 - - [29/Oct/2025:04:24:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:10  10.244.25.189 - - [29/Oct/2025:04:24:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:20  10.244.25.189 - - [29/Oct/2025:04:24:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:30  10.244.25.189 - - [29/Oct/2025:04:24:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:40  10.244.25.189 - - [29/Oct/2025:04:24:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:24:50  10.244.25.189 - - [29/Oct/2025:04:24:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:25:00  🔍 Checking workflow alerts...
+Oct 29 04:25:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 29 04:25:00  🚀 Generating alerts for 36 active projects
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10036
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10034
+Oct 29 04:28:26    projectId: 'cmh2seymg00057h0dtca5hpcz',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10032
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10030
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10001
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10026
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10024
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10035
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10033
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10031
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10029
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10027
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10025
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10028
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 29 04:28:26  10.244.0.217 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh2seymg00057h0dtca5hpcz HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmgen6og30002j8v4bru6mfgv
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh53wi2p0002d80dbadzai3g',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh53wi2p0002d80dbadzai3g HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmgen6og30002j8v4bru6mfgv',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10002
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10021
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Upload Pictures on project 10012
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 29 04:25:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10014
+Oct 29 04:25:00  No new alerts to create
+Oct 29 04:25:00  ✅ Generated 0 new alerts
+Oct 29 04:25:00  10.244.25.189 - - [29/Oct/2025:04:25:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:25:10  10.244.25.189 - - [29/Oct/2025:04:25:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:25:20  10.244.25.189 - - [29/Oct/2025:04:25:20 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:25:30  10.244.25.189 - - [29/Oct/2025:04:25:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:25:40  10.244.25.189 - - [29/Oct/2025:04:25:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:25:50  10.244.25.189 - - [29/Oct/2025:04:25:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:26:00  10.244.25.189 - - [29/Oct/2025:04:26:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:26:10  10.244.25.189 - - [29/Oct/2025:04:26:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:26:20  10.244.25.189 - - [29/Oct/2025:04:26:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:26:30  10.244.25.189 - - [29/Oct/2025:04:26:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:26:40  10.244.25.189 - - [29/Oct/2025:04:26:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmgen6og30002j8v4bru6mfgv HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh23bl3g000lbx0dsxnnofae
+Oct 29 04:28:26  🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh23bl3g000lbx0dsxnnofae',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:26:50  10.244.25.189 - - [29/Oct/2025:04:26:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:00  10.244.25.189 - - [29/Oct/2025:04:27:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:10  10.244.25.189 - - [29/Oct/2025:04:27:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:20  10.244.25.189 - - [29/Oct/2025:04:27:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:29  10.244.26.231 - - [29/Oct/2025:04:27:29 +0000] "GET / HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:29  10.244.3.89 - - [29/Oct/2025:04:27:29 +0000] "GET /favicon.ico HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:30  10.244.25.189 - - [29/Oct/2025:04:27:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:30  10.244.3.89 - - [29/Oct/2025:04:27:30 +0000] "GET /kenstruction-logo.png HTTP/1.1" 200 61767 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:31  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 29 04:27:31  10.244.26.231 - - [29/Oct/2025:04:27:31 +0000] "GET /api/auth/me HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:31  10.244.30.98 - - [29/Oct/2025:04:27:31 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 200 136 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:31  👥 ROLES API: Fetching available users
+Oct 29 04:27:31  🔍 Where clause: { archived: false }
+Oct 29 04:27:31  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 29 04:27:31  ✅ ROLES API: Found 22 active users
+Oct 29 04:27:31  🚨 ALERTS ROUTE: Found 31 alerts from database
+Oct 29 04:27:31  📭 Cache miss: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"}
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh23bl3g000lbx0dsxnnofae HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmgf8ii460002j8mk5niqxu5m',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:27:31  🔍 ACTIVITIES: User from request: {
+Oct 29 04:27:31    id: 'cmfld60ef0000bi0d8ky8hlot',
+Oct 29 04:27:31    firstName: 'jimbosky35',
+Oct 29 04:27:31    lastName: '',
+Oct 29 04:27:31    email: 'jimbosky35@gmail.com',
+Oct 29 04:27:31    role: 'WORKER',
+Oct 29 04:27:31    permissions: [],
+Oct 29 04:27:31    isActive: true,
+Oct 29 04:27:31    theme: 'LIGHT',
+Oct 29 04:27:31    lastLogin: 2025-10-28T14:37:48.850Z,
+Oct 29 04:27:31    createdAt: 2025-09-15T16:54:10.310Z,
+Oct 29 04:27:31    updatedAt: 2025-10-28T14:37:48.852Z
+Oct 29 04:27:31  }
+Oct 29 04:27:31  🔍 ACTIVITIES: Fetching messages, tasks, reminders as activities...
+Oct 29 04:27:31  10.244.3.89 - - [29/Oct/2025:04:27:31 +0000] "GET /api/roles/users HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:31  10.244.3.89 - - [29/Oct/2025:04:27:31 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:31  📅 CALENDAR: GET /api/calendar-events - Request received
+Oct 29 04:27:31  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 29 04:27:31  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 29 04:27:31  🎯 API: Getting project position for: cmgenlnpt0002j8m0p69qemgx
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:30  10.244.20.18 - - [29/Oct/2025:04:28:30 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:28:39  10.244.3.89 - - [29/Oct/2025:04:28:39 +0000] "GET /static/css/main.6fe42322.css.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:40  10.244.20.18 - - [29/Oct/2025:04:28:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:50  10.244.20.18 - - [29/Oct/2025:04:28:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:00  10.244.20.18 - - [29/Oct/2025:04:29:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:10  10.244.20.18 - - [29/Oct/2025:04:29:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:20  10.244.20.18 - - [29/Oct/2025:04:29:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:30  10.244.20.18 - - [29/Oct/2025:04:29:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:40  10.244.20.18 - - [29/Oct/2025:04:29:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:29:50  10.244.20.18 - - [29/Oct/2025:04:29:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:30:00  🔍 Checking workflow alerts...
+Oct 29 04:27:32  10.244.30.98 - - [29/Oct/2025:04:27:32 +0000] "GET /api/calendar-events?limit=20 HTTP/1.1" 200 871 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  🎯 API: Getting project position for: cmgf8ii460002j8mk5niqxu5m
+Oct 29 04:27:32  🔍 ACTIVITIES: Fetching 50 recent activities for user cmfld60ef0000bi0d8ky8hlot...
+Oct 29 04:27:32  📥 Cached: activities:{"userId":"cmfld60ef0000bi0d8ky8hlot"} (TTL: 60s)
+Oct 29 04:27:32  10.244.30.98 - - [29/Oct/2025:04:27:32 +0000] "GET /api/activities HTTP/1.1" 200 732 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  🎯 API: Found position: {
+Oct 29 04:27:32    projectId: 'cmgenlnpt0002j8m0p69qemgx',
+Oct 29 04:27:32    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:27:32    phaseType: 'LEAD',
+Oct 29 04:27:32    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemName: 'Answer phone call',
+Oct 29 04:27:32    sectionDisplayName: 'Initial Contact',
+Oct 29 04:27:32    phaseName: 'Lead'
+Oct 29 04:30:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 29 04:30:00  🚀 Generating alerts for 36 active projects
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10036
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10034
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10032
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10030
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10001
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10026
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10024
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10035
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10033
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10031
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10029
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10027
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10025
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10028
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 29 04:27:32  }
+Oct 29 04:27:32  10.244.26.231 - - [29/Oct/2025:04:27:32 +0000] "GET /api/workflow-data/project-position/cmgenlnpt0002j8m0p69qemgx HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  🎯 API: Found position: {
+Oct 29 04:27:32    projectId: 'cmgf8ii460002j8mk5niqxu5m',
+Oct 29 04:27:32    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:27:32    phaseType: 'LEAD',
+Oct 29 04:27:32    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemName: 'Answer phone call',
+Oct 29 04:27:32    sectionDisplayName: 'Initial Contact',
+Oct 29 04:27:32    phaseName: 'Lead'
+Oct 29 04:27:32  }
+Oct 29 04:27:32  10.244.26.231 - - [29/Oct/2025:04:27:32 +0000] "GET /api/workflow-data/project-position/cmgf8ii460002j8mk5niqxu5m HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  🎯 API: Getting project position for: cmh53gy5j0002ba0dt7d9sakp
+Oct 29 04:27:32  10.244.0.217 - - [29/Oct/2025:04:27:32 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  🎯 API: Found position: {
+Oct 29 04:27:32    projectId: 'cmh53gy5j0002ba0dt7d9sakp',
+Oct 29 04:27:32    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:27:32    phaseType: 'LEAD',
+Oct 29 04:27:32    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:27:32    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:27:32    currentLineItemName: 'Answer phone call',
+Oct 29 04:27:32    sectionDisplayName: 'Initial Contact',
+Oct 29 04:27:32    phaseName: 'Lead'
+Oct 29 04:27:32  }
+Oct 29 04:27:32  10.244.26.231 - - [29/Oct/2025:04:27:32 +0000] "GET /api/workflow-data/project-position/cmh53gy5j0002ba0dt7d9sakp HTTP/1.1" 200 413 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10002
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10021
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Upload Pictures on project 10012
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10014
+Oct 29 04:30:00  No new alerts to create
+Oct 29 04:30:00  ✅ Generated 0 new alerts
+Oct 29 04:30:00  10.244.20.18 - - [29/Oct/2025:04:30:00 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:30:10  10.244.20.18 - - [29/Oct/2025:04:30:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:30:20  10.244.20.18 - - [29/Oct/2025:04:30:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:30:30  10.244.20.18 - - [29/Oct/2025:04:30:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:32  10.244.0.217 - - [29/Oct/2025:04:27:32 +0000] "GET /api/activities/recent?limit=50 HTTP/1.1" 200 588 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:32  10.244.26.231 - - [29/Oct/2025:04:27:32 +0000] "GET /api/projects HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:27:40  10.244.25.189 - - [29/Oct/2025:04:27:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:27:50  10.244.25.189 - - [29/Oct/2025:04:27:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:00  10.244.25.189 - - [29/Oct/2025:04:28:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:10  10.244.25.189 - - [29/Oct/2025:04:28:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:20  10.244.25.189 - - [29/Oct/2025:04:28:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:25  10.244.3.89 - - [29/Oct/2025:04:28:25 +0000] "GET /favicon.ico HTTP/1.1" 200 685 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:25  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 29 04:28:26  🚨 ALERTS ROUTE: Found 31 alerts from database
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/tasks?page=1&limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🔍 Where clause: { archived: false }
+Oct 29 04:28:26  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 29 04:28:26  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 29 04:28:26  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 29 04:28:26  10.244.0.217 - - [29/Oct/2025:04:28:26 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/projects HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh12sxul0001aj0dhu7pmb2n
+Oct 29 04:28:26  🎯 API: Getting project position for: cmgf6ri550002j86cueu0mz21
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:30:40  10.244.20.18 - - [29/Oct/2025:04:30:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:30:50  10.244.20.18 - - [29/Oct/2025:04:30:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:31:00  10.244.20.18 - - [29/Oct/2025:04:31:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:31:10  10.244.20.18 - - [29/Oct/2025:04:31:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:31:20  10.244.20.18 - - [29/Oct/2025:04:31:20 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:31:30  10.244.20.18 - - [29/Oct/2025:04:31:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:31:40  10.244.20.18 - - [29/Oct/2025:04:31:40 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:31:41  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 29 04:31:41  🚨 ALERTS ROUTE: Found 31 alerts from database
+Oct 29 04:31:41  10.244.3.89 - - [29/Oct/2025:04:31:41 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:31:42  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 29 04:31:42  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 29 04:31:42  🔍 Where clause: { archived: false }
+Oct 29 04:31:42  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 29 04:31:42  10.244.0.217 - - [29/Oct/2025:04:31:42 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:31:42  10.244.26.231 - - [29/Oct/2025:04:31:42 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:31:50  10.244.20.18 - - [29/Oct/2025:04:31:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:32:00  10.244.20.18 - - [29/Oct/2025:04:32:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:32:10  10.244.20.18 - - [29/Oct/2025:04:32:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:32:20  10.244.20.18 - - [29/Oct/2025:04:32:20 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:32:30  10.244.20.18 - - [29/Oct/2025:04:32:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:32:40  10.244.20.18 - - [29/Oct/2025:04:32:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:32:50  10.244.20.18 - - [29/Oct/2025:04:32:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:33:00  10.244.20.18 - - [29/Oct/2025:04:33:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:33:10  10.244.20.18 - - [29/Oct/2025:04:33:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:33:20  10.244.20.18 - - [29/Oct/2025:04:33:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:33:30  10.244.20.18 - - [29/Oct/2025:04:33:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:26    projectId: 'cmh12sxul0001aj0dhu7pmb2n',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh12sxul0001aj0dhu7pmb2n HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmgf6ri550002j86cueu0mz21',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:33:40  10.244.20.18 - - [29/Oct/2025:04:33:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:33:50  10.244.20.18 - - [29/Oct/2025:04:33:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:34:00  10.244.20.18 - - [29/Oct/2025:04:34:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:34:10  10.244.20.18 - - [29/Oct/2025:04:34:10 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:34:20  10.244.20.18 - - [29/Oct/2025:04:34:20 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:34:27  🚨 ALERTS ROUTE: Fetching workflow alerts...
+Oct 29 04:34:27  🚨 ALERTS ROUTE: Found 31 alerts from database
+Oct 29 04:34:27  10.244.3.89 - - [29/Oct/2025:04:34:27 +0000] "GET /api/alerts?limit=200 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:34:28  🔍 FEEDBACK DEBUG: About to query feedback table
+Oct 29 04:34:28  🔍 FEEDBACK DEBUG: where clause: {}
+Oct 29 04:34:28  10.244.0.217 - - [29/Oct/2025:04:34:28 +0000] "GET /api/feedback?limit=20 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:34:30  10.244.20.18 - - [29/Oct/2025:04:34:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmgf6ri550002j86cueu0mz21 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmgenwf480002j8is1zivlzr9
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh2354cj0009bx0ddippbvp7
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmgenwf480002j8is1zivlzr9',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmgenwf480002j8is1zivlzr9 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmflohlx1000aj8g4p9renutq
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmflohlx1000aj8g4p9renutq',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.3.89 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmflohlx1000aj8g4p9renutq HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh2354cj0009bx0ddippbvp7',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.0.217 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh2354cj0009bx0ddippbvp7 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmg33hsh80006j8ccb7c0o4a6
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmg33hsh80006j8ccb7c0o4a6',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.30.98 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmg33hsh80006j8ccb7c0o4a6 HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:26  🎯 API: Getting project position for: cmh53gy5j0002ba0dt7d9sakp
+Oct 29 04:28:26  🎯 API: Found position: {
+Oct 29 04:28:26    projectId: 'cmh53gy5j0002ba0dt7d9sakp',
+Oct 29 04:28:26    currentPhase: 'cmflogz0j0000j8a40o4hdr5y',
+Oct 29 04:28:26    phaseType: 'LEAD',
+Oct 29 04:28:26    currentSection: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentSectionId: 'cmflogz8t0006j8a4wl5qut2l',
+Oct 29 04:28:26    currentLineItem: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemId: 'cmflogzgx0007j8a4ai04f4z0',
+Oct 29 04:28:26    currentLineItemName: 'Answer phone call',
+Oct 29 04:28:26    sectionDisplayName: 'Initial Contact',
+Oct 29 04:28:26    phaseName: 'Lead'
+Oct 29 04:28:26  }
+Oct 29 04:28:26  10.244.26.231 - - [29/Oct/2025:04:28:26 +0000] "GET /api/workflow-data/project-position/cmh53gy5j0002ba0dt7d9sakp HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:30  10.244.25.189 - - [29/Oct/2025:04:28:30 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:28:39  10.244.3.89 - - [29/Oct/2025:04:28:39 +0000] "GET /static/js/main.5bb4010d.js.map HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:28:40  10.244.25.189 - - [29/Oct/2025:04:28:40 +0000] "GET /api/health HTTP/1.1" 200 380 "-" "kube-probe/1.31"
+Oct 29 04:28:50  10.244.25.189 - - [29/Oct/2025:04:28:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:00  10.244.25.189 - - [29/Oct/2025:04:29:00 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:10  10.244.25.189 - - [29/Oct/2025:04:29:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:20  10.244.25.189 - - [29/Oct/2025:04:29:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:30  10.244.25.189 - - [29/Oct/2025:04:29:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:40  10.244.25.189 - - [29/Oct/2025:04:29:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:29:50  10.244.25.189 - - [29/Oct/2025:04:29:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:00  🔍 Checking workflow alerts...
+Oct 29 04:30:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 29 04:30:00  🚀 Generating alerts for 36 active projects
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10036
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10034
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10032
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10030
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10001
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10026
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10024
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10022
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10035
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10033
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10031
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10029
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10027
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10025
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Answer phone call on project 10023
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10028
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10006
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10005
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10004
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10002
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Take site photos on project 10003
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Complete inspection form on project 10021
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10009
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10008
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Confirm shingle choice on project 10007
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Document work start on project 10011
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Document work start on project 10010
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Upload Pictures on project 10012
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Assess additional damage on project 10013
+Oct 29 04:30:00  ⚠️ Skipping duplicate alert for Execute additional scope on project 10014
+Oct 29 04:30:00  No new alerts to create
+Oct 29 04:30:00  ✅ Generated 0 new alerts
+Oct 29 04:30:00  10.244.25.189 - - [29/Oct/2025:04:30:00 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:10  10.244.25.189 - - [29/Oct/2025:04:30:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:20  10.244.25.189 - - [29/Oct/2025:04:30:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:30  10.244.25.189 - - [29/Oct/2025:04:30:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:40  10.244.25.189 - - [29/Oct/2025:04:30:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:30:50  10.244.25.189 - - [29/Oct/2025:04:30:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:31:00  10.244.25.189 - - [29/Oct/2025:04:31:00 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:31:10  10.244.25.189 - - [29/Oct/2025:04:31:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:31:20  10.244.25.189 - - [29/Oct/2025:04:31:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:31:30  10.244.25.189 - - [29/Oct/2025:04:31:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:31:40  10.244.25.189 - - [29/Oct/2025:04:31:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:31:50  10.244.25.189 - - [29/Oct/2025:04:31:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:00  10.244.25.189 - - [29/Oct/2025:04:32:00 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:10  10.244.25.189 - - [29/Oct/2025:04:32:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:20  10.244.25.189 - - [29/Oct/2025:04:32:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:30  10.244.25.189 - - [29/Oct/2025:04:32:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:40  10.244.25.189 - - [29/Oct/2025:04:32:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:32:50  10.244.25.189 - - [29/Oct/2025:04:32:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:00  10.244.25.189 - - [29/Oct/2025:04:33:00 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:10  10.244.25.189 - - [29/Oct/2025:04:33:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:20  10.244.25.189 - - [29/Oct/2025:04:33:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:30  10.244.25.189 - - [29/Oct/2025:04:33:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:40  10.244.25.189 - - [29/Oct/2025:04:33:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:33:50  10.244.25.189 - - [29/Oct/2025:04:33:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:00  10.244.25.189 - - [29/Oct/2025:04:34:00 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:10  10.244.25.189 - - [29/Oct/2025:04:34:10 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:20  10.244.25.189 - - [29/Oct/2025:04:34:20 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:28  🔍 Where clause: { archived: false }
+Oct 29 04:34:28  🔍 OrderBy clause: { createdAt: 'desc' }
+Oct 29 04:34:28  10.244.0.217 - - [29/Oct/2025:04:34:28 +0000] "GET /api/projects?limit=100 HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36"
+Oct 29 04:34:30  10.244.25.189 - - [29/Oct/2025:04:34:30 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:40  10.244.25.189 - - [29/Oct/2025:04:34:40 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:40  10.244.20.18 - - [29/Oct/2025:04:34:40 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:34:50  10.244.25.189 - - [29/Oct/2025:04:34:50 +0000] "GET /api/health HTTP/1.1" 200 382 "-" "kube-probe/1.31"
+Oct 29 04:34:50  10.244.20.18 - - [29/Oct/2025:04:34:50 +0000] "GET /api/health HTTP/1.1" 200 381 "-" "kube-probe/1.31"
+Oct 29 04:35:00  🔍 Checking workflow alerts...
+Oct 29 04:35:00  📊 Using modernized alert generation via AlertGenerationService
+Oct 29 04:35:00  🔍 Checking workflow alerts...

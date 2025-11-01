@@ -65,10 +65,28 @@ const FileRenameModal = ({
 
   const handleConfirm = () => {
     if (validateNames()) {
-      const renamedFiles = files.map((file, index) => ({
-        ...file,
-        name: fileNames[index] || file.name
-      }));
+      const renamedFiles = files.map((file, index) => {
+        const newName = fileNames[index] || file.name;
+        // If the name hasn't changed, return the original file
+        if (newName === file.name) {
+          return file;
+        }
+        // Create a new File object with the renamed name
+        // File objects are immutable, so we need to create a new one
+        if (file instanceof File) {
+          // Create a new File with the new name by copying the blob
+          const renamedFile = new File([file], newName, {
+            type: file.type,
+            lastModified: file.lastModified
+          });
+          return renamedFile;
+        }
+        // If it's not a File object, return it with updated name property
+        return {
+          ...file,
+          name: newName
+        };
+      });
       onConfirm(renamedFiles);
     }
   };
