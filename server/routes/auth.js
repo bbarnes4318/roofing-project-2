@@ -48,7 +48,11 @@ const registerValidation = [
     .withMessage('Password must be at least 6 characters'),
   body('role')
     .optional()
-    .isIn(['admin', 'manager', 'project_manager', 'foreman', 'worker', 'client'])
+    .customSanitizer((value) => {
+      if (!value) return value;
+      return value.toUpperCase();
+    })
+    .isIn(['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT'])
     .withMessage('Invalid role specified')
 ];
 

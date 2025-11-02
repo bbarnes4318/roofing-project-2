@@ -46,6 +46,11 @@ const Login = ({ onLoginSuccess }) => {
       const result = await response.json();
 
       if (!response.ok) {
+        // Handle validation errors with more detail
+        if (result.errors && Object.keys(result.errors).length > 0) {
+          const errorMessages = Object.values(result.errors).flat();
+          throw new Error(errorMessages.join(', ') || result.message || 'Registration failed');
+        }
         throw new Error(result.message || 'Registration failed');
       }
 

@@ -145,6 +145,16 @@ const FeedbackItem = ({
               </span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
+              {author.avatar && (
+                <img 
+                  src={author.avatar} 
+                  alt={`${author.firstName} ${author.lastName}`} 
+                  className="w-5 h-5 rounded-full object-cover border border-gray-300"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              )}
               <span className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                 by {author.firstName} {author.lastName}
               </span>
@@ -296,13 +306,30 @@ const FeedbackItem = ({
                       : 'bg-white border-gray-200'
                   }`}>
                     <div className="flex items-start space-x-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
-                        reply.isDeveloper
-                          ? 'bg-blue-500 text-white'
-                          : colorMode 
-                          ? 'bg-slate-600 text-white' 
-                          : 'bg-gray-200 text-gray-700'
-                      }`}>
+                      {reply.author?.avatar ? (
+                        <img 
+                          src={reply.author.avatar} 
+                          alt={reply.author?.name || 'User'} 
+                          className={`w-6 h-6 rounded-full object-cover ${
+                            reply.isDeveloper ? 'border-2 border-blue-500' : 'border border-gray-300'
+                          }`}
+                          onError={(e) => {
+                            // Fallback to initials if image fails to load
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex';
+                          }}
+                        />
+                      ) : null}
+                      <div 
+                        className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium ${
+                          reply.isDeveloper
+                            ? 'bg-blue-500 text-white'
+                            : colorMode 
+                            ? 'bg-slate-600 text-white' 
+                            : 'bg-gray-200 text-gray-700'
+                        }`}
+                        style={{ display: reply.author?.avatar ? 'none' : 'flex' }}
+                      >
                         {reply.author?.name?.charAt(0) || 'U'}
                       </div>
                       <div className="flex-1">

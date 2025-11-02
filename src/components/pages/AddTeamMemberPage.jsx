@@ -114,15 +114,24 @@ const AddTeamMemberPage = ({ colorMode }) => {
       });
 
       const result = await response.json();
+      
+      console.log('🔍 ADD-TEAM-MEMBER: Response status:', response.status);
+      console.log('🔍 ADD-TEAM-MEMBER: Response data:', result);
 
       if (!response.ok) {
-        throw new Error(result.message || 'Failed to add team member');
+        // Handle validation errors with more detail
+        if (result.errors && Object.keys(result.errors).length > 0) {
+          const errorMessages = Object.values(result.errors).flat();
+          throw new Error(errorMessages.join(', ') || result.message || 'Failed to add team member');
+        }
+        throw new Error(result.message || result.error || 'Failed to add team member');
       }
 
       if (result.success) {
+        console.log('✅ ADD-TEAM-MEMBER: User created successfully:', result.data.user);
         setSuccess(true);
-        setEmailStatus(result.data.emailSent);
-        setSetupLink(result.data.setupLink || '');
+        setEmailStatus(result.data?.emailSent || false);
+        setSetupLink(result.data?.setupLink || '');
         
         // Reset form
         setFormData({
@@ -138,8 +147,8 @@ const AddTeamMemberPage = ({ colorMode }) => {
         throw new Error(result.message || 'Failed to add team member');
       }
     } catch (err) {
+      console.error('❌ ADD-TEAM-MEMBER: Error details:', err);
       setError(err.message || 'Failed to add team member');
-      console.error('Error adding team member:', err);
     } finally {
       setIsSubmitting(false);
     }

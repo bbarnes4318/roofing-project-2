@@ -229,9 +229,24 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => 
 
         {/* Author */}
         <div className="flex items-center space-x-2">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-            colorMode ? 'bg-slate-700 text-white' : 'bg-gray-200 text-gray-700'
-          }`}>
+          {feedback.author?.avatar ? (
+            <img 
+              src={feedback.author.avatar} 
+              alt={feedback.author?.name || 'User'} 
+              className="w-8 h-8 rounded-full object-cover border-2 border-gray-300"
+              onError={(e) => {
+                // Fallback to initials if image fails to load
+                e.target.style.display = 'none';
+                e.target.nextSibling.style.display = 'flex';
+              }}
+            />
+          ) : null}
+          <div 
+            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+              colorMode ? 'bg-slate-700 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+            style={{ display: feedback.author?.avatar ? 'none' : 'flex' }}
+          >
             {feedback.author?.name?.charAt(0) || 'U'}
           </div>
           <div className="text-sm">

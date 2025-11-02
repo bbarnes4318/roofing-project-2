@@ -457,13 +457,30 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
                         : 'bg-white border-gray-200'
                     }`}>
                       <div className="flex items-start space-x-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                          comment.isDeveloper
-                            ? 'bg-blue-500 text-white'
-                            : colorMode 
-                            ? 'bg-slate-600 text-white' 
-                            : 'bg-gray-200 text-gray-700'
-                        }`}>
+                        {comment.author?.avatar ? (
+                          <img 
+                            src={comment.author.avatar} 
+                            alt={comment.author?.name || 'User'} 
+                            className={`w-8 h-8 rounded-full object-cover ${
+                              comment.isDeveloper ? 'border-2 border-blue-500' : 'border-2 border-gray-300'
+                            }`}
+                            onError={(e) => {
+                              // Fallback to initials if image fails to load
+                              e.target.style.display = 'none';
+                              e.target.nextSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div 
+                          className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                            comment.isDeveloper
+                              ? 'bg-blue-500 text-white'
+                              : colorMode 
+                              ? 'bg-slate-600 text-white' 
+                              : 'bg-gray-200 text-gray-700'
+                          }`}
+                          style={{ display: comment.author?.avatar ? 'none' : 'flex' }}
+                        >
                           {comment.author?.name?.charAt(0) || 'U'}
                         </div>
                         <div className="flex-1">

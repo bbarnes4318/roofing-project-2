@@ -162,17 +162,56 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     password 
   } = req.body;
 
+  console.log('🔍 ADD-TEAM-MEMBER: Request received:', {
+    firstName,
+    lastName,
+    email,
+    phone,
+    secondaryPhone,
+    preferredPhone,
+    role,
+    hasPassword: !!password
+  });
+
   // Validate required fields
-  if (!firstName || !lastName || !email || !role) {
+  if (!firstName || !firstName.trim()) {
     return res.status(400).json({
       success: false,
-      message: 'First name, last name, email, and role are required'
+      message: 'First name is required'
+    });
+  }
+  if (!lastName || !lastName.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Last name is required'
+    });
+  }
+  if (!email || !email.trim()) {
+    return res.status(400).json({
+      success: false,
+      message: 'Email is required'
+    });
+  }
+  if (!role) {
+    return res.status(400).json({
+      success: false,
+      message: 'Role is required'
+    });
+  }
+
+  // Normalize role to uppercase to match enum
+  const normalizedRole = role.toUpperCase();
+  const validRoles = ['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT', 'SUBCONTRACTOR'];
+  if (!validRoles.includes(normalizedRole)) {
+    return res.status(400).json({
+      success: false,
+      message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
     });
   }
 
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!emailRegex.test(email.trim())) {
     return res.status(400).json({
       success: false,
       message: 'Invalid email format'
@@ -181,10 +220,11 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
 
   // Check if user already exists
   const existingUser = await prisma.user.findUnique({
-    where: { email }
+    where: { email: email.trim().toLowerCase() }
   });
 
   if (existingUser) {
+    console.log('❌ ADD-TEAM-MEMBER: User already exists:', existingUser.id);
     return res.status(400).json({
       success: false,
       message: 'User with this email already exists'
@@ -206,16 +246,19 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
       role
     });
 
-    // Create new user in database (NO SUPABASE BULLSHIT!)
+    // Normalize email to lowercase
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Create new user in database
     const newUser = await prisma.user.create({
       data: {
-        firstName,
-        lastName,
-        email,
-        phone: phone || null,
-        secondaryPhone: secondaryPhone || null,
-        preferredPhone: preferredPhone || phone || null,
-        role,
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        email: normalizedEmail,
+        phone: phone ? phone.trim() : null,
+        secondaryPhone: secondaryPhone ? secondaryPhone.trim() : null,
+        preferredPhone: preferredPhone ? preferredPhone.trim() : (phone ? phone.trim() : null),
+        role: normalizedRole,
         password: await bcrypt.hash(password || 'TempPassword123!', 12), // Hash the password properly
         isActive: true,
         isVerified: false,
@@ -276,8 +319,8 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
             <p>You've been invited to join our team</p>
           </div>
           <div class="content">
-            <h2>Hello ${firstName}!</h2>
-            <p>You've been added to our Kenstruction team as a <strong>${role}</strong>. We're excited to have you on board!</p>
+            <h2>Hello ${newUser.firstName}!</h2>
+            <p>You've been added to our Kenstruction team as a <strong>${newUser.role}</strong>. We're excited to have you on board!</p>
             
             <p>To get started, please complete your profile setup by clicking the button below:</p>
             
@@ -294,9 +337,9 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
             
             <p><strong>Your contact information:</strong></p>
             <ul>
-              <li>Primary Phone: ${phone || 'Not provided'}</li>
-              ${secondaryPhone ? `<li>Secondary Phone: ${secondaryPhone}</li>` : ''}
-              <li>Preferred Contact: ${preferredPhone || phone || 'Not specified'}</li>
+              <li>Primary Phone: ${newUser.phone || 'Not provided'}</li>
+              ${newUser.secondaryPhone ? `<li>Secondary Phone: ${newUser.secondaryPhone}</li>` : ''}
+              <li>Preferred Contact: ${newUser.preferredPhone || newUser.phone || 'Not specified'}</li>
             </ul>
             
             <p>This link will expire in 7 days. If you have any questions, please contact your team administrator.</p>
@@ -312,9 +355,9 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     const emailText = `
 Welcome to Kenstruction!
 
-Hello ${firstName}!
+Hello ${newUser.firstName}!
 
-You've been added to our Kenstruction team as a ${role}. We're excited to have you on board!
+You've been added to our Kenstruction team as a ${newUser.role}. We're excited to have you on board!
 
 To get started, please complete your profile setup by visiting this link:
 ${setupLink}
@@ -325,9 +368,9 @@ What you'll need to do:
 - Review your contact preferences
 
 Your contact information:
-- Primary Phone: ${phone || 'Not provided'}
-${secondaryPhone ? `- Secondary Phone: ${secondaryPhone}` : ''}
-- Preferred Contact: ${preferredPhone || phone || 'Not specified'}
+- Primary Phone: ${newUser.phone || 'Not provided'}
+${newUser.secondaryPhone ? `- Secondary Phone: ${newUser.secondaryPhone}` : ''}
+- Preferred Contact: ${newUser.preferredPhone || newUser.phone || 'Not specified'}
 
 This link will expire in 7 days. If you have any questions, please contact your team administrator.
 
@@ -335,8 +378,8 @@ This is an automated message from Kenstruction. Please do not reply to this emai
     `;
 
     // Check if email service is available
-    console.log('🔍 Email service available:', emailService.isAvailable());
-    console.log('🔍 RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
+    console.log('🔍 ADD-TEAM-MEMBER: Email service available:', emailService.isAvailable());
+    console.log('🔍 ADD-TEAM-MEMBER: RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
     
     // Send the invitation email - now with built-in retry logic
     let emailSent = false;
@@ -344,11 +387,12 @@ This is an automated message from Kenstruction. Please do not reply to this emai
     
     if (!emailService.isAvailable()) {
       emailError = 'Email service not configured - missing RESEND_API_KEY';
-      console.error('❌ Email service not available:', emailError);
+      console.error('❌ ADD-TEAM-MEMBER: Email service not available:', emailError);
     } else {
       try {
+        console.log('🔍 ADD-TEAM-MEMBER: Attempting to send email to:', normalizedEmail);
         await emailService.sendEmail({
-          to: email,
+          to: normalizedEmail,
           subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
           html: emailHtml,
           text: emailText,
@@ -359,22 +403,48 @@ This is an automated message from Kenstruction. Please do not reply to this emai
           }
         });
         emailSent = true;
-        console.log(`✅ Team member invitation email sent successfully to: ${email}`);
+        console.log(`✅ ADD-TEAM-MEMBER: Team member invitation email sent successfully to: ${normalizedEmail}`);
       } catch (emailErr) {
         emailError = emailErr.message;
-        console.error(`❌ Failed to send team member invitation email:`, emailErr.message);
+        console.error(`❌ ADD-TEAM-MEMBER: Failed to send team member invitation email:`, emailErr);
+        console.error(`❌ ADD-TEAM-MEMBER: Email error stack:`, emailErr.stack);
       }
     }
 
+    // Verify user was actually created by querying it back
+    const verifyUser = await prisma.user.findUnique({
+      where: { id: newUser.id }
+    });
+    
+    if (!verifyUser) {
+      console.error('❌ ADD-TEAM-MEMBER: User creation verification failed - user not found in database');
+      throw new Error('User was not created successfully. Please try again.');
+    }
+    
+    console.log('✅ ADD-TEAM-MEMBER: User creation verified:', {
+      id: verifyUser.id,
+      email: verifyUser.email,
+      name: `${verifyUser.firstName} ${verifyUser.lastName}`
+    });
+    
     // Return success with accurate email status
     const responseMessage = emailSent 
       ? 'Team member added successfully. Invitation email sent.'
-      : `Team member added successfully, but invitation email failed to send. Please contact ${email} directly with this setup link: ${setupLink}`;
+      : `Team member added successfully, but invitation email failed to send. Please contact ${normalizedEmail} directly with this setup link: ${setupLink}`;
     
     res.json({
       success: true,
       data: { 
-        user: newUser,
+        user: {
+          id: verifyUser.id,
+          firstName: verifyUser.firstName,
+          lastName: verifyUser.lastName,
+          email: verifyUser.email,
+          role: verifyUser.role,
+          isActive: verifyUser.isActive,
+          isVerified: verifyUser.isVerified,
+          createdAt: verifyUser.createdAt
+        },
         emailSent,
         emailError: emailError || null,
         setupLink: emailSent ? null : setupLink
@@ -383,11 +453,37 @@ This is an automated message from Kenstruction. Please do not reply to this emai
     });
 
   } catch (error) {
-    console.error('Error adding team member:', error);
+    console.error('❌ ADD-TEAM-MEMBER: Error adding team member:', error);
+    console.error('❌ ADD-TEAM-MEMBER: Error stack:', error.stack);
+    console.error('❌ ADD-TEAM-MEMBER: Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
+    
+    // Check for Prisma unique constraint violation (duplicate email)
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'User with this email already exists',
+        error: 'Duplicate email address'
+      });
+    }
+    
+    // Check for Prisma validation errors
+    if (error.code === 'P2003') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid data provided. Please check all fields.',
+        error: error.meta?.field_name || 'Validation error'
+      });
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to add team member',
-      error: error.message
+      error: error.message || 'Unknown error occurred'
     });
   }
 }));
@@ -565,4 +661,5 @@ This is an automated message from Kenstruction. Please do not reply to this emai
   }
 }));
 
+module.exports = router; 
 module.exports = router; 
