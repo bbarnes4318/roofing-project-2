@@ -347,16 +347,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         newRequirements.push('Enter project address');
       }
 
-      // Validate secondary customer if provided
-      const hasSecondaryInfo = formData.secondaryName || formData.secondaryEmail || formData.secondaryPhone;
-      if (hasSecondaryInfo) {
-        if (!formData.secondaryName.trim()) {
-          newErrors.secondaryName = 'Secondary customer name is required when secondary info is provided';
-          newRequirements.push('Enter secondary customer name');
-        }
-        if (formData.secondaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)) {
-          newErrors.secondaryEmail = 'Please enter a valid secondary email address';
-          newRequirements.push('Enter a valid secondary email address');
+      // Validate secondary customer if provided (only when showSecondaryCustomer is true)
+      // Note: secondaryPhone in formData refers to primary customer's secondary phone,
+      // not the secondary customer's phone, so we only check if secondary customer section is shown
+      if (showSecondaryCustomer) {
+        const hasSecondaryInfo = formData.secondaryName || formData.secondaryEmail || formData.secondaryPhone;
+        if (hasSecondaryInfo) {
+          if (!formData.secondaryName.trim()) {
+            newErrors.secondaryName = 'Secondary customer name is required when secondary info is provided';
+            newRequirements.push('Enter secondary customer name');
+          }
+          if (formData.secondaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)) {
+            newErrors.secondaryEmail = 'Please enter a valid secondary email address';
+            newRequirements.push('Enter a valid secondary email address');
+          }
         }
       }
     }
@@ -381,12 +385,26 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     if (validateStep(currentStep)) {
       setCurrentStep(prev => Math.min(prev + 1, 3));
       setValidationRequirements([]); // Clear requirements when successfully advancing
+      // Scroll to top when advancing to next step
+      setTimeout(() => {
+        const modalContent = document.querySelector('.modal-content');
+        if (modalContent) {
+          modalContent.scrollTop = 0;
+        }
+      }, 100);
     }
   };
 
   const prevStep = () => {
     setCurrentStep(prev => Math.max(prev - 1, 1));
     setValidationRequirements([]); // Clear requirements when going back
+    // Scroll to top when going back to previous step
+    setTimeout(() => {
+      const modalContent = document.querySelector('.modal-content');
+      if (modalContent) {
+        modalContent.scrollTop = 0;
+      }
+    }, 100);
   };
 
   const handleSubmit = async (e) => {

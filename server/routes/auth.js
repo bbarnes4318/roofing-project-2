@@ -404,21 +404,50 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
     });
   }
 
-  // Build update data object - always include all fields to ensure they're saved
-  const updateData = {
-    firstName: firstName ? firstName.substring(0, 100) : '',
-    lastName: lastName ? lastName.substring(0, 100) : '',
-    phone: phone || '',
-    email: email || '',
-    language: language || 'en',
-    timezone: timezone || 'UTC'
-  };
+  // Build update data object - only include fields that are provided
+  // This prevents overwriting existing data with empty strings
+  const updateData = {};
+  
+  if (firstName !== undefined && firstName !== null) {
+    updateData.firstName = firstName.trim().substring(0, 100);
+  }
+  if (lastName !== undefined && lastName !== null) {
+    updateData.lastName = lastName.trim().substring(0, 100);
+  }
+  if (email !== undefined && email !== null) {
+    updateData.email = email.trim();
+  }
+  if (phone !== undefined && phone !== null) {
+    updateData.phone = phone.trim();
+  }
+  if (language !== undefined && language !== null) {
+    updateData.language = language;
+  }
+  if (timezone !== undefined && timezone !== null) {
+    updateData.timezone = timezone;
+  }
   
   // Only include optional fields if they're provided
-  if (position !== undefined) updateData.position = position || '';
-  if (department !== undefined) updateData.department = department || '';
-  if (bio !== undefined) updateData.bio = bio || '';
-  if (theme !== undefined) updateData.theme = theme;
+  if (position !== undefined && position !== null) {
+    updateData.position = position.trim();
+  }
+  if (department !== undefined && department !== null) {
+    updateData.department = department.trim();
+  }
+  if (bio !== undefined && bio !== null) {
+    updateData.bio = bio.trim();
+  }
+  if (theme !== undefined && theme !== null) {
+    updateData.theme = theme;
+  }
+  
+  // Don't update if no fields were provided
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'No fields provided to update'
+    });
+  }
 
   console.log('🔍 PROFILE UPDATE: Starting update for user:', req.user.id);
   console.log('🔍 PROFILE UPDATE: Update data:', updateData);

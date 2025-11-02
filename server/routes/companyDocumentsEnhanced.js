@@ -146,7 +146,11 @@ router.get('/assets', authenticateToken, asyncHandler(async (req, res) => {
   
   if (tag) where.tags = { has: tag };
   if (section) where.section = section;
-  if (type) where.type = type;
+  // Only set type if it's a valid AssetType (FILE or FOLDER)
+  // Ignore "TRASH" as it's not a valid AssetType - trash filtering is handled by isDeleted flag
+  if (type && (type === 'FILE' || type === 'FOLDER')) {
+    where.type = type;
+  }
   
   // Handle parent folder navigation
   if (parentId !== undefined) {

@@ -72,7 +72,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const formData = new FormData();
         formData.append('avatar', file);
         
-        const uploadRes = await fetch('/api/auth/upload-avatar', {
+        const uploadRes = await fetch(`${API_BASE_URL}/auth/upload-avatar`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -120,7 +120,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
   const removeProfilePicture = async () => {
     try {
-      const response = await fetch('/api/auth/remove-avatar', {
+      const response = await fetch(`${API_BASE_URL}/auth/remove-avatar`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('authToken')}`,
@@ -223,7 +223,15 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       setLastName(currentUser.lastName || '');
       setEmail(currentUser.email || '');
       setPhone(currentUser.phone || '');
-      setDisplayName(currentUser.displayName || '');
+      // Try to get displayName from currentUser, fallback to localStorage
+      let displayNameValue = currentUser.displayName || '';
+      if (!displayNameValue) {
+        try {
+          const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+          displayNameValue = localUser.displayName || '';
+        } catch (_) {}
+      }
+      setDisplayName(displayNameValue);
       setName(`${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim());
       setTimezone(currentUser.timezone || 'America/New_York');
       setLanguage(currentUser.language || 'English');
@@ -241,7 +249,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         const formData = new FormData();
         formData.append('avatar', profilePicture);
         
-        const uploadRes = await fetch('/api/auth/upload-avatar', {
+        const uploadRes = await fetch(`${API_BASE_URL}/auth/upload-avatar`, {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${localStorage.getItem('authToken')}`
@@ -274,21 +282,46 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       }
 
       // Then update other profile information
-      const payload = {
-        firstName: firstName || '',
-        lastName: lastName || '',
-        email: email || '',
-        phone: phone || '',
-        timezone: timezone || 'UTC',
-        language: language || 'en'
-        // Note: displayName is not supported in the backend User model
-      };
+      // Only include fields that have values to avoid overwriting with empty strings
+      const payload = {};
+      if (firstName && firstName.trim()) payload.firstName = firstName.trim();
+      if (lastName && lastName.trim()) payload.lastName = lastName.trim();
+      if (email && email.trim()) payload.email = email.trim();
+      if (phone && phone.trim()) payload.phone = phone.trim();
+      if (timezone) payload.timezone = timezone;
+      if (language) payload.language = language;
+      // Note: displayName is not in the User model, so we'll store it in localStorage separately
+      if (displayName && displayName.trim()) {
+        try {
+          const user = JSON.parse(localStorage.getItem('user') || '{}');
+          user.displayName = displayName.trim();
+          localStorage.setItem('user', JSON.stringify(user));
+        } catch (_) {}
+      }
       console.log('🔍 PROFILE SAVE: Sending payload:', payload);
       const res = await authService.updateUserProfile(payload);
       console.log('🔍 PROFILE SAVE: API response:', res);
       if (res?.success && res?.data?.user) {
         const updated = res.data.user;
         console.log('🔍 PROFILE SAVE: Updated user data:', updated);
+        
+        // Merge avatar from previous update if it exists and wasn't included in this update
+        if (updatedUser && updatedUser.avatar && !updated.avatar) {
+          updated.avatar = updatedUser.avatar;
+        }
+        
+        // Merge displayName from localStorage if it exists
+        try {
+          const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+          if (localUser.displayName) {
+            updated.displayName = localUser.displayName;
+          }
+          // Also preserve avatar from localStorage if it's not in the updated user
+          if (!updated.avatar && localUser.avatar) {
+            updated.avatar = localUser.avatar;
+          }
+        } catch (_) {}
+        
         setFirstName(updated.firstName || '');
         setLastName(updated.lastName || '');
         setEmail(updated.email || '');
@@ -299,7 +332,10 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           localStorage.setItem('user', JSON.stringify(updated));
           sessionStorage.setItem('user', JSON.stringify(updated));
         } catch (_) {}
-        if (typeof onUserUpdated === 'function') onUserUpdated(updated);
+        if (typeof onUserUpdated === 'function') {
+          console.log('🔍 PROFILE SAVE: Calling onUserUpdated callback with user:', updated);
+          onUserUpdated(updated);
+        }
         setSuccessMessage('Profile updated successfully!');
         setSuccess(true);
         setTimeout(() => setSuccess(false), 4000);
