@@ -109,7 +109,13 @@ const UserManagementPage = ({ colorMode }) => {
 
   const handleSaveEdit = async () => {
     try {
+      setError('');
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      
+      console.log('🔍 UPDATE-USER: Sending update request:', {
+        userId: editingUser.id,
+        updateData: editForm
+      });
       
       const response = await fetch(`${API_BASE_URL}/users/${editingUser.id}`, {
         method: 'PUT',
@@ -122,18 +128,28 @@ const UserManagementPage = ({ colorMode }) => {
 
       const result = await response.json();
       
-      if (result.success) {
+      console.log('🔍 UPDATE-USER: Response received:', result);
+      
+      if (!response.ok) {
+        throw new Error(result.message || result.error || 'Failed to update user');
+      }
+      
+      if (result.success && result.data && result.data.user) {
+        // Use the updated user data from the server response
+        const updatedUser = result.data.user;
         setUsers(users.map(user => 
-          user.id === editingUser.id ? { ...user, ...editForm } : user
+          user.id === editingUser.id ? updatedUser : user
         ));
         setEditingUser(null);
         setEditForm({});
+        setSuccessMessage('User updated successfully');
+        setTimeout(() => setSuccessMessage(''), 3000);
       } else {
-        setError(result.message || 'Failed to update user');
+        throw new Error(result.message || 'Failed to update user');
       }
     } catch (err) {
-      setError('Network error. Please try again.');
-      console.error('Error updating user:', err);
+      console.error('❌ UPDATE-USER: Error:', err);
+      setError(err.message || 'Network error. Please try again.');
     }
   };
 

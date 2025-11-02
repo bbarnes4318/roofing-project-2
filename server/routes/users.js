@@ -146,6 +146,151 @@ router.get('/:id', asyncHandler(async (req, res) => {
   });
 }));
 
+// @desc    Update user
+// @route   PUT /api/users/:id
+// @access  Private (Admin/Manager only)
+router.put('/:id', authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const { firstName, lastName, email, phone, secondaryPhone, preferredPhone, role, isActive } = req.body;
+
+  console.log('🔍 UPDATE-USER: Request received:', {
+    userId,
+    updateFields: { firstName, lastName, email, phone, role, isActive }
+  });
+
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true, email: true, role: true }
+  });
+
+  if (!existingUser) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+  }
+
+  // Build update data object - only include fields that are provided
+  const updateData = {};
+
+  if (firstName !== undefined && firstName !== null) {
+    updateData.firstName = firstName.trim().substring(0, 100);
+  }
+  if (lastName !== undefined && lastName !== null) {
+    updateData.lastName = lastName.trim().substring(0, 100);
+  }
+  if (email !== undefined && email !== null) {
+    const normalizedEmail = email.trim().toLowerCase();
+    // Check if email is being changed and if new email already exists
+    if (normalizedEmail !== existingUser.email) {
+      const emailExists = await prisma.user.findUnique({
+        where: { email: normalizedEmail }
+      });
+      if (emailExists) {
+        return res.status(400).json({
+          success: false,
+          message: 'Email already in use by another user'
+        });
+      }
+    }
+    updateData.email = normalizedEmail;
+  }
+  if (phone !== undefined && phone !== null) {
+    // Clean phone number (remove formatting)
+    const cleanPhone = phone.trim().replace(/\D/g, '');
+    updateData.phone = cleanPhone || null;
+  }
+  if (secondaryPhone !== undefined && secondaryPhone !== null) {
+    const cleanSecondaryPhone = secondaryPhone.trim().replace(/\D/g, '');
+    updateData.secondaryPhone = cleanSecondaryPhone || null;
+  }
+  if (preferredPhone !== undefined && preferredPhone !== null) {
+    const cleanPreferredPhone = preferredPhone.trim().replace(/\D/g, '');
+    updateData.preferredPhone = cleanPreferredPhone || null;
+  }
+  if (role !== undefined && role !== null) {
+    // Normalize role to uppercase
+    const normalizedRole = role.toUpperCase();
+    const validRoles = ['ADMIN', 'MANAGER', 'PROJECT_MANAGER', 'FOREMAN', 'WORKER', 'CLIENT', 'SUBCONTRACTOR'];
+    if (!validRoles.includes(normalizedRole)) {
+      return res.status(400).json({
+        success: false,
+        message: `Invalid role. Must be one of: ${validRoles.join(', ')}`
+      });
+    }
+    updateData.role = normalizedRole;
+  }
+  if (isActive !== undefined && isActive !== null) {
+    updateData.isActive = isActive === true || isActive === 'true';
+  }
+
+  // Don't update if no fields were provided
+  if (Object.keys(updateData).length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: 'No fields provided to update'
+    });
+  }
+
+  console.log('🔍 UPDATE-USER: Update data:', updateData);
+
+  try {
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        phone: true,
+        secondaryPhone: true,
+        preferredPhone: true,
+        isActive: true,
+        isVerified: true,
+        createdAt: true
+      }
+    });
+
+    console.log('✅ UPDATE-USER: User updated successfully:', {
+      id: updatedUser.id,
+      email: updatedUser.email,
+      role: updatedUser.role
+    });
+
+    res.json({
+      success: true,
+      data: { user: updatedUser },
+      message: 'User updated successfully'
+    });
+  } catch (error) {
+    console.error('❌ UPDATE-USER: Error updating user:', error);
+    console.error('❌ UPDATE-USER: Error details:', {
+      name: error.name,
+      message: error.message,
+      code: error.code,
+      meta: error.meta
+    });
+
+    // Check for Prisma unique constraint violation (duplicate email)
+    if (error.code === 'P2002') {
+      return res.status(400).json({
+        success: false,
+        message: 'Email already in use by another user',
+        error: 'Duplicate email address'
+      });
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update user',
+      error: error.message || 'Unknown error occurred'
+    });
+  }
+}));
+
 // @desc    Add new team member
 // @route   POST /api/users/add-team-member
 // @access  Private (Admin/Manager only)
