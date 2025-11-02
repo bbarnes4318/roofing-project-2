@@ -1165,6 +1165,12 @@ export const usersService = {
   getTeamMembers: async () => {
     const response = await api.get('/users/team-members');
     return response.data;
+  },
+
+  // Delete a user
+  deleteUser: async (userId) => {
+    const response = await api.delete(`/users/${userId}`);
+    return response.data;
   }
 };
 

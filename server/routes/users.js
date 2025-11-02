@@ -1,8 +1,7 @@
 const express = require('express');
 const { prisma } = require('../config/prisma');
 const { asyncHandler, sendSuccess } = require('../middleware/errorHandler');
-// Authentication middleware removed - all users can manage users
-// const { authenticateToken, authorize } = require('../middleware/auth');
+const { authenticateToken, adminOnly } = require('../middleware/auth');
 const emailService = require('../services/EmailService');
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
@@ -150,7 +149,14 @@ router.get('/:id', asyncHandler(async (req, res) => {
 // @desc    Add new team member
 // @route   POST /api/users/add-team-member
 // @access  Private (Admin/Manager only)
-router.post('/add-team-member', asyncHandler(async (req, res) => {
+router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res) => {
+  console.log('🔍 ADD-TEAM-MEMBER: Route hit - Request received');
+  console.log('🔍 ADD-TEAM-MEMBER: Authenticated user:', req.user ? {
+    id: req.user.id,
+    email: req.user.email,
+    role: req.user.role
+  } : 'NO USER');
+  
   const { 
     firstName, 
     lastName, 
@@ -162,7 +168,7 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     password 
   } = req.body;
 
-  console.log('🔍 ADD-TEAM-MEMBER: Request received:', {
+  console.log('🔍 ADD-TEAM-MEMBER: Request body:', {
     firstName,
     lastName,
     email,
@@ -249,48 +255,70 @@ router.post('/add-team-member', asyncHandler(async (req, res) => {
     // Normalize email to lowercase
     const normalizedEmail = email.trim().toLowerCase();
     
+    // Clean phone numbers (remove formatting like parentheses, dashes, spaces)
+    const cleanPhone = phone ? phone.replace(/\D/g, '') : null;
+    const cleanSecondaryPhone = secondaryPhone ? secondaryPhone.replace(/\D/g, '') : null;
+    const cleanPreferredPhone = preferredPhone ? preferredPhone.replace(/\D/g, '') : cleanPhone;
+    
+    console.log('🔍 ADD-TEAM-MEMBER: Cleaned phone numbers:', {
+      originalPhone: phone,
+      cleanedPhone: cleanPhone,
+      originalSecondary: secondaryPhone,
+      cleanedSecondary: cleanSecondaryPhone,
+      originalPreferred: preferredPhone,
+      cleanedPreferred: cleanPreferredPhone
+    });
+    
     // Create new user in database
-    const newUser = await prisma.user.create({
-      data: {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        email: normalizedEmail,
-        phone: phone ? phone.trim() : null,
-        secondaryPhone: secondaryPhone ? secondaryPhone.trim() : null,
-        preferredPhone: preferredPhone ? preferredPhone.trim() : (phone ? phone.trim() : null),
-        role: normalizedRole,
-        password: await bcrypt.hash(password || 'TempPassword123!', 12), // Hash the password properly
-        isActive: true,
-        isVerified: false,
-        emailVerificationToken,
-        emailVerificationExpires,
-        theme: 'LIGHT',
-        language: 'en',
-        timezone: 'UTC'
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        role: true,
-        phone: true,
-        secondaryPhone: true,
-        preferredPhone: true,
-        isActive: true,
-        isVerified: false,
-        createdAt: true
-      }
-    });
-
-    console.log('✅ ADD-TEAM-MEMBER: User created successfully:', {
-      id: newUser.id,
-      name: `${newUser.firstName} ${newUser.lastName}`,
-      email: newUser.email,
-      role: newUser.role,
-      isActive: newUser.isActive,
-      isVerified: newUser.isVerified
-    });
+    let newUser;
+    try {
+      newUser = await prisma.user.create({
+        data: {
+          firstName: firstName.trim(),
+          lastName: lastName.trim(),
+          email: normalizedEmail,
+          phone: cleanPhone || null,
+          secondaryPhone: cleanSecondaryPhone || null,
+          preferredPhone: cleanPreferredPhone || null,
+          role: normalizedRole,
+          password: await bcrypt.hash(password || 'TempPassword123!', 12), // Hash the password properly
+          isActive: true,
+          isVerified: false,
+          emailVerificationToken,
+          emailVerificationExpires,
+          theme: 'LIGHT',
+          language: 'en',
+          timezone: 'UTC'
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          phone: true,
+          secondaryPhone: true,
+          preferredPhone: true,
+          isActive: true,
+          isVerified: false,
+          createdAt: true
+        }
+      });
+      
+      console.log('✅ ADD-TEAM-MEMBER: User created successfully:', {
+        id: newUser.id,
+        name: `${newUser.firstName} ${newUser.lastName}`,
+        email: newUser.email,
+        role: newUser.role,
+        isActive: newUser.isActive,
+        isVerified: newUser.isVerified
+      });
+    } catch (createError) {
+      console.error('❌ ADD-TEAM-MEMBER: Prisma user creation error:', createError);
+      console.error('❌ ADD-TEAM-MEMBER: Error code:', createError.code);
+      console.error('❌ ADD-TEAM-MEMBER: Error meta:', createError.meta);
+      throw createError; // Re-throw to be caught by outer catch
+    }
 
     // Send invitation email
     const setupLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/setup-profile?token=${emailVerificationToken}`;
@@ -432,7 +460,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
       ? 'Team member added successfully. Invitation email sent.'
       : `Team member added successfully, but invitation email failed to send. Please contact ${normalizedEmail} directly with this setup link: ${setupLink}`;
     
-    res.json({
+    const responseData = {
       success: true,
       data: { 
         user: {
@@ -450,7 +478,16 @@ This is an automated message from Kenstruction. Please do not reply to this emai
         setupLink: emailSent ? null : setupLink
       },
       message: responseMessage
+    };
+    
+    console.log('✅ ADD-TEAM-MEMBER: Sending success response:', {
+      success: responseData.success,
+      userId: responseData.data.user.id,
+      email: responseData.data.user.email,
+      emailSent: responseData.data.emailSent
     });
+    
+    res.json(responseData);
 
   } catch (error) {
     console.error('❌ ADD-TEAM-MEMBER: Error adding team member:', error);
@@ -661,5 +698,60 @@ This is an automated message from Kenstruction. Please do not reply to this emai
   }
 }));
 
-module.exports = router; 
+// @desc    Delete a user
+// @route   DELETE /api/users/:id
+// @access  Private (Admin only)
+router.delete('/:id', authenticateToken, adminOnly, asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const currentUser = req.user;
+
+  // Prevent users from deleting themselves
+  if (currentUser.id === userId) {
+    return res.status(400).json({
+      success: false,
+      message: 'You cannot delete your own account'
+    });
+  }
+
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      email: true,
+      role: true
+    }
+  });
+
+  if (!user) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+  }
+
+  // Prevent deleting other admins (optional safety check)
+  // You can remove this if you want admins to be able to delete other admins
+  if (user.role === 'ADMIN' && currentUser.role !== 'ADMIN') {
+    return res.status(403).json({
+      success: false,
+      message: 'Only administrators can delete other administrators'
+    });
+  }
+
+  // Delete the user
+  await prisma.user.delete({
+    where: { id: userId }
+  });
+
+  console.log(`✅ User deleted: ${user.email} (${user.firstName} ${user.lastName}) by ${currentUser.email}`);
+
+  res.json({
+    success: true,
+    message: `User ${user.firstName} ${user.lastName} has been deleted successfully`
+  });
+}));
+
 module.exports = router; 

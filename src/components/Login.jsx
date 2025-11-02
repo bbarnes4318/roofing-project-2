@@ -54,7 +54,34 @@ const Login = ({ onLoginSuccess }) => {
         throw new Error(result.message || 'Registration failed');
       }
 
-      if (result.success) {
+      if (result.success && result.data && result.data.token) {
+        // Store token and user data (same as login)
+        localStorage.setItem('authToken', result.data.token);
+        sessionStorage.setItem('authToken', result.data.token);
+        localStorage.setItem('user', JSON.stringify(result.data.user));
+        
+        setMessage({ 
+          type: 'success', 
+          text: 'Account created successfully! Logging you in...' 
+        });
+        
+        // Call the parent's login success handler to authenticate the user
+        if (onLoginSuccess) {
+          // Small delay to show success message, then log in
+          setTimeout(() => {
+            onLoginSuccess(result.data.user);
+          }, 500);
+        } else {
+          // If no callback, clear form and switch to login mode
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+          setFirstName('');
+          setLastName('');
+          setTimeout(() => setMode('login'), 3000);
+        }
+      } else if (result.success) {
+        // Registration succeeded but no token (shouldn't happen, but handle gracefully)
         setMessage({ 
           type: 'success', 
           text: 'Account created! You can now log in.' 

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { API_BASE_URL } from '../../services/api';
+import { usersService } from '../../services/api';
 
 const UserManagementPage = ({ colorMode }) => {
   const [users, setUsers] = useState([]);
@@ -10,6 +11,10 @@ const UserManagementPage = ({ colorMode }) => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
+  const [deletingUser, setDeletingUser] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   const roles = [
     { value: 'ADMIN', label: 'Administrator', color: 'bg-red-100 text-red-800' },
@@ -29,6 +34,16 @@ const UserManagementPage = ({ colorMode }) => {
   ];
 
   useEffect(() => {
+    // Get current user to check if admin
+    try {
+      const userStr = localStorage.getItem('user') || localStorage.getItem('currentUser');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        setCurrentUser(user);
+      }
+    } catch (e) {
+      console.error('Error parsing current user:', e);
+    }
     fetchUsers();
   }, []);
 
@@ -127,6 +142,49 @@ const UserManagementPage = ({ colorMode }) => {
     setEditForm({});
   };
 
+  const handleDeleteClick = (user) => {
+    setDeletingUser(user);
+  };
+
+  const handleCancelDelete = () => {
+    setDeletingUser(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingUser) return;
+
+    setIsDeleting(true);
+    setError('');
+    setSuccessMessage('');
+
+    try {
+      const result = await usersService.deleteUser(deletingUser.id);
+      
+      if (result.success) {
+        // Remove user from list
+        setUsers(users.filter(user => user.id !== deletingUser.id));
+        setDeletingUser(null);
+        // Show success message
+        setSuccessMessage(result.message || `User ${deletingUser.firstName} ${deletingUser.lastName} has been deleted successfully`);
+        // Clear success message after 5 seconds
+        setTimeout(() => setSuccessMessage(''), 5000);
+      } else {
+        setError(result.message || 'Failed to delete user');
+      }
+    } catch (err) {
+      console.error('Error deleting user:', err);
+      setError(err.response?.data?.message || err.message || 'Failed to delete user. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const isAdmin = () => {
+    if (!currentUser) return false;
+    const role = currentUser.role || '';
+    return role.toUpperCase() === 'ADMIN';
+  };
+
   const filteredUsers = users.filter(user => {
     // Safely handle missing user properties
     const firstName = user.firstName || '';
@@ -197,6 +255,21 @@ const UserManagementPage = ({ colorMode }) => {
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-red-800">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="mx-6 mt-4 bg-green-50 border border-green-200 rounded-md p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-green-800">{successMessage}</p>
                 </div>
               </div>
             </div>
@@ -318,12 +391,23 @@ const UserManagementPage = ({ colorMode }) => {
                       {formatDate(user.createdAt)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEditUser(user)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        Edit
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="text-blue-600 hover:text-blue-900"
+                        >
+                          Edit
+                        </button>
+                        {isAdmin() && (
+                          <button
+                            onClick={() => handleDeleteClick(user)}
+                            className="text-red-600 hover:text-red-900"
+                            disabled={isDeleting}
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -418,6 +502,41 @@ const UserManagementPage = ({ colorMode }) => {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deletingUser && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-red-900 mb-4">Delete User</h3>
+              <p className="text-sm text-gray-700 mb-4">
+                Are you sure you want to delete <strong>{deletingUser.firstName} {deletingUser.lastName}</strong> ({deletingUser.email})?
+              </p>
+              <p className="text-sm text-red-600 mb-4">
+                This action cannot be undone. The user will be permanently removed from the system.
+              </p>
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  type="button"
+                  onClick={handleCancelDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmDelete}
+                  disabled={isDeleting}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete User'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

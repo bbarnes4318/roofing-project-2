@@ -303,11 +303,24 @@ export default function App() {
         localStorage.setItem('user', JSON.stringify(updatedUser));
     };
 
-    // Handle successful login from Supabase
-    const handleLoginSuccess = async (supabaseUser) => {
-        if (!supabaseUser) return;
+    // Handle successful login from Supabase or regular backend login/registration
+    const handleLoginSuccess = async (user) => {
+        if (!user) return;
         
-        // Create a traditional JWT token for the existing app to use
+        // Check if this is a regular backend user (from login/registration)
+        // Regular backend users have: id, firstName, lastName, email, role
+        // Supabase users have: user_metadata, email, etc.
+        if (user.id && user.firstName && !user.user_metadata) {
+            // This is a regular backend user - token is already stored by Login component
+            // Just set the state directly
+            console.log('✅ Regular backend login/registration - setting user state');
+            setCurrentUser(user);
+            setIsAuthenticated(true);
+            return;
+        }
+        
+        // Otherwise, treat as Supabase user and exchange token
+        const supabaseUser = user;
         try {
             // Use relative URL for production, localhost for development
 const apiUrl = window.location.hostname === 'localhost'
