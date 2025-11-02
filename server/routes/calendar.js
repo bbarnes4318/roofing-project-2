@@ -244,7 +244,7 @@ router.post('/', asyncHandler(async (req, res) => {
   // Create event
   const event = await prisma.calendarEvent.create({
     data: {
-      title,
+      title: title && title.trim() ? title.trim() : 'Untitled Task',
       description,
       startTime: startDate,
       endTime: endDate,

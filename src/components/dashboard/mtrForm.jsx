@@ -386,8 +386,8 @@ const MTRForm = ({
         <div className={`p-2 border-t ${colorMode ? 'bg-[#1e293b] border-gray-600' : 'bg-gray-50 border-gray-200'}`}>
           <form onSubmit={async (e) => {
             e.preventDefault();
-            if (!quickTaskSubject.trim() || !quickTaskDue) {
-              toast.error('Subject and due date are required');
+            if (!quickTaskDue) {
+              toast.error('Due date is required');
               return;
             }
             
@@ -410,7 +410,7 @@ const MTRForm = ({
               
               // Create as calendar DEADLINE event; project optional
               const payload = {
-                title: quickTaskSubject.trim(),
+                title: quickTaskSubject.trim() || 'Untitled Task',
                 description: quickTaskDescription || '',
                 startTime: quickTaskDue,
                 endTime: endTime.toISOString().slice(0, 16), // Format as datetime-local
@@ -485,7 +485,7 @@ const MTRForm = ({
                 attendees: attendeesForDisplay,
                 projectId: tasksProjectFilter || null,
                 projectName: (projects.find(p => String(p.id) === String(tasksProjectFilter)) || {}).projectName || null,
-                subject: quickTaskSubject.trim(),
+                subject: quickTaskSubject.trim() || 'Untitled Task',
                 content: quickTaskDescription || '',
                 timestamp: quickTaskDue
               }, ...prev]);
@@ -515,8 +515,8 @@ const MTRForm = ({
                 </select>
               </div>
               <div>
-                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Subject <span className="text-red-500">*</span></label>
-                <input value={quickTaskSubject} onChange={(e)=>setQuickTaskSubject(e.target.value)} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} placeholder="Task subject" />
+                <label className={`block text-xs font-medium mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Subject</label>
+                <input value={quickTaskSubject} onChange={(e)=>setQuickTaskSubject(e.target.value)} className={`w-full px-2 py-1 border rounded text-xs ${colorMode ? 'bg-[#232b4d] border-gray-600 text-white' : 'bg-white border-gray-300 text-gray-800'}`} placeholder="Task subject (optional)" />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -564,7 +564,7 @@ const MTRForm = ({
             </div>
             <div className="flex justify-end gap-1.5 pt-1">
               <button type="button" onClick={()=>{ setShowMessageDropdown(false); setQuickTaskSubject(''); setQuickTaskDescription(''); setQuickTaskDue(''); setQuickTaskAssignAll(false); setQuickTaskAssigneeId(''); setTasksProjectFilter(''); }} className={`px-3 py-1.5 text-xs font-medium rounded border transition-colors ${colorMode ? 'border-gray-600 text-gray-300 hover:bg-gray-700' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Cancel</button>
-              <button type="submit" disabled={!quickTaskSubject.trim() || !quickTaskDue} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${quickTaskSubject.trim() && quickTaskDue ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Task</button>
+              <button type="submit" disabled={!quickTaskDue} className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${quickTaskDue ? 'bg-[var(--color-primary-blueprint-blue)] text-white hover:bg-blue-700' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>Create Task</button>
             </div>
           </form>
         </div>

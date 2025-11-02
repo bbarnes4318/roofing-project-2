@@ -54,11 +54,25 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     pmName: '',
     pmPhone: '',
     pmEmail: '',
-    pmId: ''
+    pmId: '',
+    doublePull: false,
+    petNames: '',
+    petsHaveYardAccess: false
   });
   const [isSaving, setIsSaving] = useState(false);
   const [users, setUsers] = useState([]);
   const [usersLoading, setUsersLoading] = useState(false);
+  
+  // Family members state
+  const [familyMembers, setFamilyMembers] = useState([]);
+  const [familyMembersLoading, setFamilyMembersLoading] = useState(false);
+  const [isAddingFamilyMember, setIsAddingFamilyMember] = useState(false);
+  const [editingFamilyMemberId, setEditingFamilyMemberId] = useState(null);
+  const [newFamilyMember, setNewFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
+  const [editFamilyMember, setEditFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
+  
+  // Relation options
+  const relationOptions = ['Spouse', 'Grandma', 'Grandpa', 'Child', 'Significant Other'];
 
   const toggleProgressExpansion = (projectId, section) => {
     const expandedKey = `${projectId || 'project'}-${section}`;
@@ -153,7 +167,28 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     };
 
     loadUsers();
-  }, []);
+    loadFamilyMembers();
+  }, [project]);
+  
+  // Load family members when project changes
+  const loadFamilyMembers = async () => {
+    if (!project?.customer?.id) return;
+    
+    setFamilyMembersLoading(true);
+    try {
+      const response = await customersService.getFamilyMembers(project.customer.id);
+      if (response?.success && Array.isArray(response.data)) {
+        setFamilyMembers(response.data);
+      } else {
+        setFamilyMembers([]);
+      }
+    } catch (error) {
+      console.error('Error loading family members:', error);
+      setFamilyMembers([]);
+    } finally {
+      setFamilyMembersLoading(false);
+    }
+  };
 
   // Initialize edit form data when project changes
   useEffect(() => {
@@ -171,7 +206,9 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           : project.projectManager?.name || '',
         pmPhone: project.projectManager?.phone || project.pmPhone || '',
         pmEmail: project.projectManager?.email || project.pmEmail || '',
-        pmId: project.projectManager?.id || project.projectManagerId || ''
+        pmId: project.projectManager?.id || project.projectManagerId || '',
+        doublePull: project.doublePull || false,
+        petNames: project.petNames || ''
       });
     }
   }, [project]);
@@ -218,7 +255,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           : project.projectManager?.name || '',
         pmPhone: project.projectManager?.phone || project.pmPhone || '',
         pmEmail: project.projectManager?.email || project.pmEmail || '',
-        pmId: project.projectManager?.id || project.projectManagerId || ''
+        pmId: project.projectManager?.id || project.projectManagerId || '',
+        doublePull: project.doublePull || false,
+        petNames: project.petNames || '',
+        petsHaveYardAccess: project.petsHaveYardAccess || false
       });
     }
   };
@@ -255,7 +295,10 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       const projectUpdateData = {
         projectManagerId: editFormData.pmId || null,
         pmPhone: editFormData.pmPhone || null,
-        pmEmail: editFormData.pmEmail || null
+        pmEmail: editFormData.pmEmail || null,
+        doublePull: editFormData.doublePull || false,
+        petNames: editFormData.petNames || null,
+        petsHaveYardAccess: editFormData.petsHaveYardAccess || false
       };
 
       // Remove empty/null values
@@ -617,10 +660,383 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           )}
         </div>
       </div>
+      
+      {/* Double Pull and Pet Names Section */}
+      <div className="mt-4 pt-4 border-t border-gray-200">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Double Pull */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="doublePull"
+              checked={editFormData.doublePull}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, doublePull: e.target.checked }))}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="doublePull" className="text-xs font-medium text-gray-700 cursor-pointer">
+              Double Pull House (requires two ladders)
+            </label>
+          </div>
+          
+          {/* Pet Names */}
+          <div>
+            <label htmlFor="petNames" className="block text-xs font-medium text-gray-700 mb-1">
+              Pet Names
+            </label>
+            <input
+              type="text"
+              id="petNames"
+              value={editFormData.petNames}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, petNames: e.target.value }))}
+              placeholder="Enter pet names (comma-separated)"
+              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+          </div>
+          
+          {/* Pets Have Yard Access */}
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="petsHaveYardAccess"
+              checked={editFormData.petsHaveYardAccess}
+              onChange={(e) => setEditFormData(prev => ({ ...prev, petsHaveYardAccess: e.target.checked }))}
+              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="petsHaveYardAccess" className="text-xs font-medium text-gray-700 cursor-pointer">
+              Pets have access to yard
+            </label>
+          </div>
+        </div>
+        {/* Save button for Double Pull, Pet Names, and Pets Have Yard Access */}
+        {(editFormData.doublePull !== (project.doublePull || false) || editFormData.petNames !== (project.petNames || '') || editFormData.petsHaveYardAccess !== (project.petsHaveYardAccess || false)) && (
+          <div className="mt-3 flex gap-2">
+            <button
+              onClick={async () => {
+                try {
+                  const updateData = {
+                    doublePull: editFormData.doublePull,
+                    petNames: editFormData.petNames || null,
+                    petsHaveYardAccess: editFormData.petsHaveYardAccess
+                  };
+                  await projectsService.update(project.id, updateData);
+                  toast.success('Project details updated successfully!');
+                  // Refresh the project data if onUpdate callback exists
+                  if (onProjectSelect && project) {
+                    // Trigger a refresh by calling onProjectSelect with updated project
+                    const updatedProject = { ...project, ...updateData };
+                    onProjectSelect(updatedProject, 'Project Profile', null, 'Project Profile');
+                  }
+                } catch (error) {
+                  console.error('Error updating project details:', error);
+                  toast.error('Failed to update project details');
+                }
+              }}
+              className="px-3 py-1.5 text-xs bg-[var(--color-primary-blueprint-blue)] text-white rounded hover:bg-blue-700 font-medium"
+            >
+              Save Changes
+            </button>
+            <button
+              onClick={() => {
+                setEditFormData(prev => ({
+                  ...prev,
+                  doublePull: project.doublePull || false,
+                  petNames: project.petNames || '',
+                  petsHaveYardAccess: project.petsHaveYardAccess || false
+                }));
+              }}
+              className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
+      </div>
       </div>
       <EditContactForm />
     </div>
   );
+
+  // Family Members Section
+  const FamilyMembersSection = () => {
+    const handleAddFamilyMember = async () => {
+      if (!newFamilyMember.name.trim() || !newFamilyMember.relation.trim()) {
+        toast.error('Please enter both name and relation');
+        return;
+      }
+      
+      if (!project?.customer?.id) {
+        toast.error('Customer information not available');
+        return;
+      }
+      
+      try {
+        const response = await customersService.createFamilyMember(project.customer.id, {
+          name: newFamilyMember.name.trim(),
+          relation: newFamilyMember.relation.trim()
+        });
+        
+        if (response?.success) {
+          toast.success('Family member added successfully');
+          setNewFamilyMember({ name: '', relation: '', customRelation: '' });
+          setIsAddingFamilyMember(false);
+          loadFamilyMembers();
+        } else {
+          throw new Error(response?.message || 'Failed to add family member');
+        }
+      } catch (error) {
+        console.error('Error adding family member:', error);
+        toast.error(error.message || 'Failed to add family member');
+      }
+    };
+    
+    const handleUpdateFamilyMember = async (id) => {
+      if (!editFamilyMember.name.trim() || !editFamilyMember.relation.trim()) {
+        toast.error('Please enter both name and relation');
+        return;
+      }
+      
+      if (!project?.customer?.id) {
+        toast.error('Customer information not available');
+        return;
+      }
+      
+      try {
+        const response = await customersService.updateFamilyMember(project.customer.id, id, {
+          name: editFamilyMember.name.trim(),
+          relation: editFamilyMember.relation.trim()
+        });
+        
+        if (response?.success) {
+          toast.success('Family member updated successfully');
+          setEditingFamilyMemberId(null);
+          setEditFamilyMember({ name: '', relation: '', customRelation: '' });
+          loadFamilyMembers();
+        } else {
+          throw new Error(response?.message || 'Failed to update family member');
+        }
+      } catch (error) {
+        console.error('Error updating family member:', error);
+        toast.error(error.message || 'Failed to update family member');
+      }
+    };
+    
+    const handleDeleteFamilyMember = async (id) => {
+      if (!window.confirm('Are you sure you want to delete this family member?')) {
+        return;
+      }
+      
+      if (!project?.customer?.id) {
+        toast.error('Customer information not available');
+        return;
+      }
+      
+      try {
+        const response = await customersService.deleteFamilyMember(project.customer.id, id);
+        
+        if (response?.success) {
+          toast.success('Family member deleted successfully');
+          loadFamilyMembers();
+        } else {
+          throw new Error(response?.message || 'Failed to delete family member');
+        }
+      } catch (error) {
+        console.error('Error deleting family member:', error);
+        toast.error(error.message || 'Failed to delete family member');
+      }
+    };
+    
+    const startEditing = (member) => {
+      setEditingFamilyMemberId(member.id);
+      const isCustomRelation = !relationOptions.includes(member.relation);
+      setEditFamilyMember({ 
+        name: member.name, 
+        relation: isCustomRelation ? 'Other' : member.relation,
+        customRelation: isCustomRelation ? member.relation : ''
+      });
+    };
+    
+    const cancelEditing = () => {
+      setEditingFamilyMemberId(null);
+      setEditFamilyMember({ name: '', relation: '', customRelation: '' });
+    };
+    
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <UserGroupIcon className="w-4 h-4 text-blue-600" />
+            <h3 className="text-sm font-semibold text-gray-900">Family Members</h3>
+          </div>
+          {!isAddingFamilyMember && (
+            <button
+              onClick={() => setIsAddingFamilyMember(true)}
+              className="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded flex items-center gap-1"
+            >
+              <PlusIcon className="w-3 h-3" />
+              Add
+            </button>
+          )}
+        </div>
+        
+        {/* Add Family Member Form */}
+        {isAddingFamilyMember && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+              <input
+                type="text"
+                placeholder="Name"
+                value={newFamilyMember.name}
+                onChange={(e) => setNewFamilyMember(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              <div className="flex gap-1">
+                <select
+                  value={newFamilyMember.relation}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value && !relationOptions.includes(value)) {
+                      // Custom relation entered via select (if we add an "Other" option)
+                      setNewFamilyMember(prev => ({ ...prev, relation: value }));
+                    } else {
+                      setNewFamilyMember(prev => ({ ...prev, relation: value }));
+                    }
+                  }}
+                  className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Relation</option>
+                  {relationOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                  <option value="Other">Other</option>
+                </select>
+                {newFamilyMember.relation === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="Enter relation"
+                    value={newFamilyMember.customRelation || ''}
+                    onChange={(e) => setNewFamilyMember(prev => ({ ...prev, customRelation: e.target.value, relation: e.target.value }))}
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    autoFocus
+                  />
+                )}
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddFamilyMember}
+                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddingFamilyMember(false);
+                  setNewFamilyMember({ name: '', relation: '', customRelation: '' });
+                }}
+                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Family Members List */}
+        {familyMembersLoading ? (
+          <div className="text-xs text-gray-500 py-2">Loading...</div>
+        ) : familyMembers.length === 0 ? (
+          <div className="text-xs text-gray-500 py-2 italic">No family members added yet</div>
+        ) : (
+          <div className="space-y-2">
+            {familyMembers.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
+              >
+                {editingFamilyMemberId === member.id ? (
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={editFamilyMember.name}
+                      onChange={(e) => setEditFamilyMember(prev => ({ ...prev, name: e.target.value }))}
+                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <div className="flex gap-1">
+                      <select
+                        value={editFamilyMember.relation}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'Other') {
+                            setEditFamilyMember(prev => ({ ...prev, relation: 'Other', customRelation: prev.customRelation || '' }));
+                          } else {
+                            setEditFamilyMember(prev => ({ ...prev, relation: value, customRelation: '' }));
+                          }
+                        }}
+                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Select Relation</option>
+                        {relationOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                        <option value="Other">Other</option>
+                      </select>
+                      {editFamilyMember.relation === 'Other' && (
+                        <input
+                          type="text"
+                          placeholder="Enter relation"
+                          value={editFamilyMember.customRelation || ''}
+                          onChange={(e) => setEditFamilyMember(prev => ({ ...prev, customRelation: e.target.value, relation: e.target.value }))}
+                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          autoFocus
+                        />
+                      )}
+                    </div>
+                    <div className="flex gap-2 md:col-span-2">
+                      <button
+                        onClick={() => handleUpdateFamilyMember(member.id)}
+                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex-1">
+                      <span className="text-xs font-medium text-gray-900">{member.name}</span>
+                      <span className="text-xs text-gray-500 ml-2">({member.relation})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEditing(member)}
+                        className="p-1 text-gray-600 hover:text-blue-600"
+                        title="Edit"
+                      >
+                        <PencilIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteFamilyMember(member.id)}
+                        className="p-1 text-gray-600 hover:text-red-600"
+                        title="Delete"
+                      >
+                        <XCircleIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   // Secondary Contact Card
   const SecondaryContactCard = () => {
@@ -1257,6 +1673,50 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 />
               </div>
             </div>
+            
+            {/* Double Pull, Pet Names, and Pets Have Yard Access */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold text-orange-700 border-b border-orange-200 pb-2">Project Details</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="editDoublePull"
+                    checked={editFormData.doublePull}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, doublePull: e.target.checked }))}
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="editDoublePull" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Double Pull House (requires two ladders to access roof)
+                  </label>
+                </div>
+                <div>
+                  <label htmlFor="editPetNames" className="block text-sm font-medium text-gray-700 mb-2">
+                    Pet Names
+                  </label>
+                  <input
+                    type="text"
+                    id="editPetNames"
+                    value={editFormData.petNames}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, petNames: e.target.value }))}
+                    placeholder="Enter pet names (comma-separated)"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  />
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="editPetsHaveYardAccess"
+                    checked={editFormData.petsHaveYardAccess}
+                    onChange={(e) => setEditFormData(prev => ({ ...prev, petsHaveYardAccess: e.target.checked }))}
+                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="editPetsHaveYardAccess" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    Pets have access to yard
+                  </label>
+                </div>
+              </div>
+            </div>
           </div>
           
           {/* Action Buttons */}
@@ -1344,6 +1804,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         {/* Left Column - Compact customer + documents */}
         <div className="lg:col-span-2 space-y-4">
           <ContactCards />
+          <FamilyMembersSection />
           <DocumentsPanel />
         </div>
         {/* Right Column - Progress with PM and Subcontractors */}

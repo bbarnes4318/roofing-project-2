@@ -1089,6 +1089,9 @@ router.put('/:id', authenticateToken, asyncHandler(async (req, res, next) => {
     if (req.body.notes !== undefined) updateData.notes = req.body.notes;
     if (req.body.archived !== undefined) updateData.archived = req.body.archived;
     if (req.body.leadSourceId !== undefined) updateData.leadSourceId = req.body.leadSourceId || null;
+    if (req.body.doublePull !== undefined) updateData.doublePull = req.body.doublePull === true || req.body.doublePull === 'true';
+    if (req.body.petNames !== undefined) updateData.petNames = req.body.petNames || null;
+    if (req.body.petsHaveYardAccess !== undefined) updateData.petsHaveYardAccess = req.body.petsHaveYardAccess === true || req.body.petsHaveYardAccess === 'true';
 
     // Update project (fallback if lead_source_id missing)
     console.log('Updating project with data:', updateData);

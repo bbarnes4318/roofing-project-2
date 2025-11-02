@@ -858,4 +858,147 @@ router.get('/template', asyncHandler(async (req, res) => {
   }
 }));
 
+// ==================== Family Members Routes ====================
+
+// @desc    Get all family members for a customer
+// @route   GET /api/customers/:customerId/family-members
+// @access  Private
+router.get('/:customerId/family-members', asyncHandler(async (req, res, next) => {
+  try {
+    // Verify customer exists
+    const customer = await prisma.customer.findUnique({
+      where: { id: req.params.customerId }
+    });
+
+    if (!customer) {
+      return next(new AppError('Customer not found', 404));
+    }
+
+    // Get family members
+    const familyMembers = await prisma.familyMember.findMany({
+      where: { customerId: req.params.customerId },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    sendSuccess(res, 200, familyMembers, 'Family members retrieved successfully');
+  } catch (error) {
+    console.error('Error fetching family members:', error);
+    return next(new AppError('Failed to fetch family members', 500));
+  }
+}));
+
+// @desc    Create a new family member
+// @route   POST /api/customers/:customerId/family-members
+// @access  Private
+router.post('/:customerId/family-members', asyncHandler(async (req, res, next) => {
+  try {
+    const { name, relation } = req.body;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return next(new AppError('Family member name is required', 400));
+    }
+    if (!relation || !relation.trim()) {
+      return next(new AppError('Family member relation is required', 400));
+    }
+
+    // Verify customer exists
+    const customer = await prisma.customer.findUnique({
+      where: { id: req.params.customerId }
+    });
+
+    if (!customer) {
+      return next(new AppError('Customer not found', 404));
+    }
+
+    // Create family member
+    const familyMember = await prisma.familyMember.create({
+      data: {
+        name: name.trim(),
+        relation: relation.trim(),
+        customerId: req.params.customerId
+      }
+    });
+
+    sendSuccess(res, 201, familyMember, 'Family member created successfully');
+  } catch (error) {
+    console.error('Error creating family member:', error);
+    return next(new AppError('Failed to create family member', 500));
+  }
+}));
+
+// @desc    Update a family member
+// @route   PUT /api/customers/:customerId/family-members/:id
+// @access  Private
+router.put('/:customerId/family-members/:id', asyncHandler(async (req, res, next) => {
+  try {
+    const { name, relation } = req.body;
+
+    // Verify family member exists and belongs to customer
+    const familyMember = await prisma.familyMember.findFirst({
+      where: {
+        id: req.params.id,
+        customerId: req.params.customerId
+      }
+    });
+
+    if (!familyMember) {
+      return next(new AppError('Family member not found', 404));
+    }
+
+    // Build update data
+    const updateData = {};
+    if (name !== undefined && name !== null) {
+      updateData.name = name.trim();
+    }
+    if (relation !== undefined && relation !== null) {
+      updateData.relation = relation.trim();
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return next(new AppError('No fields provided to update', 400));
+    }
+
+    // Update family member
+    const updatedFamilyMember = await prisma.familyMember.update({
+      where: { id: req.params.id },
+      data: updateData
+    });
+
+    sendSuccess(res, 200, updatedFamilyMember, 'Family member updated successfully');
+  } catch (error) {
+    console.error('Error updating family member:', error);
+    return next(new AppError('Failed to update family member', 500));
+  }
+}));
+
+// @desc    Delete a family member
+// @route   DELETE /api/customers/:customerId/family-members/:id
+// @access  Private
+router.delete('/:customerId/family-members/:id', asyncHandler(async (req, res, next) => {
+  try {
+    // Verify family member exists and belongs to customer
+    const familyMember = await prisma.familyMember.findFirst({
+      where: {
+        id: req.params.id,
+        customerId: req.params.customerId
+      }
+    });
+
+    if (!familyMember) {
+      return next(new AppError('Family member not found', 404));
+    }
+
+    // Delete family member
+    await prisma.familyMember.delete({
+      where: { id: req.params.id }
+    });
+
+    sendSuccess(res, 200, null, 'Family member deleted successfully');
+  } catch (error) {
+    console.error('Error deleting family member:', error);
+    return next(new AppError('Failed to delete family member', 500));
+  }
+}));
+
 module.exports = router; 

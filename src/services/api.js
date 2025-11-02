@@ -471,6 +471,31 @@ export const customersService = {
   search: async (query) => {
     const response = await api.get(`/customers/search/query?q=${encodeURIComponent(query)}`);
     return response.data;
+  },
+
+  // Family Members
+  // Get all family members for a customer
+  getFamilyMembers: async (customerId) => {
+    const response = await api.get(`/customers/${customerId}/family-members`);
+    return response.data;
+  },
+
+  // Create a new family member
+  createFamilyMember: async (customerId, familyMemberData) => {
+    const response = await api.post(`/customers/${customerId}/family-members`, familyMemberData);
+    return response.data;
+  },
+
+  // Update a family member
+  updateFamilyMember: async (customerId, familyMemberId, familyMemberData) => {
+    const response = await api.put(`/customers/${customerId}/family-members/${familyMemberId}`, familyMemberData);
+    return response.data;
+  },
+
+  // Delete a family member
+  deleteFamilyMember: async (customerId, familyMemberId) => {
+    const response = await api.delete(`/customers/${customerId}/family-members/${familyMemberId}`);
+    return response.data;
   }
 };
 

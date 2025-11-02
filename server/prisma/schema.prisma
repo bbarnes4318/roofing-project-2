@@ -89,24 +89,38 @@ model User {
 }
 
 model Customer {
-  id             String      @id @default(cuid())
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  primaryName    String      @db.VarChar(100)
-  primaryEmail   String      @unique @db.VarChar(320)
-  primaryPhone   String      @db.VarChar(20)
-  secondaryName  String?     @db.VarChar(100)
-  secondaryEmail String?     @db.VarChar(320)
-  secondaryPhone String?     @db.VarChar(20)
-  primaryContact ContactType @default(PRIMARY)
-  address        String      @db.VarChar(500)
+  id             String         @id @default(cuid())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  primaryName    String         @db.VarChar(100)
+  primaryEmail   String         @unique @db.VarChar(320)
+  primaryPhone   String         @db.VarChar(20)
+  secondaryName  String?        @db.VarChar(100)
+  secondaryEmail String?         @db.VarChar(320)
+  secondaryPhone String?         @db.VarChar(20)
+  primaryContact ContactType    @default(PRIMARY)
+  address        String         @db.VarChar(500)
   notes          String?
-  isActive       Boolean     @default(true)
-  primaryRole    String?     @db.VarChar(50)
-  secondaryRole  String?     @db.VarChar(50)
+  isActive       Boolean        @default(true)
+  primaryRole    String?        @db.VarChar(50)
+  secondaryRole  String?        @db.VarChar(50)
   projects       Project[]
+  familyMembers  FamilyMember[]
 
   @@map("customers")
+}
+
+model FamilyMember {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name       String   @db.VarChar(100)
+  relation   String   @db.VarChar(50)
+  customerId String   @map("customer_id")
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@map("family_members")
 }
 
 model Project {
@@ -130,6 +144,9 @@ model Project {
   notes            String?
   pmPhone          String?                  @db.VarChar(20)
   pmEmail          String?                  @db.VarChar(320)
+  doublePull       Boolean                  @default(false) @map("double_pull")
+  petNames         String?                  @db.VarChar(500) @map("pet_names")
+  petsHaveYardAccess Boolean                @default(false) @map("pets_have_yard_access")
   customerId       String                   @map("customer_id")
   projectManagerId String?                  @map("project_manager_id")
   createdById      String?                  @map("created_by_id")

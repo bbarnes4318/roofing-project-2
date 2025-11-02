@@ -2347,18 +2347,31 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                                 </a>
                             </div>
                         </div>
-                        {/* Right: Delete action */}
-                        <div className="flex items-center gap-2">
-                            <button
+                        {/* Right: Delete action - Admin only */}
+                        {(() => {
+                          try {
+                            const userStr = localStorage.getItem('user') || localStorage.getItem('currentUser');
+                            const user = userStr ? JSON.parse(userStr) : null;
+                            const isAdmin = user?.role === 'ADMIN' || user?.role === 'admin' || user?.role === 'Admin';
+                            if (!isAdmin) return null;
+                          } catch (e) {
+                            return null;
+                          }
+                          
+                          return (
+                            <div className="flex items-center gap-2">
+                              <button
                                 onClick={handleDeleteProject}
                                 disabled={deleteProject.isPending}
                                 className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded border transition-colors ${deleteProject.isPending ? 'opacity-60 cursor-not-allowed' : colorMode ? 'border-red-400 text-red-300 hover:bg-red-900/20' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
                                 title="Delete project"
-                            >
+                              >
                                 <TrashIcon className="w-4 h-4" />
                                 <span>Delete</span>
-                            </button>
-                        </div>
+                              </button>
+                            </div>
+                          );
+                        })()}
                     </div>
                 </div>
                 
