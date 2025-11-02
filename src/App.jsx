@@ -157,6 +157,12 @@ export default function App() {
     // On mount, check Supabase auth state and perform token exchange
     useEffect(() => {
         const checkAuthState = async () => {
+            // Skip if already authenticated (e.g., from login)
+            if (isAuthenticated && currentUser) {
+                console.log('🔍 AUTH: Already authenticated, skipping auth check');
+                return;
+            }
+            
             // IMMEDIATE FIX: Clear all temp/demo tokens to force re-auth with consistent IDs
             const existingToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
             const storedUser = localStorage.getItem('user');
@@ -209,54 +215,64 @@ export default function App() {
                         }
                     }
                     
-                    // Verify the existing token
+                    // Verify the existing token with timeout
                     try {
+                        const controller = new AbortController();
+                        const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                        
                         const response = await fetch('/api/auth/me', {
                             headers: {
-                                'Authorization': `Bearer ${existingToken}`
-                            }
+                                'Authorization': `Bearer ${token}`
+                            },
+                            signal: controller.signal
                         });
+                        
+                        clearTimeout(timeoutId);
                         
                         if (response.ok) {
                             const userData = await response.json();
-                            setCurrentUser(userData.user);
-                            setIsAuthenticated(true);
-                            return;
+                            if (userData.user) {
+                                setCurrentUser(userData.user);
+                                setIsAuthenticated(true);
+                                return;
+                            }
                         } else {
                             // Token is invalid, clear it
+                            console.log('Token verification failed - clearing tokens');
                             localStorage.removeItem('authToken');
                             sessionStorage.removeItem('authToken');
                         }
                     } catch (verifyError) {
-                        console.log('Token verification failed, using fallback auth');
-                        // If verification fails, use fallback authentication
-                        await handleDemoAuth();
+                        if (verifyError.name === 'AbortError') {
+                            console.error('Token verification timed out');
+                        } else {
+                            console.log('Token verification failed:', verifyError.message);
+                        }
+                        // Don't use fallback auth - just clear and show login
+                        localStorage.removeItem('authToken');
+                        sessionStorage.removeItem('authToken');
+                        setIsAuthenticated(false);
+                        setCurrentUser(null);
                         return;
                     }
                 } catch (error) {
                     console.error('Token verification failed:', error);
                     localStorage.removeItem('authToken');
                     sessionStorage.removeItem('authToken');
+                    setIsAuthenticated(false);
+                    setCurrentUser(null);
+                    return;
                 }
             }
             
-            // Try Supabase authentication
-            const user = await getCurrentUser();
-            if (user && isUserVerified(user)) {
-                // Call the token exchange to get proper JWT and user data
-                await handleLoginSuccess(user);
-            } else {
-                // If no Supabase user, try demo authentication for development
-                if (window.location.hostname === 'localhost' || window.location.hostname.includes('ondigitalocean.app')) {
-                    await handleDemoAuth();
-                } else {
-                    setIsAuthenticated(false);
-                    setCurrentUser(null);
-                }
-            }
+            // Only try Supabase if no token exists and not in production
+            // Skip Supabase check to avoid hanging
+            console.log('No valid token found - showing login screen');
+            setIsAuthenticated(false);
+            setCurrentUser(null);
         };
         checkAuthState();
-    }, []);
+    }, []); // Only run once on mount
 
     // Check if user needs onboarding
     useEffect(() => {
