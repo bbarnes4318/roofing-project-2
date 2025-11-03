@@ -65,29 +65,51 @@ const FileRenameModal = ({
 
   const handleConfirm = () => {
     if (validateNames()) {
+      console.log('📝 FileRenameModal: Creating renamed files...');
       const renamedFiles = files.map((file, index) => {
         const newName = fileNames[index] || file.name;
+        console.log(`  - File ${index}: "${file.name}" -> "${newName}"`);
+        
+        // Ensure we always work with a File object
+        if (!(file instanceof File)) {
+          console.error('❌ FileRenameModal: Invalid file object at index', index, file);
+          throw new Error(`Invalid file object at index ${index}`);
+        }
+        
         // If the name hasn't changed, return the original file
         if (newName === file.name) {
+          console.log(`  ✓ Keeping original name for: ${file.name}`);
           return file;
         }
-        // Create a new File object with the renamed name
+        
+        // Create a new File object with the new name
         // File objects are immutable, so we need to create a new one
-        if (file instanceof File) {
-          // Create a new File with the new name by copying the blob
+        try {
           const renamedFile = new File([file], newName, {
             type: file.type,
-            lastModified: file.lastModified
+            lastModified: file.lastModified || Date.now()
           });
+          
+          console.log(`  ✓ Created renamed file: "${renamedFile.name}" (${renamedFile.size} bytes, type: ${renamedFile.type})`);
           return renamedFile;
+        } catch (error) {
+          console.error('❌ FileRenameModal: Error creating File object:', error);
+          throw new Error(`Failed to rename file "${file.name}": ${error.message}`);
         }
-        // If it's not a File object, return it with updated name property
-        return {
-          ...file,
-          name: newName
-        };
       });
-      onConfirm(renamedFiles);
+      
+      console.log('✅ FileRenameModal: All files processed, confirming upload...');
+      
+      // Wrap in try-catch to handle any errors gracefully
+      try {
+        onConfirm(renamedFiles);
+      } catch (error) {
+        console.error('❌ FileRenameModal: Error in onConfirm callback:', error);
+        // Re-throw so the parent component can handle it
+        throw error;
+      }
+    } else {
+      console.warn('⚠️ FileRenameModal: Validation failed');
     }
   };
 

@@ -288,14 +288,37 @@ router.get('/assets/:id', authenticateToken, asyncHandler(async (req, res) => {
 // Enhanced upload with metadata and versioning
 router.post('/assets/upload',
   authenticateToken,
+  (req, res, next) => {
+    console.log('[Upload] Pre-middleware check');
+    console.log('[Upload] Content-Type:', req.headers['content-type']);
+    console.log('[Upload] Content-Length:', req.headers['content-length']);
+    console.log('[Upload] User authenticated:', !!req.user?.id);
+    next();
+  },
   upload.array('files', 10), // Support multiple file upload
+  (req, res, next) => {
+    console.log('[Upload] Post-multer check');
+    console.log('[Upload] Files after multer:', req.files?.length || 0);
+    console.log('[Upload] Body after multer:', Object.keys(req.body || {}));
+    if (req.files && req.files.length > 0) {
+      req.files.forEach((f, i) => {
+        console.log(`[Upload] File ${i}: name=${f.originalname}, size=${f.size}, type=${f.mimetype}`);
+      });
+    }
+    next();
+  },
   asyncHandler(async (req, res) => {
-    console.log('[Upload] Starting file upload...');
+    console.log('[Upload] Starting file upload handler...');
     console.log('[Upload] User:', req.user?.id);
     console.log('[Upload] Files count:', req.files?.length);
 
     if (!req.files || req.files.length === 0) {
-      throw new AppError('No files uploaded', 400);
+      console.error('[Upload] ❌ No files found in request');
+      return res.status(400).json({
+        success: false,
+        message: 'No files uploaded. Please select at least one file.',
+        error: 'NO_FILES'
+      });
     }
 
     const {
@@ -428,11 +451,25 @@ router.post('/assets/upload',
         uploadedAssets.push(asset);
 
       } catch (fileError) {
-        console.error(`[Upload] ❌ Error processing file ${file.originalname}:`, fileError);
+        console.error(`[Upload] ❌ Error processing file ${file.originalname}:`, {
+          error: fileError,
+          message: fileError.message,
+          stack: fileError.stack
+        });
         throw fileError;
       }
     }
     
+    if (uploadedAssets.length === 0) {
+      console.error('[Upload] ❌ No assets were uploaded successfully');
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to upload files. No files were processed.',
+        error: 'UPLOAD_FAILED'
+      });
+    }
+    
+    console.log(`[Upload] ✅ Successfully uploaded ${uploadedAssets.length} file(s)`);
     res.status(201).json({ 
       success: true, 
       data: { 

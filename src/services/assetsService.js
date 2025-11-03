@@ -150,8 +150,20 @@ export const assetsService = {
     return res.data?.data;
   },
   uploadFiles: async ({ files, parentId = null, description = '', tags = [], metadata = {}, onUploadProgress = undefined } = {}) => {
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      throw new Error('No files provided for upload');
+    }
+
+    console.log('📤 Uploading files:', files.map(f => ({ name: f.name || f.title || 'unnamed', size: f.size, type: f.type })));
+
     const form = new FormData();
-    for (const f of files) form.append('files', f);
+    for (const f of files) {
+      if (!(f instanceof File)) {
+        console.error('Invalid file object:', f);
+        throw new Error(`Invalid file object: ${f.name || 'unknown'} must be a File instance`);
+      }
+      form.append('files', f);
+    }
     if (parentId !== null) form.append('parentId', parentId);
     if (description) form.append('description', description);
     if (tags?.length) form.append('tags', JSON.stringify(tags));
@@ -161,16 +173,39 @@ export const assetsService = {
 
     try {
       const res = await api.post('/assets/upload', form, config);
-      console.log('Upload response:', res);
+      console.log('✅ Upload response:', res.data);
 
       // Check if the response indicates success
       if (res.data && res.data.success) {
         return res.data.data;
       } else {
-        throw new Error(res.data?.message || 'Upload failed');
+        const errorMsg = res.data?.message || res.data?.error || 'Upload failed';
+        console.error('❌ Upload failed:', errorMsg);
+        throw new Error(errorMsg);
       }
     } catch (error) {
-      console.error('Upload error in assetsService:', error);
+      console.error('❌ Upload error in assetsService:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      
+      // Provide more user-friendly error messages
+      if (error.response?.status === 413) {
+        throw new Error('File too large. Maximum file size is 50MB');
+      } else if (error.response?.status === 400) {
+        const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Invalid file format';
+        throw new Error(errorMsg);
+      } else if (error.response?.status === 401) {
+        throw new Error('Please log in to upload files');
+      } else if (error.response?.status === 403) {
+        throw new Error('You do not have permission to upload files');
+      } else if (error.response?.status >= 500) {
+        throw new Error('Server error. Please try again later');
+      } else if (error.message === 'Network Error' || error.code === 'ERR_NETWORK') {
+        throw new Error('Network error. Please check your connection and try again');
+      }
       throw error;
     }
   },

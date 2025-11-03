@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   FolderIcon, 
   DocumentIcon, 
@@ -49,6 +49,7 @@ const DocumentsResourcesPage = () => {
   const [showTrash, setShowTrash] = useState(false);
   const [trashItems, setTrashItems] = useState([]);
   const [dragOverIndex, setDragOverIndex] = useState(null);
+  const fileInputRef = useRef(null);
 
   // Load folders for sidebar tree - optimized with smaller limit
   const loadAllFolders = async () => {
@@ -104,19 +105,74 @@ const DocumentsResourcesPage = () => {
     // Removing automatic sync on mount to improve performance
   }, []);
 
-  const handleUpload = async () => {
-    if (!selectedFiles.length) return;
+  const handleUpload = async (filesToUpload = null) => {
+    const files = filesToUpload || selectedFiles;
+    
+    console.log('🚀 handleUpload called with:', {
+      filesToUpload: filesToUpload?.length || filesToUpload,
+      selectedFiles: selectedFiles?.length || selectedFiles,
+      finalFiles: files?.length || files,
+      fileNames: files?.map(f => f?.name || f?.title || 'no-name') || []
+    });
+    
+    if (!files || !Array.isArray(files) || files.length === 0) {
+      console.error('❌ No files to upload - aborting');
+      toast.error('No files selected for upload');
+      return;
+    }
+    
+    // Validate all files are File instances
+    const invalidFiles = files.filter(f => !(f instanceof File));
+    if (invalidFiles.length > 0) {
+      console.error('❌ Invalid file objects:', invalidFiles);
+      toast.error(`Invalid file objects detected. Please try selecting files again.`);
+      return;
+    }
+    
     setUploading(true);
     try {
-      const result = await assetsService.uploadFiles({ files: selectedFiles, parentId: currentFolder });
-      console.log('Upload result:', result);
+      console.log('📤 Starting upload with files:', files.map(f => ({
+        name: f.name,
+        size: f.size,
+        type: f.type
+      })));
+      
+      const result = await assetsService.uploadFiles({ 
+        files, 
+        parentId: currentFolder || null 
+      });
+      
+      console.log('✅ Upload result:', result);
+      
+      // Reset file input if it exists
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+      
+      // Reload the current folder to show new files
       await loadItems(currentFolder);
+      
+      // Close modals and reset state
       setUploadModalOpen(false);
       setSelectedFiles([]);
-      toast.success('Uploaded successfully!');
+      setFilesToRename([]);
+      
+      toast.success(`Successfully uploaded ${files.length} file(s)!`);
     } catch (err) {
-      console.error('Upload error:', err);
-      toast.error(`Upload failed: ${err.message || 'Unknown error'}`);
+      console.error('❌ Upload error details:', {
+        error: err,
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        stack: err.stack
+      });
+      
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.error || 
+                          err.message || 
+                          'Unknown error occurred';
+      
+      toast.error(`Upload failed: ${errorMessage}`);
     } finally {
       setUploading(false);
     }
@@ -680,22 +736,47 @@ const DocumentsResourcesPage = () => {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full">
             <h3 className="text-2xl font-bold text-slate-900 mb-6">Upload Files</h3>
-            <input
-              type="file"
-              multiple
-              onChange={(e) => {
-                const files = Array.from(e.target.files);
-                if (files.length > 0) {
-                  setFilesToRename(files);
-                  setUploadModalOpen(false);
-                  setRenameModalOpen(true);
-                }
-              }}
-              className="mb-4 w-full"
-            />
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select files to upload
+              </label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                onChange={(e) => {
+                  const files = Array.from(e.target.files || []);
+                  console.log('📁 Files selected:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+                  
+                  if (files.length > 0) {
+                    // Validate files are actual File instances
+                    const validFiles = files.filter(f => f instanceof File);
+                    if (validFiles.length !== files.length) {
+                      console.error('❌ Some files are not File instances');
+                      toast.error('Invalid file selection. Please try again.');
+                      return;
+                    }
+                    
+                    setFilesToRename(validFiles);
+                    setUploadModalOpen(false);
+                    setRenameModalOpen(true);
+                  } else {
+                    console.warn('⚠️ No files selected');
+                  }
+                }}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              />
+            </div>
             <div className="flex gap-3">
               <button
-                onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
+                onClick={() => { 
+                  setUploadModalOpen(false); 
+                  setSelectedFiles([]);
+                  setFilesToRename([]);
+                  if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                  }
+                }}
                 className="flex-1 px-6 py-3 border-2 border-slate-300 rounded-xl font-medium hover:bg-slate-50 transition"
               >
                 Cancel
@@ -709,16 +790,49 @@ const DocumentsResourcesPage = () => {
 
       <FileRenameModal
         isOpen={renameModalOpen}
-        onClose={() => setRenameModalOpen(false)}
+        onClose={() => {
+          setRenameModalOpen(false);
+          setFilesToRename([]);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
+        }}
         files={filesToRename}
         onConfirm={async (renamedFiles) => {
-          setSelectedFiles(renamedFiles);
+          console.log('✅ FileRenameModal confirmed with files:', renamedFiles.map(f => ({
+            name: f.name,
+            isFile: f instanceof File,
+            size: f.size
+          })));
+          
+          if (!renamedFiles || renamedFiles.length === 0) {
+            console.error('❌ No renamed files received');
+            toast.error('No files to upload');
+            setRenameModalOpen(false);
+            return;
+          }
+          
+          // Validate all files are File instances
+          const validFiles = renamedFiles.filter(f => f instanceof File);
+          if (validFiles.length !== renamedFiles.length) {
+            console.error('❌ Some renamed files are not File instances');
+            toast.error('Invalid file objects. Please try uploading again.');
+            setRenameModalOpen(false);
+            setFilesToRename([]);
+            return;
+          }
+          
           setRenameModalOpen(false);
-          await handleUpload();
+          // Pass files directly to handleUpload to avoid state timing issues
+          await handleUpload(validFiles);
         }}
         onCancel={() => {
           setRenameModalOpen(false);
           setFilesToRename([]);
+          setSelectedFiles([]);
+          if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+          }
         }}
         colorMode={false}
       />
