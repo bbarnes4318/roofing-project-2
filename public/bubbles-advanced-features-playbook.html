@@ -1,0 +1,842 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bubbles Advanced Features Playbook - Phase 3 & 4</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    :root {
+      --brand: #2563eb;
+      --brand-dark: #1d4ed8;
+      --accent: #f97316;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --info: #3b82f6;
+      --purple: #8b5cf6;
+      --muted: #64748b;
+      --muted-light: #94a3b8;
+      --surface: #f8fafc;
+      --surface-dark: #f1f5f9;
+      --border: #e2e8f0;
+      --border-dark: #cbd5e1;
+      --text: #0f172a;
+      --text-light: #1e293b;
+      --text-muted: #475569;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: var(--text);
+      line-height: 1.6;
+    }
+    body {
+      margin: 0;
+      padding: 32px 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .card {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      padding: 48px 40px;
+      position: relative;
+    }
+    header {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 40px;
+      padding-bottom: 32px;
+      border-bottom: 3px solid var(--border);
+    }
+    .logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #2563eb, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 700;
+      font-size: 32px;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
+    }
+    .header-content {
+      flex: 1;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+    }
+    .lead {
+      margin: 0;
+      font-size: 16px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      max-width: 700px;
+    }
+    .version-badge {
+      display: inline-block;
+      margin-top: 12px;
+      padding: 4px 12px;
+      background: var(--surface-dark);
+      color: var(--text-muted);
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 48px 0 24px 0;
+      padding-top: 32px;
+      border-top: 3px solid var(--border);
+      color: var(--text);
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    h2:first-of-type {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: none;
+    }
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      margin: 32px 0 16px 0;
+      color: var(--text-light);
+      letter-spacing: -0.01em;
+    }
+    .sections {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .section {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+    }
+    .section:hover {
+      border-color: var(--border-dark);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+    .section p,
+    .section li {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--text-light);
+      margin: 0;
+    }
+    .section p {
+      margin-bottom: 12px;
+    }
+    .section li + li {
+      margin-top: 10px;
+    }
+    .section strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text);
+      border-radius: 12px;
+      padding: 6px 12px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 2px solid transparent;
+    }
+    .badge.success {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+    .badge.warning {
+      background: #ffedd5;
+      color: #c2410c;
+      border-color: #fed7aa;
+    }
+    .badge.danger {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+    .badge.info {
+      background: #dbeafe;
+      color: #1e40af;
+      border-color: #bfdbfe;
+    }
+    .badge.purple {
+      background: #ede9fe;
+      color: #5b21b6;
+      border-color: #ddd6fe;
+    }
+    .example-block {
+      margin-top: 16px;
+      padding: 16px;
+      background: #ffffff;
+      border-left: 4px solid var(--brand);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+    .example-block strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .example-block code {
+      display: block;
+      background: var(--surface-dark);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      color: var(--text-light);
+      margin-top: 6px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      border: 1px solid var(--border);
+    }
+    .example-block code:not(:first-of-type) {
+      margin-top: 8px;
+    }
+    .callout {
+      margin-top: 32px;
+      padding: 24px;
+      border-radius: 16px;
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    }
+    .callout.success {
+      background: linear-gradient(135deg, #065f46, #047857);
+      color: #d1fae5;
+    }
+    .callout.info {
+      background: linear-gradient(135deg, #1e3a8a, #1e40af);
+      color: #dbeafe;
+    }
+    .callout.warning {
+      background: linear-gradient(135deg, #92400e, #b45309);
+      color: #fef3c7;
+    }
+    .callout strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: inherit;
+    }
+    .callout p {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: inherit;
+    }
+    .callout ul {
+      margin: 12px 0 0 0;
+      padding-left: 24px;
+      color: inherit;
+    }
+    .callout li {
+      margin-top: 8px;
+    }
+    .callout code {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      font-size: 13px;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      margin: 24px 0;
+      font-size: 14px;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      border: 2px solid var(--border);
+    }
+    table th,
+    table td {
+      padding: 16px 20px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    table th {
+      background: var(--surface-dark);
+      font-weight: 600;
+      color: var(--text);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 2px solid var(--border-dark);
+    }
+    table td {
+      color: var(--text-light);
+    }
+    table tr:last-child td {
+      border-bottom: none;
+    }
+    table tr:hover td {
+      background: var(--surface);
+    }
+    ul {
+      padding-left: 24px;
+      margin: 0;
+    }
+    code {
+      background: var(--surface-dark);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 3px solid var(--border);
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .btn {
+      background: var(--brand);
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: var(--brand-dark);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+      transform: translateY(-1px);
+    }
+    .icon {
+      width: 20px;
+      height: 20px;
+      display: inline-block;
+    }
+    .toc {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      padding: 24px;
+      margin: 32px 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+    .toc h3 {
+      margin-top: 0;
+      font-size: 16px;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    .toc li {
+      margin-top: 10px;
+      padding-left: 24px;
+      position: relative;
+    }
+    .toc li:before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--brand);
+      font-weight: bold;
+    }
+    .toc a {
+      color: var(--brand);
+      text-decoration: none;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+    .toc a:hover {
+      color: var(--brand-dark);
+      text-decoration: underline;
+    }
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .card {
+        box-shadow: none;
+        border: 1px solid var(--border);
+        padding: 32px;
+      }
+      .btn {
+        display: none;
+      }
+      .callout {
+        border: 2px solid var(--border-dark);
+      }
+      .section {
+        break-inside: avoid;
+      }
+    }
+    @media (max-width: 768px) {
+      body {
+        padding: 16px;
+      }
+      .card {
+        padding: 24px;
+        border-radius: 16px;
+      }
+      h1 {
+        font-size: 24px;
+      }
+      h2 {
+        font-size: 20px;
+      }
+      .sections {
+        grid-template-columns: 1fr;
+      }
+      header {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <header>
+      <div class="logo">B</div>
+      <div class="header-content">
+        <h1>Bubbles Advanced Features Playbook</h1>
+        <p class="lead">
+          Your complete guide to Phase 3 (Enhanced Detection & Multi-Document Support) and Phase 4 (Proactive Notifications & Analytics). 
+          Speak naturally—Bubbles understands your intent better than ever before.
+        </p>
+        <span class="version-badge">Version 2.0</span>
+      </div>
+    </header>
+
+    <div class="toc">
+      <h3>📚 Quick Navigation</h3>
+      <ul>
+        <li><a href="#phase3">Phase 3: Enhanced Detection</a></li>
+        <li><a href="#phase4-proactive">Phase 4: Proactive Features</a></li>
+        <li><a href="#phase4-analytics">Phase 4: Analytics & Insights</a></li>
+        <li><a href="#reference">Quick Reference Table</a></li>
+        <li><a href="#tips">Pro Tips</a></li>
+      </ul>
+    </div>
+
+    <h2 id="phase3">🔍 Phase 3: Enhanced Detection</h2>
+    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">
+      Bubbles now understands your intent more accurately with enhanced pattern recognition. Speak naturally and Bubbles will detect exactly what you want to do.
+    </p>
+
+    <div class="sections">
+      <section class="section">
+        <span class="badge success">✓ Task Creation</span>
+        <p><strong>What Bubbles detects:</strong></p>
+        <ul>
+          <li>"Create a task..."</li>
+          <li>"Add a method..."</li>
+          <li>"Assign [someone]..."</li>
+          <li>"Remind [someone] to..."</li>
+          <li>"Due [date]..."</li>
+        </ul>
+        <div class="example-block">
+          <strong>Examples:</strong>
+          <code>"Create a task for John to review the estimate by Friday"</code>
+          <code>"Add a task - inspect roof deck before shingles"</code>
+          <code>"Task: Order shingles, due Friday"</code>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="badge warning">⏰ Reminder Creation</span>
+        <p><strong>What Bubbles detects:</strong></p>
+        <ul>
+          <li>"Set a reminder..."</li>
+          <li>"Remind me..."</li>
+          <li>"Schedule..."</li>
+          <li>"Calendar event..."</li>
+          <li>"Meeting..."</li>
+        </ul>
+        <div class="example-block">
+          <strong>Examples:</strong>
+          <code>"Remind me to call the customer tomorrow at 2pm"</code>
+          <code>"Set a reminder for Monday at 9am to check materials"</code>
+          <code>"Schedule a meeting with homeowner next Tuesday"</code>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="badge info">📧 Email & Messages</span>
+        <p><strong>Email detection:</strong></p>
+        <ul>
+          <li>"Send an email..."</li>
+          <li>"Email [person]..."</li>
+          <li>"Notify via email"</li>
+        </ul>
+        <p style="margin-top: 12px;"><strong>Message detection:</strong></p>
+        <ul>
+          <li>"Send a message..."</li>
+          <li>"Tell [person]..."</li>
+          <li>"Update [person]..."</li>
+        </ul>
+        <div class="example-block">
+          <strong>Examples:</strong>
+          <code>"Send an email to customer saying work starts Monday"</code>
+          <code>"Message John about the schedule change"</code>
+        </div>
+      </section>
+
+      <section class="section">
+        <span class="badge purple">📎 Multi-Document Support</span>
+        <p><strong>Send multiple files:</strong></p>
+        <ul>
+          <li>"Send both X and Y"</li>
+          <li>"X, Y, and Z documents"</li>
+          <li>"Include X along with Y"</li>
+        </ul>
+        <div class="example-block">
+          <strong>Examples:</strong>
+          <code>"Send both the inspection report and warranty document"</code>
+          <code>"Attach estimate, contract, and permit to message"</code>
+          <code>"Send invoice and receipt together to accounting"</code>
+        </div>
+      </section>
+    </div>
+
+    <div class="callout info">
+      <div>
+        <strong>💡 Multi-Document Tip</strong>
+        <p>
+          Bubbles automatically detects multiple documents when you use conjunctions like "and", commas, or phrases like "both X and Y". 
+          Just mention them naturally—no need to spell out underscores or worry about exact formatting!
+        </p>
+        <p style="margin-top: 12px;">
+          <strong>Example:</strong> Say <code>"Send the permit.pdf and latest_photos.zip to the homeowner"</code> 
+          and Bubbles will find and attach both files automatically.
+        </p>
+      </div>
+    </div>
+
+    <h2 id="phase4-proactive">🚨 Phase 4: Proactive Features</h2>
+    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">
+      Bubbles automatically monitors your projects and proactively alerts you to things that need attention. 
+      No more searching—Bubbles brings critical information to you.
+    </p>
+
+    <div class="sections">
+      <section class="section">
+        <span class="badge danger">⚠️ Overdue Tasks</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"What tasks are overdue?"</li>
+          <li>"Show me overdue tasks"</li>
+          <li>"What needs immediate attention?"</li>
+          <li>"Are there any tasks past due?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> List of all overdue tasks with due dates, assignments, and project context.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge warning">📅 Upcoming Deadlines</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"What deadlines are coming up?"</li>
+          <li>"Show me upcoming deadlines"</li>
+          <li>"What's due in the next week?"</li>
+          <li>"What tasks are due soon?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Tasks due in the next 7 days, sorted chronologically with project and assignee information.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge info">📞 Communication Gaps</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"Which projects need follow-up?"</li>
+          <li>"Show me communication gaps"</li>
+          <li>"What projects need contact?"</li>
+          <li>"Which customers haven't been contacted?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Projects without recent contact (7+ days), showing days since last message and customer names.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge purple">📊 Summary</span>
+        <p><strong>Get everything at once:</strong></p>
+        <ul>
+          <li>"What needs my attention?"</li>
+          <li>"Give me a proactive summary"</li>
+          <li>"What should I focus on today?"</li>
+          <li>"Show me what needs attention"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Complete summary including overdue tasks, upcoming deadlines, communication gaps, and overdue alerts.
+        </p>
+      </section>
+    </div>
+
+    <div class="callout success">
+      <div>
+        <strong>🎯 Daily Best Practice</strong>
+        <p>
+          Start each morning by asking Bubbles: <strong>"What needs my attention?"</strong>
+        </p>
+        <p style="margin-top: 12px;">
+          Bubbles will provide a complete proactive summary of everything requiring your focus, helping you prioritize your day effectively 
+          and ensure nothing falls through the cracks.
+        </p>
+      </div>
+    </div>
+
+    <h2 id="phase4-analytics">📊 Phase 4: Analytics & Insights</h2>
+    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 24px;">
+      Bubbles can analyze your entire portfolio and provide insights across all projects. 
+      Make data-driven decisions with comprehensive analytics at your fingertips.
+    </p>
+
+    <div class="sections">
+      <section class="section">
+        <span class="badge info">📈 Portfolio Status</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"What's the portfolio status?"</li>
+          <li>"Show me portfolio analytics"</li>
+          <li>"Give me an overview of all projects"</li>
+          <li>"What's our portfolio health?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Total projects, average progress, budget vs. cost, projects by status/phase, and detailed project list.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge success">👥 Resource Allocation</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"How are resources allocated?"</li>
+          <li>"Which managers have the most projects?"</li>
+          <li>"Show me resource distribution"</li>
+          <li>"How many projects per manager?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Projects per manager, active vs. total projects, project lists, sorted by workload (most loaded first).
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge danger">🚧 Bottlenecks</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"Where are the bottlenecks?"</li>
+          <li>"What phases are blocking projects?"</li>
+          <li>"Show me bottlenecks"</li>
+          <li>"Which phases need attention?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Projects stuck by phase, current blocking line items, responsible roles, and bottlenecks sorted by impact.
+        </p>
+      </section>
+
+      <section class="section">
+        <span class="badge warning">📊 Team Workload</span>
+        <p><strong>Ask Bubbles:</strong></p>
+        <ul>
+          <li>"What's the team workload?"</li>
+          <li>"Who's overloaded?"</li>
+          <li>"Show me team capacity"</li>
+          <li>"How many tasks does each person have?"</li>
+        </ul>
+        <p style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);">
+          <strong>You'll get:</strong> Tasks per team member (active/overdue), alerts, reminders, managed projects, and workload scores.
+        </p>
+      </section>
+    </div>
+
+    <h3 id="reference">Quick Reference Table</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Feature</th>
+          <th>How to Ask</th>
+          <th>What You Get</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Overdue Tasks</strong></td>
+          <td>"What tasks are overdue?"</td>
+          <td>List of all past-due tasks with details</td>
+        </tr>
+        <tr>
+          <td><strong>Upcoming Deadlines</strong></td>
+          <td>"What deadlines are coming up?"</td>
+          <td>Tasks due in the next 7 days</td>
+        </tr>
+        <tr>
+          <td><strong>Communication Gaps</strong></td>
+          <td>"Which projects need follow-up?"</td>
+          <td>Projects needing customer contact</td>
+        </tr>
+        <tr>
+          <td><strong>Proactive Summary</strong></td>
+          <td>"What needs my attention?"</td>
+          <td>Complete overview of all alerts</td>
+        </tr>
+        <tr>
+          <td><strong>Portfolio Status</strong></td>
+          <td>"What's the portfolio status?"</td>
+          <td>Complete portfolio overview</td>
+        </tr>
+        <tr>
+          <td><strong>Resource Allocation</strong></td>
+          <td>"How are resources allocated?"</td>
+          <td>Projects distributed by manager</td>
+        </tr>
+        <tr>
+          <td><strong>Bottlenecks</strong></td>
+          <td>"Where are the bottlenecks?"</td>
+          <td>Phase blocks and stuck projects</td>
+        </tr>
+        <tr>
+          <td><strong>Team Workload</strong></td>
+          <td>"What's the team workload?"</td>
+          <td>Capacity analysis per team member</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout warning">
+      <div>
+        <strong>🚀 Advanced Example: Multi-Document Task Creation</strong>
+        <p><strong>You say:</strong> <code>"Create a task for John to review the inspection report and warranty document for project #12345, due Friday, high priority"</code></p>
+        <p style="margin-top: 12px;"><strong>Bubbles does:</strong></p>
+        <ul>
+          <li>1. Detects: create_task intent ✅</li>
+          <li>2. Finds: Inspection_Report.pdf AND Warranty.pdf ✅</li>
+          <li>3. Creates: Task "Review inspection report and warranty document"</li>
+          <li>4. Assigns: John, Due Friday, Priority High</li>
+          <li>5. Attaches: Both documents to the task ✅</li>
+          <li>6. Confirms: "Created task with 2 document attachments"</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3 id="tips">💡 Pro Tips</h3>
+    <div class="sections">
+      <section class="section">
+        <strong>✓ Task Creation</strong>
+        <ul>
+          <li>Be specific about assignee</li>
+          <li>Include due dates naturally</li>
+          <li>Mention project if needed</li>
+          <li>Attach documents with "and"</li>
+        </ul>
+      </section>
+      <section class="section">
+        <strong>📎 Multi-Document</strong>
+        <ul>
+          <li>List documents clearly</li>
+          <li>Use "and" or commas</li>
+          <li>Ask for available docs first</li>
+          <li>Bubbles handles formatting automatically</li>
+        </ul>
+      </section>
+      <section class="section">
+        <strong>🚨 Proactive Features</strong>
+        <ul>
+          <li>Check summary each morning</li>
+          <li>Review gaps weekly</li>
+          <li>Monitor bottlenecks regularly</li>
+          <li>Address overdue items immediately</li>
+        </ul>
+      </section>
+      <section class="section">
+        <strong>📊 Analytics</strong>
+        <ul>
+          <li>Review portfolio weekly</li>
+          <li>Check allocation monthly</li>
+          <li>Address bottlenecks immediately</li>
+          <li>Balance team workload proactively</li>
+        </ul>
+      </section>
+    </div>
+
+    <div class="footer">
+      <div class="footer-brand">
+        <span>Bubbles AI Advanced Features</span>
+        <span style="color: var(--muted-light);">•</span>
+        <span style="color: var(--muted-light);">Powered by Kenstruction</span>
+      </div>
+      <button class="btn" onclick="window.print();">
+        <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        Print Playbook
+      </button>
+    </div>
+  </div>
+</body>
+</html>

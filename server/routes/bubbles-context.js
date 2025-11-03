@@ -26,15 +26,15 @@ router.use(authenticateToken);
  */
 router.get('/project/:projectId', asyncHandler(async (req, res) => {
   const { projectId } = req.params;
-  const context = await bubblesContextService.getProjectContext(projectId);
   
-  if (!context) {
+  const summary = await bubblesContextService.getProjectSummary(projectId);
+  
+  if (!summary) {
     throw new AppError('Project not found', 404);
   }
-
+  
   sendSuccess(res, 200, {
-    project: context,
-    incompleteItems: await bubblesContextService.getIncompleteWorkflowItems(projectId),
+    ...summary,
     generatedAt: new Date()
   }, 'Comprehensive project context retrieved');
 }));
@@ -46,7 +46,7 @@ router.get('/project/:projectId', asyncHandler(async (req, res) => {
  */
 router.get('/activity', asyncHandler(async (req, res) => {
   const { limit = 50 } = req.query;
-  const userId = req.user.id;
+  const userId = req.query.userId || req.user.id;
   
   const activity = await bubblesContextService.getRecentActivity(parseInt(limit), userId);
   
@@ -58,18 +58,88 @@ router.get('/activity', asyncHandler(async (req, res) => {
 }));
 
 /**
+ * @desc    Get all projects with filters
+ * @route   GET /api/bubbles/context/projects
+ * @access  Private
+ */
+router.get('/projects', asyncHandler(async (req, res) => {
+  const { status, phase, projectManagerId, customerId, projectNumber, search, limit } = req.query;
+  
+  const projects = await bubblesContextService.getAllProjects({
+    status,
+    phase,
+    projectManagerId,
+    customerId,
+    projectNumber,
+    search,
+    limit: limit ? parseInt(limit) : undefined
+  });
+  
+  sendSuccess(res, 200, {
+    projects,
+    count: projects.length,
+    generatedAt: new Date()
+  }, 'Projects retrieved');
+}));
+
+/**
+ * @desc    Get all customers with filters
+ * @route   GET /api/bubbles/context/customers
+ * @access  Private
+ */
+router.get('/customers', asyncHandler(async (req, res) => {
+  const { search, limit } = req.query;
+  
+  const customers = await bubblesContextService.getAllCustomers({
+    search,
+    limit: limit ? parseInt(limit) : undefined
+  });
+  
+  sendSuccess(res, 200, {
+    customers,
+    count: customers.length,
+    generatedAt: new Date()
+  }, 'Customers retrieved');
+}));
+
+/**
+ * @desc    Get all users with filters
+ * @route   GET /api/bubbles/context/users
+ * @access  Private
+ */
+router.get('/users', asyncHandler(async (req, res) => {
+  const { role, search, limit } = req.query;
+  
+  const users = await bubblesContextService.getAllUsers({
+    role,
+    search,
+    limit: limit ? parseInt(limit) : undefined
+  });
+  
+  sendSuccess(res, 200, {
+    users,
+    count: users.length,
+    generatedAt: new Date()
+  }, 'Users retrieved');
+}));
+
+/**
  * @desc    Get all tasks with full context
  * @route   GET /api/bubbles/context/tasks
  * @access  Private
  */
 router.get('/tasks', asyncHandler(async (req, res) => {
-  const { projectId, assignedToId, status, priority } = req.query;
+  const { projectId, assignedToId, status, priority, category, overdue, upcoming, limit } = req.query;
   
   const tasks = await bubblesContextService.getAllTasks({
     projectId,
     assignedToId: assignedToId || req.user.id,
     status,
-    priority
+    priority,
+    category,
+    overdue: overdue === 'true',
+    upcoming: upcoming === 'true',
+    limit: limit ? parseInt(limit) : undefined
   });
   
   sendSuccess(res, 200, {
@@ -85,12 +155,16 @@ router.get('/tasks', asyncHandler(async (req, res) => {
  * @access  Private
  */
 router.get('/reminders', asyncHandler(async (req, res) => {
-  const { projectId, upcoming } = req.query;
+  const { projectId, upcoming, past, eventType, status, limit } = req.query;
   
   const reminders = await bubblesContextService.getAllReminders({
     projectId,
-    organizerId: req.user.id,
-    upcoming: upcoming === 'true'
+    organizerId: req.query.organizerId || req.user.id,
+    upcoming: upcoming === 'true',
+    past: past === 'true',
+    eventType,
+    status,
+    limit: limit ? parseInt(limit) : undefined
   });
   
   sendSuccess(res, 200, {
@@ -106,13 +180,15 @@ router.get('/reminders', asyncHandler(async (req, res) => {
  * @access  Private
  */
 router.get('/emails', asyncHandler(async (req, res) => {
-  const { projectId, customerId, status } = req.query;
+  const { projectId, customerId, status, emailType, limit } = req.query;
   
   const emails = await bubblesContextService.getAllEmails({
     projectId,
     customerId,
-    senderId: req.user.id,
-    status
+    senderId: req.query.senderId || req.user.id,
+    status,
+    emailType,
+    limit: limit ? parseInt(limit) : undefined
   });
   
   sendSuccess(res, 200, {
@@ -128,12 +204,15 @@ router.get('/emails', asyncHandler(async (req, res) => {
  * @access  Private
  */
 router.get('/messages', asyncHandler(async (req, res) => {
-  const { projectId, messageType } = req.query;
+  const { projectId, messageType, priority, search, limit } = req.query;
   
   const messages = await bubblesContextService.getAllMessages({
     projectId,
-    authorId: req.user.id,
-    messageType
+    authorId: req.query.authorId || req.user.id,
+    messageType,
+    priority,
+    search,
+    limit: limit ? parseInt(limit) : undefined
   });
   
   sendSuccess(res, 200, {
@@ -149,13 +228,15 @@ router.get('/messages', asyncHandler(async (req, res) => {
  * @access  Private
  */
 router.get('/alerts', asyncHandler(async (req, res) => {
-  const { projectId, status, priority } = req.query;
+  const { projectId, status, priority, overdue, assignedToId, limit } = req.query;
   
   const alerts = await bubblesContextService.getAllAlerts({
     projectId,
-    assignedToId: req.user.id,
+    assignedToId: assignedToId || req.user.id,
     status: status || 'ACTIVE',
-    priority
+    priority,
+    overdue: overdue === 'true',
+    limit: limit ? parseInt(limit) : undefined
   });
   
   sendSuccess(res, 200, {
@@ -171,9 +252,12 @@ router.get('/alerts', asyncHandler(async (req, res) => {
  * @access  Private
  */
 router.get('/documents', asyncHandler(async (req, res) => {
-  const { projectId } = req.query;
+  const { projectId, limit } = req.query;
   
-  const documents = await bubblesContextService.getAllDocuments({ projectId });
+  const documents = await bubblesContextService.getAllDocuments({ 
+    projectId,
+    limit: limit ? parseInt(limit) : undefined
+  });
   
   sendSuccess(res, 200, {
     ...documents,
@@ -190,14 +274,14 @@ router.get('/documents', asyncHandler(async (req, res) => {
 router.get('/customer/:customerId', asyncHandler(async (req, res) => {
   const { customerId } = req.params;
   
-  const customer = await bubblesContextService.getCustomerContext(customerId);
+  const summary = await bubblesContextService.getCustomerSummary(customerId);
   
-  if (!customer) {
+  if (!summary) {
     throw new AppError('Customer not found', 404);
   }
   
   sendSuccess(res, 200, {
-    customer,
+    ...summary,
     generatedAt: new Date()
   }, 'Customer context retrieved');
 }));
@@ -216,8 +300,11 @@ router.get('/user/:userId?', asyncHandler(async (req, res) => {
     throw new AppError('User not found', 404);
   }
   
+  const workload = await bubblesContextService.getUserWorkload(userId);
+  
   sendSuccess(res, 200, {
     user: userContext,
+    workload,
     generatedAt: new Date()
   }, 'User context retrieved');
 }));
@@ -235,7 +322,7 @@ router.get('/search', asyncHandler(async (req, res) => {
     throw new AppError('Search query is required', 400);
   }
   
-  const results = await bubblesContextService.searchAll(searchQuery);
+  const results = await bubblesContextService.searchAllData(searchQuery);
   
   sendSuccess(res, 200, {
     query: searchQuery,
@@ -268,13 +355,13 @@ router.get('/snapshot', asyncHandler(async (req, res) => {
   const { projectId } = req.query;
   
   // Gather comprehensive snapshot with individual error handling
-  let insights, recentActivity, userContext, projectContext, tasks, alerts, reminders;
+  let insights, recentActivity, userContext, userWorkload, projectSummary, tasks, alerts, reminders;
   
   try {
     insights = await bubblesContextService.getInsights(userId);
   } catch (err) {
     console.error('❌ getInsights failed:', err.message);
-    insights = { summary: { totalProjects: 0, activeProjects: 0, overdueTasks: 0, upcomingReminders: 0, activeAlerts: 0 }, recentActivity: [] };
+    insights = { summary: { totalProjects: 0, activeProjects: 0, overdueTasks: 0, upcomingReminders: 0, activeAlerts: 0 } };
   }
   
   try {
@@ -286,34 +373,35 @@ router.get('/snapshot', asyncHandler(async (req, res) => {
   
   try {
     userContext = await bubblesContextService.getUserContext(userId);
+    userWorkload = await bubblesContextService.getUserWorkload(userId);
   } catch (err) {
-    console.error('❌ getUserContext failed:', err.message);
+    console.error('❌ getUserContext/getUserWorkload failed:', err.message);
     throw err; // This one is critical
   }
   
   try {
-    projectContext = projectId ? await bubblesContextService.getProjectContext(projectId) : null;
+    projectSummary = projectId ? await bubblesContextService.getProjectSummary(projectId) : null;
   } catch (err) {
-    console.error('❌ getProjectContext failed:', err.message);
-    projectContext = null;
+    console.error('❌ getProjectSummary failed:', err.message);
+    projectSummary = null;
   }
   
   try {
-    tasks = await bubblesContextService.getAllTasks({ assignedToId: userId, status: 'TO_DO' });
+    tasks = await bubblesContextService.getAllTasks({ assignedToId: userId, status: 'TO_DO', limit: 10 });
   } catch (err) {
     console.error('❌ getAllTasks failed:', err.message);
     tasks = [];
   }
   
   try {
-    alerts = await bubblesContextService.getAllAlerts({ assignedToId: userId, status: 'ACTIVE' });
+    alerts = await bubblesContextService.getAllAlerts({ assignedToId: userId, status: 'ACTIVE', limit: 10 });
   } catch (err) {
     console.error('❌ getAllAlerts failed:', err.message);
     alerts = [];
   }
   
   try {
-    reminders = await bubblesContextService.getAllReminders({ organizerId: userId, upcoming: true });
+    reminders = await bubblesContextService.getAllReminders({ organizerId: userId, upcoming: true, limit: 10 });
   } catch (err) {
     console.error('❌ getAllReminders failed:', err.message);
     reminders = [];
@@ -324,21 +412,10 @@ router.get('/snapshot', asyncHandler(async (req, res) => {
       insights,
       recentActivity,
       user: {
-        id: userContext.id,
-        name: `${userContext.firstName} ${userContext.lastName}`,
-        email: userContext.email,
-        role: userContext.role,
-        managedProjects: userContext.projectsAsManager?.length || 0,
-        teamProjects: userContext.projectsAsTeamMember?.length || 0
+        ...userContext,
+        workload: userWorkload
       },
-      currentProject: projectContext ? {
-        id: projectContext.id,
-        name: projectContext.projectName,
-        number: projectContext.projectNumber,
-        status: projectContext.status,
-        progress: projectContext.progress,
-        customer: projectContext.customer?.primaryName
-      } : null,
+      currentProject: projectSummary,
       pendingWork: {
         tasks: tasks.slice(0, 10),
         alerts: alerts.slice(0, 10),

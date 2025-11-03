@@ -14,8 +14,11 @@ const IngestionService = require('../services/IngestionService');
 const path = require('path');
 const fs = require('fs').promises;
 const { findAssetByMention } = require('../services/AssetLookup');
+const { findMultipleAssetsByMention, detectIntent } = require('../services/EnhancedDocumentDetection');
 const emailService = require('../services/EmailService');
 const bubblesContextService = require('../services/BubblesContextService');
+const proactiveNotificationsService = require('../services/ProactiveNotificationsService');
+const crossProjectAnalyticsService = require('../services/CrossProjectAnalyticsService');
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
@@ -661,14 +664,698 @@ class BubblesContextManager {
 const contextManager = new BubblesContextManager();
 
 /**
+ * Execute a tool call - handles all data access and workflow tools
+ */
+async function executeToolCall(toolName, args, context) {
+  const { user, projectContext, currentWorkflowData } = context;
+  
+  console.log(`🔧 EXECUTE-TOOL: ${toolName}`, args);
+  
+  try {
+    // ==================== DATA ACCESS TOOLS ====================
+    
+    if (toolName === 'get_all_projects') {
+      const projects = await bubblesContextService.getAllProjects(args);
+      return {
+        success: true,
+        data: projects,
+        count: projects.length
+      };
+    }
+    
+    if (toolName === 'get_all_tasks') {
+      // If projectContext exists, default to it unless explicitly filtered
+      if (!args.projectId && projectContext) {
+        args.projectId = projectContext.id;
+      }
+      const tasks = await bubblesContextService.getAllTasks(args);
+      return {
+        success: true,
+        data: tasks,
+        count: tasks.length
+      };
+    }
+    
+    if (toolName === 'get_all_messages') {
+      if (!args.projectId && projectContext) {
+        args.projectId = projectContext.id;
+      }
+      const messages = await bubblesContextService.getAllMessages(args);
+      return {
+        success: true,
+        data: messages,
+        count: messages.length
+      };
+    }
+    
+    if (toolName === 'get_all_emails') {
+      if (!args.projectId && projectContext) {
+        args.projectId = projectContext.id;
+      }
+      const emails = await bubblesContextService.getAllEmails(args);
+      return {
+        success: true,
+        data: emails,
+        count: emails.length
+      };
+    }
+    
+    if (toolName === 'get_all_reminders') {
+      if (!args.projectId && projectContext) {
+        args.projectId = projectContext.id;
+      }
+      if (!args.organizerId) {
+        args.organizerId = user.id;
+      }
+      const reminders = await bubblesContextService.getAllReminders(args);
+      return {
+        success: true,
+        data: reminders,
+        count: reminders.length
+      };
+    }
+    
+    if (toolName === 'get_customer_info') {
+      let customer = null;
+      if (args.customerId) {
+        customer = await bubblesContextService.getCustomerContext(args.customerId);
+      } else if (args.customerName) {
+        const customers = await bubblesContextService.getAllCustomers({ search: args.customerName, limit: 1 });
+        customer = customers.length > 0 ? customers[0] : null;
+      } else if (projectContext?.customerId) {
+        customer = await bubblesContextService.getCustomerContext(projectContext.customerId);
+      }
+      
+      if (!customer) {
+        return { success: false, error: 'Customer not found' };
+      }
+      
+      const summary = await bubblesContextService.getCustomerSummary(customer.id);
+      return {
+        success: true,
+        data: summary
+      };
+    }
+    
+    if (toolName === 'get_user_info') {
+      let targetUser = null;
+      if (args.userId) {
+        targetUser = await bubblesContextService.getUserContext(args.userId);
+      } else if (args.userEmail) {
+        const users = await bubblesContextService.getAllUsers({ search: args.userEmail, limit: 1 });
+        targetUser = users.length > 0 ? users[0] : null;
+      }
+      
+      if (!targetUser) {
+        return { success: false, error: 'User not found' };
+      }
+      
+      const workload = await bubblesContextService.getUserWorkload(targetUser.id);
+      return {
+        success: true,
+        data: {
+          user: targetUser,
+          workload
+        }
+      };
+    }
+    
+    if (toolName === 'search_all_data') {
+      if (!args.query) {
+        return { success: false, error: 'Search query is required' };
+      }
+      const results = await bubblesContextService.searchAllData(args.query);
+      return {
+        success: true,
+        data: results
+      };
+    }
+    
+    // ==================== PHASE 4: PROACTIVE & ANALYTICS TOOLS ====================
+    
+    if (toolName === 'get_proactive_summary') {
+      const summary = await proactiveNotificationsService.getProactiveSummary(args.userId || user.id);
+      return {
+        success: true,
+        data: summary,
+        message: `Found ${summary.overdueTasks.count} overdue tasks, ${summary.upcomingDeadlines.count} upcoming deadlines, ${summary.communicationGaps.count} communication gaps, and ${summary.overdueAlerts.count} overdue alerts.`
+      };
+    }
+    
+    if (toolName === 'get_portfolio_analytics') {
+      const analytics = await crossProjectAnalyticsService.getAnalyticsSummary();
+      return {
+        success: true,
+        data: analytics
+      };
+    }
+    
+    if (toolName === 'get_resource_allocation') {
+      const allocation = await crossProjectAnalyticsService.getResourceAllocation();
+      return {
+        success: true,
+        data: allocation
+      };
+    }
+    
+    if (toolName === 'get_bottlenecks') {
+      const bottlenecks = await crossProjectAnalyticsService.identifyBottlenecks();
+      return {
+        success: true,
+        data: bottlenecks
+      };
+    }
+    
+    if (toolName === 'get_team_workload') {
+      const workload = await crossProjectAnalyticsService.getTeamWorkload();
+      return {
+        success: true,
+        data: workload
+      };
+    }
+    
+    // ==================== WORKFLOW TOOLS ====================
+    
+    if (toolName === 'mark_line_item_complete_and_notify') {
+      if (!projectContext) {
+        return { success: false, error: 'No project selected' };
+      }
+      if (!workflowActionService) {
+        return { success: false, error: 'WorkflowActionService not available' };
+      }
+      const result = await workflowActionService.markLineItemComplete(
+        projectContext.id,
+        args.lineItemName,
+        user.id
+      );
+      return {
+        success: true,
+        data: result,
+        message: `Marked "${args.lineItemName}" as complete`
+      };
+    }
+    
+    if (toolName === 'get_incomplete_items_in_phase') {
+      if (!projectContext) {
+        return { success: false, error: 'No project selected' };
+      }
+      if (!workflowActionService) {
+        return { success: false, error: 'WorkflowActionService not available' };
+      }
+      const items = await workflowActionService.getIncompleteItemsInPhase(
+        projectContext.id,
+        args.phaseName
+      );
+      return {
+        success: true,
+        data: items,
+        count: items.length
+      };
+    }
+    
+    if (toolName === 'find_blocking_task') {
+      if (!projectContext) {
+        return { success: false, error: 'No project selected' };
+      }
+      if (!workflowActionService) {
+        return { success: false, error: 'WorkflowActionService not available' };
+      }
+      const blocker = await workflowActionService.findBlockingTask(
+        projectContext.id,
+        args.phaseName
+      );
+      return {
+        success: true,
+        data: blocker,
+        found: !!blocker
+      };
+    }
+    
+    if (toolName === 'check_phase_readiness') {
+      if (!projectContext) {
+        return { success: false, error: 'No project selected' };
+      }
+      if (!workflowActionService) {
+        return { success: false, error: 'WorkflowActionService not available' };
+      }
+      const readiness = await workflowActionService.checkPhaseReadiness(
+        projectContext.id,
+        args.phaseName
+      );
+      return {
+        success: true,
+        data: readiness
+      };
+    }
+    
+    if (toolName === 'reassign_task') {
+      if (!projectContext) {
+        return { success: false, error: 'No project selected' };
+      }
+      if (!workflowActionService) {
+        return { success: false, error: 'WorkflowActionService not available' };
+      }
+      const result = await workflowActionService.reassignTask(
+        projectContext.id,
+        args.lineItemName,
+        args.newUserEmail
+      );
+      return {
+        success: true,
+        data: result
+      };
+    }
+    
+    if (toolName === 'answer_company_question') {
+      const KnowledgeBaseService = require('../services/KnowledgeBaseService');
+      const kbService = new KnowledgeBaseService();
+      const answer = await kbService.answerQuestion(args.question, projectContext);
+      return {
+        success: true,
+        data: { answer }
+      };
+    }
+    
+    // ==================== STANDALONE ACTION TOOLS (PHASE 2) ====================
+    
+    if (toolName === 'create_task') {
+      // Resolve project ID - use provided or projectContext
+      let effectiveProjectId = args.projectId || (projectContext?.id || null);
+      if (!effectiveProjectId) {
+        return { success: false, error: 'Project ID is required. Please select a project or provide a projectId.' };
+      }
+      
+      // Verify project exists
+      const project = await prisma.project.findUnique({ where: { id: effectiveProjectId } });
+      if (!project) {
+        return { success: false, error: 'Project not found' };
+      }
+      
+      // Resolve assigned user
+      let assignedToId = args.assignedToId || null;
+      if (!assignedToId && args.assignedToEmail) {
+        const assignedUser = await prisma.user.findUnique({ where: { email: args.assignedToEmail } });
+        if (!assignedUser) {
+          return { success: false, error: `User with email ${args.assignedToEmail} not found` };
+        }
+        assignedToId = assignedUser.id;
+      }
+      
+      // Default to project manager or task creator if no assignee specified
+      if (!assignedToId) {
+        assignedToId = project.projectManagerId || user.id;
+      }
+      
+      // Parse due date
+      const dueDate = args.dueDate ? parseDueDateFromText(args.dueDate) : nextBusinessDaysFromNow(2);
+      
+      // Parse priority
+      const priority = args.priority && ['LOW', 'MEDIUM', 'HIGH'].includes(args.priority.toUpperCase())
+        ? args.priority.toUpperCase()
+        : 'MEDIUM';
+      
+      // Fetch document attachments if provided
+      const attachments = [];
+      if (args.documentIds && Array.isArray(args.documentIds) && args.documentIds.length > 0) {
+        for (const docId of args.documentIds) {
+          const asset = await prisma.companyAsset.findUnique({ where: { id: docId } });
+          if (asset) {
+            attachments.push({
+              assetId: asset.id,
+              title: asset.title || 'Document',
+              mimeType: asset.mimeType || 'application/octet-stream',
+              fileUrl: asset.fileUrl || null,
+              thumbnailUrl: asset.thumbnailUrl || null
+            });
+          }
+        }
+      }
+      
+      // Create task
+      const task = await prisma.task.create({
+        data: {
+          title: args.title.slice(0, 255),
+          description: args.description ? args.description.slice(0, 2000) : null,
+          dueDate,
+          priority,
+          status: 'TO_DO',
+          category: 'DOCUMENTATION', // Default category, could be made configurable
+          projectId: effectiveProjectId,
+          assignedToId,
+          createdById: user.id,
+          notes: attachments.length > 0 ? `Attached documents: ${attachments.map(a => a.title).join(', ')}` : null
+        }
+      });
+      
+      // If documents attached, create a project message linking task to documents
+      if (attachments.length > 0) {
+        try {
+          await prisma.projectMessage.create({
+            data: {
+              content: `Task "${task.title}" created with attached documents.`,
+              subject: `Task: ${task.title}`,
+              messageType: 'USER_MESSAGE',
+              priority: 'MEDIUM',
+              authorId: user.id,
+              authorName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Bubbles AI',
+              authorRole: user.role || 'AI_ASSISTANT',
+              projectId: effectiveProjectId,
+              projectNumber: project.projectNumber,
+              isSystemGenerated: false,
+              isWorkflowMessage: false,
+              metadata: { 
+                taskId: task.id,
+                taskTitle: task.title,
+                attachments: attachments,
+                source: 'bubbles_ai_create_task'
+              }
+            }
+          });
+        } catch (msgErr) {
+          console.error('Failed to create message for task attachments:', msgErr);
+          // Non-fatal
+        }
+      }
+      
+      return {
+        success: true,
+        data: {
+          task: {
+            id: task.id,
+            title: task.title,
+            description: task.description,
+            dueDate: task.dueDate,
+            priority: task.priority,
+            status: task.status,
+            projectId: task.projectId,
+            assignedToId: task.assignedToId,
+            attachments: attachments.map(a => ({ id: a.assetId, title: a.title }))
+          }
+        },
+        message: `Task "${task.title}" created successfully${attachments.length > 0 ? ` with ${attachments.length} document(s) attached` : ''}.`
+      };
+    }
+    
+    if (toolName === 'create_reminder') {
+      // Resolve project ID - use provided or projectContext
+      let effectiveProjectId = args.projectId || (projectContext?.id || null);
+      if (!effectiveProjectId) {
+        return { success: false, error: 'Project ID is required. Please select a project or provide a projectId.' };
+      }
+      
+      // Verify project exists
+      const project = await prisma.project.findUnique({ where: { id: effectiveProjectId } });
+      if (!project) {
+        return { success: false, error: 'Project not found' };
+      }
+      
+      // Parse start time
+      const startTime = args.startTime ? parseReminderDateTimeFromText(args.startTime) : (() => {
+        const d = nextBusinessDaysFromNow(1);
+        d.setHours(9, 0, 0, 0);
+        return d;
+      })();
+      
+      // Parse end time
+      let endTime;
+      if (args.endTime) {
+        endTime = new Date(args.endTime);
+        if (isNaN(endTime.getTime())) {
+          return { success: false, error: 'Invalid endTime format. Use ISO date string.' };
+        }
+      } else {
+        endTime = new Date(startTime.getTime() + 30 * 60 * 1000); // Default: start + 30 min
+      }
+      
+      // Parse event type
+      const eventType = args.eventType && ['REMINDER', 'MEETING', 'DEADLINE'].includes(args.eventType.toUpperCase())
+        ? args.eventType.toUpperCase()
+        : 'REMINDER';
+      
+      // Resolve attendees
+      const attendeeUserIds = [];
+      if (args.attendeeIds && Array.isArray(args.attendeeIds)) {
+        attendeeUserIds.push(...args.attendeeIds);
+      }
+      if (args.attendeeEmails && Array.isArray(args.attendeeEmails)) {
+        for (const email of args.attendeeEmails) {
+          const attendeeUser = await prisma.user.findUnique({ where: { email } });
+          if (attendeeUser) {
+            attendeeUserIds.push(attendeeUser.id);
+          }
+        }
+      }
+      
+      // Fetch document attachments if provided
+      const attachments = [];
+      if (args.documentIds && Array.isArray(args.documentIds) && args.documentIds.length > 0) {
+        for (const docId of args.documentIds) {
+          const asset = await prisma.companyAsset.findUnique({ where: { id: docId } });
+          if (asset) {
+            attachments.push({
+              assetId: asset.id,
+              title: asset.title || 'Document',
+              mimeType: asset.mimeType || 'application/octet-stream',
+              fileUrl: asset.fileUrl || null,
+              thumbnailUrl: asset.thumbnailUrl || null
+            });
+          }
+        }
+      }
+      
+      // Create calendar event
+      const event = await prisma.calendarEvent.create({
+        data: {
+          title: args.title.slice(0, 120),
+          description: args.description ? args.description.slice(0, 2000) : (attachments.length > 0 ? `Attached documents: ${attachments.map(a => a.title).join(', ')}` : null),
+          startTime,
+          endTime,
+          isAllDay: false,
+          eventType,
+          status: 'CONFIRMED',
+          projectId: effectiveProjectId,
+          organizerId: user.id,
+          attendees: attendeeUserIds.length > 0 ? {
+            create: attendeeUserIds.map(userId => ({
+              userId,
+              status: 'REQUIRED',
+              response: 'NO_RESPONSE'
+            }))
+          } : undefined
+        }
+      });
+      
+      // If documents attached, create a project message linking reminder to documents
+      if (attachments.length > 0) {
+        try {
+          await prisma.projectMessage.create({
+            data: {
+              content: `Reminder "${event.title}" created with attached documents.`,
+              subject: `Reminder: ${event.title}`,
+              messageType: 'USER_MESSAGE',
+              priority: 'MEDIUM',
+              authorId: user.id,
+              authorName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Bubbles AI',
+              authorRole: user.role || 'AI_ASSISTANT',
+              projectId: effectiveProjectId,
+              projectNumber: project.projectNumber,
+              isSystemGenerated: false,
+              isWorkflowMessage: false,
+              metadata: {
+                eventId: event.id,
+                eventTitle: event.title,
+                attachments: attachments,
+                source: 'bubbles_ai_create_reminder'
+              }
+            }
+          });
+        } catch (msgErr) {
+          console.error('Failed to create message for reminder attachments:', msgErr);
+          // Non-fatal
+        }
+      }
+      
+      return {
+        success: true,
+        data: {
+          reminder: {
+            id: event.id,
+            title: event.title,
+            description: event.description,
+            startTime: event.startTime,
+            endTime: event.endTime,
+            eventType: event.eventType,
+            projectId: event.projectId,
+            organizerId: event.organizerId,
+            attendeeIds: attendeeUserIds,
+            attachments: attachments.map(a => ({ id: a.assetId, title: a.title }))
+          }
+        },
+        message: `Reminder "${event.title}" created successfully${attachments.length > 0 ? ` with ${attachments.length} document(s) attached` : ''}${attendeeUserIds.length > 0 ? ` and ${attendeeUserIds.length} attendee(s)` : ''}.`
+      };
+    }
+    
+    if (toolName === 'send_email') {
+      // Validate required fields
+      if (!args.subject || !args.body || !args.recipientEmails || !Array.isArray(args.recipientEmails) || args.recipientEmails.length === 0) {
+        return { success: false, error: 'subject, body, and recipientEmails (array) are required' };
+      }
+      
+      // Resolve project ID - use provided or projectContext
+      let effectiveProjectId = args.projectId || (projectContext?.id || null);
+      
+      // Fetch project if projectId provided
+      let project = null;
+      if (effectiveProjectId) {
+        project = await prisma.project.findUnique({ where: { id: effectiveProjectId } });
+      }
+      
+      // Fetch document attachments if provided
+      const emailAttachments = [];
+      if (args.documentIds && Array.isArray(args.documentIds) && args.documentIds.length > 0) {
+        for (const docId of args.documentIds) {
+          const asset = await prisma.companyAsset.findUnique({ where: { id: docId } });
+          if (asset) {
+            emailAttachments.push({
+              documentId: asset.id,
+              title: asset.title,
+              fileUrl: asset.fileUrl || null
+            });
+          }
+        }
+      }
+      
+      // Send emails to all recipients
+      const results = [];
+      const allRecipients = [...args.recipientEmails];
+      const ccList = args.cc && Array.isArray(args.cc) ? args.cc : [];
+      const bccList = args.bcc && Array.isArray(args.bcc) ? args.bcc : [];
+      
+      // Build email HTML
+      const html = emailService.createEmailTemplate({
+        title: args.subject,
+        content: args.body.replace(/\n/g, '<br>'),
+        footer: `This email was sent via Bubbles AI Assistant by ${user.firstName} ${user.lastName}` + (project ? `<br><br><strong>Project:</strong> ${project.projectName}<br><strong>Project #:</strong> ${project.projectNumber}` : '')
+      });
+      
+      // Send email to each recipient (Resend API handles multiple recipients, but we'll send individually for tracking)
+      for (const recipientEmail of allRecipients) {
+        try {
+          const emailResult = await emailService.sendEmail({
+            to: recipientEmail,
+            cc: ccList.length > 0 ? ccList : undefined,
+            bcc: bccList.length > 0 ? bccList : undefined,
+            subject: args.subject,
+            html,
+            text: args.body,
+            attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
+            replyTo: user.email,
+            tags: {
+              sentBy: user.id,
+              projectId: effectiveProjectId || undefined,
+              recipientEmail: recipientEmail,
+              source: 'bubbles_ai_standalone_email'
+            }
+          });
+          
+          // Log email to database
+          await emailService.logEmail({
+            senderId: user.id,
+            senderEmail: user.email,
+            senderName: `${user.firstName} ${user.lastName}`,
+            to: [recipientEmail],
+            cc: ccList.length > 0 ? ccList : undefined,
+            bcc: bccList.length > 0 ? bccList : undefined,
+            subject: args.subject,
+            text: args.body,
+            html,
+            attachments: emailAttachments.length > 0 ? emailAttachments : undefined,
+            messageId: emailResult.messageId,
+            projectId: effectiveProjectId || undefined,
+            emailType: 'bubbles_ai',
+            status: 'sent',
+            tags: {
+              source: 'bubbles_ai_standalone_email',
+              hasAttachments: emailAttachments.length > 0
+            },
+            metadata: {
+              documentIds: args.documentIds || [],
+              documentTitles: emailAttachments.map(a => a.title),
+              sentViaTool: true
+            }
+          });
+          
+          results.push({ recipient: recipientEmail, success: true, messageId: emailResult.messageId });
+        } catch (emailErr) {
+          console.error(`Failed to send email to ${recipientEmail}:`, emailErr);
+          results.push({ recipient: recipientEmail, success: false, error: emailErr.message });
+        }
+      }
+      
+      const successCount = results.filter(r => r.success).length;
+      const failCount = results.length - successCount;
+      
+      return {
+        success: successCount > 0,
+        data: {
+          results,
+          sentCount: successCount,
+          failedCount: failCount,
+          recipients: allRecipients,
+          attachments: emailAttachments.map(a => ({ id: a.documentId, title: a.title }))
+        },
+        message: `Email sent to ${successCount} recipient(s)${failCount > 0 ? ` (${failCount} failed)` : ''}${emailAttachments.length > 0 ? ` with ${emailAttachments.length} document(s) attached` : ''}.`
+      };
+    }
+    
+    // Unknown tool
+    return {
+      success: false,
+      error: `Unknown tool: ${toolName}`
+    };
+    
+  } catch (error) {
+    console.error(`❌ EXECUTE-TOOL ERROR (${toolName}):`, error);
+    return {
+      success: false,
+      error: error.message || 'Tool execution failed',
+      details: error.stack
+    };
+  }
+}
+
+/**
  * BULLETPROOF SYSTEM PROMPT: Designed to work every single time without fail
  */
-const getSystemPrompt = (user, projectContext, currentWorkflowData = null) => {
+const getSystemPrompt = async (user, projectContext, currentWorkflowData = null) => {
     const userName = user.fullName || `${user.firstName} ${user.lastName}`;
     const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
-    // Tool definitions from bubbles2.js
-    const tools = [
+    // Fetch comprehensive context data for the user
+    let userWorkload = null;
+    let recentActivity = [];
+    let userTasks = [];
+    let userAlerts = [];
+    let userReminders = [];
+    
+    // Phase 4: Fetch proactive notifications
+    let proactiveSummary = null;
+    
+    try {
+        [userWorkload, recentActivity, userTasks, userAlerts, userReminders, proactiveSummary] = await Promise.all([
+            bubblesContextService.getUserWorkload(user.id),
+            bubblesContextService.getRecentActivity(10, user.id),
+            bubblesContextService.getAllTasks({ assignedToId: user.id, status: 'TO_DO', limit: 5 }),
+            bubblesContextService.getAllAlerts({ assignedToId: user.id, status: 'ACTIVE', limit: 5 }),
+            bubblesContextService.getAllReminders({ organizerId: user.id, upcoming: true, limit: 5 }),
+            proactiveNotificationsService.getProactiveSummary(user.id).catch(() => null)
+        ]);
+    } catch (error) {
+        console.error('❌ Error fetching user context for system prompt:', error);
+    }
+
+    // Tool definitions - Workflow tools
+    const workflowTools = [
         {
             name: 'mark_line_item_complete_and_notify',
             description: 'Marks a workflow task as complete and alerts the next person in the sequence. Uses the currently selected project. Use this for prompts like "Check off [task name]".',
@@ -726,7 +1413,238 @@ const getSystemPrompt = (user, projectContext, currentWorkflowData = null) => {
                 required: ['question']
             }
         },
+        {
+            name: 'create_task',
+            description: 'Creates a standalone task independent of document sending. Supports document attachments. Use this when the user asks to create a task, todo, or assignment.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    title: { type: 'string', description: 'The task title (required).' },
+                    description: { type: 'string', description: 'Optional task description.' },
+                    dueDate: { type: 'string', description: 'Due date (can be natural language like "tomorrow", "Friday", "by 12/31/2024", or ISO date string). Defaults to 2 business days if not specified.' },
+                    priority: { type: 'string', description: 'Task priority: LOW, MEDIUM, or HIGH. Defaults to MEDIUM.' },
+                    projectId: { type: 'string', description: 'Optional project ID. If not provided and a project is selected in context, uses that project.' },
+                    assignedToEmail: { type: 'string', description: 'Optional email of the user to assign the task to. If not provided, defaults to project manager or task creator.' },
+                    assignedToId: { type: 'string', description: 'Optional user ID to assign the task to. Alternative to assignedToEmail.' },
+                    documentIds: { type: 'array', items: { type: 'string' }, description: 'Optional array of document/asset IDs to attach to the task.' }
+                },
+                required: ['title']
+            }
+        },
+        {
+            name: 'create_reminder',
+            description: 'Creates a standalone calendar reminder/event independent of document sending. Supports document attachments. Use this when the user asks to create a reminder, calendar event, or schedule something.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    title: { type: 'string', description: 'The reminder/event title (required).' },
+                    description: { type: 'string', description: 'Optional event description.' },
+                    startTime: { type: 'string', description: 'Start time (can be natural language like "tomorrow at 4pm", "Friday at 9am", "next Monday", or ISO date string). Defaults to next business day at 9am if not specified.' },
+                    endTime: { type: 'string', description: 'Optional end time (ISO date string). Defaults to startTime + 30 minutes if not specified.' },
+                    eventType: { type: 'string', description: 'Event type: REMINDER, MEETING, or DEADLINE. Defaults to REMINDER.' },
+                    projectId: { type: 'string', description: 'Optional project ID. If not provided and a project is selected in context, uses that project.' },
+                    attendeeEmails: { type: 'array', items: { type: 'string' }, description: 'Optional array of attendee email addresses.' },
+                    attendeeIds: { type: 'array', items: { type: 'string' }, description: 'Optional array of attendee user IDs. Alternative to attendeeEmails.' },
+                    documentIds: { type: 'array', items: { type: 'string' }, description: 'Optional array of document/asset IDs to attach to the reminder.' }
+                },
+                required: ['title']
+            }
+        },
+        {
+            name: 'send_email',
+            description: 'Sends a standalone email independent of document sending. Supports document attachments. Use this when the user asks to send an email without sending a document.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    subject: { type: 'string', description: 'Email subject (required).' },
+                    body: { type: 'string', description: 'Email body/text content (required).' },
+                    recipientEmails: { type: 'array', items: { type: 'string' }, description: 'Array of recipient email addresses (required).' },
+                    projectId: { type: 'string', description: 'Optional project ID for email context. If not provided and a project is selected in context, uses that project.' },
+                    documentIds: { type: 'array', items: { type: 'string' }, description: 'Optional array of document/asset IDs to attach to the email.' },
+                    cc: { type: 'array', items: { type: 'string' }, description: 'Optional array of CC email addresses.' },
+                    bcc: { type: 'array', items: { type: 'string' }, description: 'Optional array of BCC email addresses.' }
+                },
+                required: ['subject', 'body', 'recipientEmails']
+            }
+        },
     ];
+
+    // Tool definitions - Data Access Tools (NEW)
+    const dataAccessTools = [
+        {
+            name: 'get_all_projects',
+            description: 'Get all projects with optional filters. Use this to answer questions about multiple projects, project status, or to find a specific project.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    status: { type: 'string', description: 'Filter by project status (PENDING, IN_PROGRESS, COMPLETED, etc.)' },
+                    phase: { type: 'string', description: 'Filter by project phase (LEAD, PROSPECT, APPROVED, etc.)' },
+                    projectManagerId: { type: 'string', description: 'Filter by project manager user ID' },
+                    customerId: { type: 'string', description: 'Filter by customer ID' },
+                    projectNumber: { type: 'string', description: 'Filter by project number (e.g., "12345")' },
+                    search: { type: 'string', description: 'Search by project name or number' },
+                    limit: { type: 'number', description: 'Maximum number of results (default: 100)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_all_tasks',
+            description: 'Get all tasks across all projects with filters. Use this to answer questions about tasks, workload, overdue items, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    projectId: { type: 'string', description: 'Filter by project ID' },
+                    assignedToId: { type: 'string', description: 'Filter by assigned user ID' },
+                    status: { type: 'string', description: 'Filter by task status (TO_DO, IN_PROGRESS, COMPLETED)' },
+                    priority: { type: 'string', description: 'Filter by priority (LOW, MEDIUM, HIGH)' },
+                    overdue: { type: 'boolean', description: 'Get only overdue tasks' },
+                    upcoming: { type: 'boolean', description: 'Get only upcoming tasks (next 7 days)' },
+                    limit: { type: 'number', description: 'Maximum number of results (default: 100)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_all_messages',
+            description: 'Get all project messages with filters. Use this to answer questions about communication history, message threads, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    projectId: { type: 'string', description: 'Filter by project ID' },
+                    authorId: { type: 'string', description: 'Filter by message author user ID' },
+                    messageType: { type: 'string', description: 'Filter by message type' },
+                    search: { type: 'string', description: 'Search in message subject or content' },
+                    limit: { type: 'number', description: 'Maximum number of results (default: 100)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_all_emails',
+            description: 'Get all emails with tracking data. Use this to answer questions about email history, email status, sent/received emails, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    projectId: { type: 'string', description: 'Filter by project ID' },
+                    customerId: { type: 'string', description: 'Filter by customer ID' },
+                    senderId: { type: 'string', description: 'Filter by sender user ID' },
+                    status: { type: 'string', description: 'Filter by email status (sent, delivered, opened, etc.)' },
+                    limit: { type: 'number', description: 'Maximum number of results (default: 100)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_all_reminders',
+            description: 'Get all calendar events/reminders with filters. Use this to answer questions about upcoming events, reminders, calendar, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    projectId: { type: 'string', description: 'Filter by project ID' },
+                    organizerId: { type: 'string', description: 'Filter by organizer user ID' },
+                    upcoming: { type: 'boolean', description: 'Get only upcoming events' },
+                    eventType: { type: 'string', description: 'Filter by event type (REMINDER, DEADLINE, MEETING, etc.)' },
+                    limit: { type: 'number', description: 'Maximum number of results (default: 100)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_customer_info',
+            description: 'Get comprehensive customer information by ID or name. Use this to answer questions about customers, their projects, contact info, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    customerId: { type: 'string', description: 'Customer ID' },
+                    customerName: { type: 'string', description: 'Customer name (search by name)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_user_info',
+            description: 'Get user information and workload. Use this to answer questions about team members, their assignments, workload, etc.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string', description: 'User ID' },
+                    userEmail: { type: 'string', description: 'User email (search by email)' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'search_all_data',
+            description: 'Search across all application data types (projects, tasks, messages, emails, customers, users). Use this for general searches.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    query: { type: 'string', description: 'Search query term' }
+                },
+                required: ['query']
+            }
+        },
+        {
+            name: 'get_proactive_summary',
+            description: 'Get proactive notifications summary including overdue tasks, upcoming deadlines, communication gaps, and overdue alerts. Use this when the user asks about what needs attention or overdue items.',
+            parameters: {
+                type: 'object',
+                properties: {
+                    userId: { type: 'string', description: 'Optional user ID to filter by specific user. If not provided, gets summary for current user.' }
+                },
+                required: []
+            }
+        },
+        {
+            name: 'get_portfolio_analytics',
+            description: 'Get cross-project portfolio analytics including status breakdown, resource allocation, bottlenecks, and team workload. Use this when the user asks about portfolio status, resource allocation, bottlenecks, or team workload.',
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: []
+            }
+        },
+        {
+            name: 'get_resource_allocation',
+            description: 'Get resource allocation analysis showing how projects are distributed across project managers. Use this when the user asks about resource allocation or project distribution.',
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: []
+            }
+        },
+        {
+            name: 'get_bottlenecks',
+            description: 'Identify bottlenecks across projects showing which phases have the most projects stuck. Use this when the user asks about bottlenecks or projects stuck in phases.',
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: []
+            }
+        },
+        {
+            name: 'get_team_workload',
+            description: 'Get team workload analysis showing task, alert, and project distribution across team members. Use this when the user asks about team workload or resource utilization.',
+            parameters: {
+                type: 'object',
+                properties: {},
+                required: []
+            }
+        }
+    ];
+
+    const allTools = [...workflowTools, ...dataAccessTools];
+    
+    // Convert tools to OpenAI format (type: "function", function: {...})
+    const tools = allTools.map(tool => ({
+      type: 'function',
+      function: {
+        name: tool.name,
+        description: tool.description,
+        parameters: tool.parameters
+      }
+    }));
 
     // BULLETPROOF PROMPT CONSTRUCTION
     let prompt = `# BUBBLES AI ASSISTANT - BULLETPROOF SYSTEM PROMPT
@@ -927,6 +1845,48 @@ You have complete knowledge of the Kenstruction workflow with ALL phases, sectio
 - **Product Choice**: Use high-quality, high-temperature-rated membrane (Colorado's intense sun degrades cheaper adhesives)
 - **Installation Steps**: Clean/dry deck, apply smoothly avoiding wrinkles, overlap and seal seams per manufacturer directions
 
+## USER CONTEXT & WORKLOAD
+**Your Current Workload:**
+${userWorkload ? `
+- **Tasks:** ${userWorkload.tasks.total} total (${userWorkload.tasks.overdue} overdue, ${userWorkload.tasks.upcoming} upcoming)
+- **Active Alerts:** ${userWorkload.alerts.active}
+- **Upcoming Reminders:** ${userWorkload.reminders.upcoming}
+- **Projects Managed:** ${userWorkload.projects.managed}
+- **Projects as Team Member:** ${userWorkload.projects.teamMember}
+` : 'Workload data unavailable'}
+
+**Your Recent Activity:**
+${recentActivity.length > 0 ? recentActivity.slice(0, 5).map(a => `- ${a.type}: ${a.title || a.description}`).join('\n') : 'No recent activity'}
+
+**Your Pending Tasks (Top 5):**
+${userTasks.length > 0 ? userTasks.map(t => `- ${t.title} (Due: ${new Date(t.dueDate).toLocaleDateString()}, Priority: ${t.priority})`).join('\n') : 'No pending tasks'}
+
+**Your Active Alerts (Top 5):**
+${userAlerts.length > 0 ? userAlerts.map(a => `- ${a.title} (Priority: ${a.priority})`).join('\n') : 'No active alerts'}
+
+**Your Upcoming Reminders (Top 5):**
+${userReminders.length > 0 ? userReminders.map(r => `- ${r.title} (${new Date(r.startTime).toLocaleString()})`).join('\n') : 'No upcoming reminders'}
+
+${proactiveSummary ? `
+## ⚠️ PROACTIVE ALERTS (Phase 4)
+${proactiveSummary.overdueTasks.count > 0 ? `
+**⚠️ Overdue Tasks:** ${proactiveSummary.overdueTasks.count}
+${proactiveSummary.overdueTasks.items.slice(0, 3).map(t => `- ${t.title} (Due: ${new Date(t.dueDate).toLocaleDateString()}, Project: ${t.project?.projectName || 'N/A'})`).join('\n')}
+` : ''}
+${proactiveSummary.upcomingDeadlines.count > 0 ? `
+**📅 Upcoming Deadlines (Next 7 Days):** ${proactiveSummary.upcomingDeadlines.count}
+${proactiveSummary.upcomingDeadlines.items.slice(0, 3).map(t => `- ${t.title} (Due: ${new Date(t.dueDate).toLocaleDateString()}, Project: ${t.project?.projectName || 'N/A'})`).join('\n')}
+` : ''}
+${proactiveSummary.communicationGaps.count > 0 ? `
+**📞 Communication Gaps:** ${proactiveSummary.communicationGaps.count} project(s) without recent contact
+${proactiveSummary.communicationGaps.items.slice(0, 3).map(g => `- Project #${g.project.projectNumber}: ${g.project.projectName} (${g.daysSinceContact ? `${g.daysSinceContact} days` : 'no contact'} since last message)`).join('\n')}
+` : ''}
+${proactiveSummary.overdueAlerts.count > 0 ? `
+**🔔 Overdue Alerts:** ${proactiveSummary.overdueAlerts.count}
+${proactiveSummary.overdueAlerts.items.slice(0, 3).map(a => `- ${a.title} (Project: ${a.project?.projectName || 'N/A'})`).join('\n')}
+` : ''}
+` : ''}
+
 ## CRITICAL PROJECT CONTEXT RULES
 ${projectContext && projectContext.projectName ? `
 ### ✅ ACTIVE PROJECT SELECTED
@@ -982,8 +1942,46 @@ Do not use numbered lists. Avoid heavy formatting, headings, and bold text.
 Keep responses under 150 words unless the user asks for more detail.
 If you suggest next steps, add a short inline sentence at the end like: Next: do X, then Y.
 
+## COMPREHENSIVE DATA ACCESS
+You now have **COMPLETE ACCESS** to ALL application data through the data access tools listed below. This means you can:
+
+1. **Answer questions about ANY project** - Not just the currently selected one
+   - Use `get_all_projects` to find projects by name, number, status, phase, manager, or customer
+   - Use `get_project_summary` to get comprehensive project information
+
+2. **Access ALL tasks across ALL projects**
+   - Use `get_all_tasks` to find tasks by project, assignee, status, priority, overdue status
+   - Answer questions like "What tasks are overdue?" or "What's John's workload?"
+
+3. **Access ALL messages and communication history**
+   - Use `get_all_messages` to find messages by project, author, or search content
+   - Answer questions like "When did we last message the customer?" or "What was discussed about project X?"
+
+4. **Access ALL emails with tracking data**
+   - Use `get_all_emails` to find emails by project, customer, sender, or status
+   - Answer questions like "Did the customer open the email?" or "What emails were sent last week?"
+
+5. **Access ALL reminders and calendar events**
+   - Use `get_all_reminders` to find events by project, organizer, upcoming/past, or type
+   - Answer questions like "What reminders do I have today?" or "When is the next project deadline?"
+
+6. **Access ALL customers and their information**
+   - Use `get_customer_info` to find customers by ID or name
+   - Answer questions like "How many projects does Smith family have?" or "What's their contact info?"
+
+7. **Access ALL users and team members**
+   - Use `get_user_info` to find users by ID or email
+   - Answer questions like "Who's the project manager for project X?" or "What's Sarah's current workload?"
+
+8. **Search across ALL data types**
+   - Use `search_all_data` for general searches across projects, tasks, messages, emails, customers, users
+
+**IMPORTANT:** When answering questions about data NOT in the current project context, use the appropriate data access tool to fetch the information. Don't say "I don't have access to that" - you DO have access through these tools!
+
 ## AVAILABLE TOOLS
-${JSON.stringify(tools, null, 2)}
+${JSON.stringify(allTools, null, 2)}
+
+**Note:** These tools are available for you to call. When you need to access data (projects, tasks, messages, emails, etc.), use the appropriate tool. The system will execute the tool call and provide you with the results.
 
 ## FINAL MANDATORY INSTRUCTIONS
 
@@ -1036,7 +2034,7 @@ ${projectContext && projectContext.projectName ? `
 
 **REMEMBER:** Once a project is selected, it remains selected for the entire conversation. Never ask for project identification again.`;
 
-    return prompt;
+    return { prompt, tools };
 };
 
 
@@ -1677,23 +2675,47 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
     asksForSteps
   });
   
-  // Broaden trigger: if they mention a checklist (like "Upfront Start The Day Checklist"), attempt doc retrieval
+  // Phase 3: Enhanced detection - Try multi-document detection first, fallback to single
   if (mentionsFileName || mentionsChecklist) {
     try {
-      console.log('🔍 BUBBLES: Attempting to find asset for message:', message);
-      const asset = await findAssetByMention(prisma, message);
-      console.log('🔍 BUBBLES: Asset lookup result:', asset ? { id: asset.id, title: asset.title } : 'null');
+      console.log('🔍 BUBBLES: Attempting enhanced multi-document detection for message:', message);
       
-      if (!asset) {
+      // Try multi-document detection first
+      const multipleAssets = await findMultipleAssetsByMention(prisma, message);
+      console.log('🔍 BUBBLES: Multi-asset lookup result:', multipleAssets ? `${multipleAssets.length} assets found` : 'null');
+      
+      let asset = null;
+      let assets = null;
+      
+      if (multipleAssets && multipleAssets.length > 1) {
+        // Multiple documents detected!
+        assets = multipleAssets;
+        asset = assets[0]; // Use first for compatibility
+        console.log('🔍 BUBBLES: Multiple documents detected:', assets.map(a => a.title || a.id));
+      } else if (multipleAssets && multipleAssets.length === 1) {
+        // Single asset found via multi-document detection
+        asset = multipleAssets[0];
+      } else {
+        // Fallback to single asset detection
+        asset = await findAssetByMention(prisma, message);
+      }
+      
+      if (!asset && (!assets || assets.length === 0)) {
         const notFound = 'I couldn\'t find that document in Company Documents. Try opening Documents & Resources and copy the exact file name.';
         contextManager.addToHistory(req.user.id, message, notFound, projectContext || null);
         return sendSuccess(res, 200, { response: { content: notFound } });
       }
+      
+      // Use assets array if available, otherwise use single asset
+      if (!assets && asset) {
+        assets = [asset];
+      }
 
-      // If the user intends to send/attach the document, create a project message (and optional task/reminder)
-      const intendsToSend = lower.includes('send') || lower.includes('attach') || lower.includes('message');
-      const intendsTask = lower.includes('task');
-      const intendsReminder = lower.includes('reminder') || lower.includes('calendar');
+      // Phase 3: Enhanced intent detection using improved patterns
+      const intents = detectIntent(message);
+      const intendsToSend = intents.sendEmail || intents.sendMessage || intents.attachDocument || lower.includes('send') || lower.includes('attach') || lower.includes('message');
+      const intendsTask = intents.createTask || lower.includes('task');
+      const intendsReminder = intents.createReminder || lower.includes('reminder') || lower.includes('calendar');
 
       if (intendsToSend || intendsTask || intendsReminder) {
         // Resolve project from text or session
@@ -1888,15 +2910,18 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         
         console.log('🔍 BUBBLES: Final userContent:', userContent);
 
-        // Build attachment metadata
-        const fileUrl = asset?.versions?.[0]?.fileUrl || asset?.fileUrl || null;
-        const attachment = {
-          assetId: asset.id || null,
-          title: asset.title || 'Document',
-          mimeType: asset.mimeType || 'application/octet-stream',
-          fileUrl,
-          thumbnailUrl: asset.thumbnailUrl || null
-        };
+        // Phase 3: Build attachment metadata - support multiple documents
+        const buildAttachment = (a) => ({
+          assetId: a.id || null,
+          title: a.title || 'Document',
+          mimeType: a.mimeType || 'application/octet-stream',
+          fileUrl: a?.versions?.[0]?.fileUrl || a?.fileUrl || null,
+          thumbnailUrl: a.thumbnailUrl || null
+        });
+        
+        const attachmentsList = assets ? assets.map(buildAttachment) : [buildAttachment(asset)];
+        const attachment = attachmentsList[0]; // For backward compatibility with single-asset code
+        const hasMultipleDocuments = attachmentsList.length > 1;
 
         // Find a valid user ID - use any real user from database if req.user.id is fake
         let authorId = null;
@@ -1933,11 +2958,15 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         
         console.log('🔍 BUBBLES ATTACHMENT: Using authorId:', authorId, 'authorName:', authorName);
         
-        // Create a project message with attachment metadata
+        // Phase 3: Create a project message with attachment metadata (supports multiple documents)
         const pm = await prisma.projectMessage.create({
           data: {
-            content: userContent || `Shared document: ${attachment.title}`,
-            subject: `Document: ${attachment.title}`,
+            content: userContent || (hasMultipleDocuments 
+              ? `Shared ${attachmentsList.length} documents: ${attachmentsList.map(a => a.title).join(', ')}`
+              : `Shared document: ${attachment.title}`),
+            subject: hasMultipleDocuments 
+              ? `Documents: ${attachmentsList.slice(0, 2).map(a => a.title).join(', ')}${attachmentsList.length > 2 ? ` and ${attachmentsList.length - 2} more` : ''}`
+              : `Document: ${attachment.title}`,
             messageType: 'USER_MESSAGE',
             priority: 'MEDIUM',
             authorId: authorId, // Use validated authorId or null
@@ -1947,7 +2976,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
             projectNumber: proj.projectNumber,
             isSystemGenerated: false,
             isWorkflowMessage: false,
-            metadata: { attachments: [attachment] }
+            metadata: { attachments: attachmentsList }
           }
         });
 
@@ -2021,9 +3050,12 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
           }
         }
 
-        // Build acknowledgment
+        // Phase 3: Build acknowledgment (supports multiple documents)
         const parts = [];
-        parts.push(`Attached "${attachment.title}" to a new project message for project #${proj.projectNumber}` + (recipients.length ? ` and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}` : '') + '.');
+        const docSummary = hasMultipleDocuments 
+          ? `${attachmentsList.length} documents (${attachmentsList.map(a => a.title).join(', ')})`
+          : `"${attachment.title}"`;
+        parts.push(`Attached ${docSummary} to a new project message for project #${proj.projectNumber}` + (recipients.length ? ` and notified ${recipients.map(r => r.firstName + ' ' + r.lastName).join(', ')}` : '') + '.');
         if (createdTask) {
           parts.push(`Created task "${createdTask.title}" (due ${new Date(createdTask.dueDate).toLocaleString()}).`);
         }
@@ -2032,7 +3064,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
         }
         const ack = parts.join(' ');
         contextManager.addToHistory(req.user.id, message, ack, proj);
-        return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: [attachment], taskId: createdTask?.id, reminderId: createdReminder?.id });
+        return sendSuccess(res, 200, { response: { content: ack }, messageId: pm.id, attachments: attachmentsList, taskId: createdTask?.id, reminderId: createdReminder?.id });
       }
 
       // Default behavior: open the document and extract steps
@@ -2319,7 +3351,8 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   }
 
   // Use enhanced system prompt for workflow knowledge questions or project-specific questions
-  const systemPrompt = getSystemPrompt(req.user, projectContext, currentWorkflowData);
+  // Note: getSystemPrompt is now async and fetches comprehensive context, returns { prompt, tools }
+  const { prompt: systemPrompt, tools } = await getSystemPrompt(req.user, projectContext, currentWorkflowData);
 
   // Retrieve document context via semantic search (merge project docs and global company assets)
   let documentSnippets = [];
@@ -2343,22 +3376,166 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       aiStatus: openAIService && openAIService.getStatus ? openAIService.getStatus() : { enabled: false, model: 'mock-responses', status: 'fallback' }
     });
   }
+
+  // Execute tool calls if present and get final response
+  let finalContent = '';
+  let functionCalls = null;
+  
+  // First AI call - may return function calls
   const aiResponse = await openAIService.generateResponse(message, {
     systemPrompt,
     projectName: projectContext?.projectName,
     progress: projectContext?.progress,
     projectNumber: projectContext?.projectNumber,
-    documentSnippets
+    documentSnippets,
+    tools: tools // Pass tools to OpenAI service
   });
 
-  let content = aiResponse?.content || 'OK';
+  // Check if AI wants to call tools
+  functionCalls = aiResponse?.functionCalls || null;
+  
+  // Normalize function calls - handle both tool_calls and function_calls formats
+  if (functionCalls && Array.isArray(functionCalls)) {
+    // Already an array
+  } else if (functionCalls && !Array.isArray(functionCalls)) {
+    // Single function call, convert to array
+    functionCalls = [functionCalls];
+  }
+  
+  if (functionCalls && functionCalls.length > 0) {
+    console.log('🔧 BUBBLES: AI requested tool calls:', functionCalls.length);
+    
+    // Execute all tool calls
+    const toolResults = [];
+    for (let i = 0; i < functionCalls.length; i++) {
+      const toolCall = functionCalls[i];
+      try {
+        // Extract tool name - handle both formats
+        const toolName = toolCall.function?.name || toolCall.name || null;
+        if (!toolName) {
+          console.error('❌ BUBBLES: Tool call missing name:', toolCall);
+          continue;
+        }
+        
+        // Extract arguments - handle both string and object formats
+        let toolArgs = toolCall.function?.arguments || toolCall.arguments || {};
+        let parsedArgs = {};
+        try {
+          if (typeof toolArgs === 'string') {
+            parsedArgs = JSON.parse(toolArgs);
+          } else if (typeof toolArgs === 'object') {
+            parsedArgs = toolArgs;
+          }
+        } catch (parseError) {
+          console.error('❌ BUBBLES: Failed to parse tool arguments:', parseError);
+          parsedArgs = {};
+        }
+        
+        // Get tool call ID
+        const toolCallId = toolCall.id || toolCall.tool_call_id || `call_${Date.now()}_${i}`;
+        
+        console.log(`🔧 BUBBLES: Executing tool: ${toolName}`, { toolCallId, parsedArgs });
+        
+        const result = await executeToolCall(toolName, parsedArgs, {
+          user: req.user,
+          projectContext,
+          currentWorkflowData
+        });
+        
+        toolResults.push({
+          tool_call_id: toolCallId,
+          role: 'tool',
+          name: toolName,
+          content: JSON.stringify(result)
+        });
+        
+        console.log(`✅ BUBBLES: Tool ${toolName} executed successfully`, result);
+      } catch (toolError) {
+        console.error(`❌ BUBBLES: Tool execution error:`, toolError);
+        const toolCallId = toolCall.id || toolCall.tool_call_id || `call_${Date.now()}_${i}`;
+        const toolName = toolCall.function?.name || toolCall.name || 'unknown';
+        toolResults.push({
+          tool_call_id: toolCallId,
+          role: 'tool',
+          name: toolName,
+          content: JSON.stringify({ 
+            success: false,
+            error: toolError.message || 'Tool execution failed',
+            stack: toolError.stack 
+          })
+        });
+      }
+    }
+    
+    // If we have tool results, make a second AI call with the results
+    if (toolResults.length > 0) {
+      console.log('🔧 BUBBLES: Making follow-up AI call with tool results');
+      
+      // Format tool results for OpenAI API (must match tool_call_id from original calls)
+      const formattedToolResults = toolResults.map(tr => ({
+        role: 'tool',
+        tool_call_id: tr.tool_call_id,
+        content: tr.content // Don't include name in tool result
+      }));
+      
+      // Format tool calls for conversation history
+      const formattedToolCalls = functionCalls.map((fc, idx) => {
+        const toolCallId = fc.id || fc.tool_call_id || toolResults[idx]?.tool_call_id || `call_${Date.now()}_${idx}`;
+        return {
+          id: toolCallId,
+          type: 'function',
+          function: {
+            name: fc.function?.name || fc.name,
+            arguments: typeof (fc.function?.arguments || fc.arguments) === 'string' 
+              ? (fc.function?.arguments || fc.arguments)
+              : JSON.stringify(fc.function?.arguments || fc.arguments || {})
+          }
+        };
+      });
+      
+      const followUpResponse = await openAIService.generateResponse(message, {
+        systemPrompt,
+        projectName: projectContext?.projectName,
+        progress: projectContext?.progress,
+        projectNumber: projectContext?.projectNumber,
+        documentSnippets,
+        tools: tools,
+        toolResults: formattedToolResults, // Pass formatted tool results for follow-up
+        conversationHistory: [
+          { role: 'user', content: message },
+          { 
+            role: 'assistant', 
+            content: aiResponse.content || null, 
+            tool_calls: formattedToolCalls
+          },
+          ...formattedToolResults
+        ]
+      });
+      
+      finalContent = followUpResponse?.content || aiResponse?.content || 'OK';
+    } else {
+      finalContent = aiResponse?.content || 'OK';
+    }
+  } else {
+    finalContent = aiResponse?.content || 'OK';
+  }
+
   const usedMockProject = !aiResponse?.source || String(aiResponse.source).includes('mock-responses');
   if (usedMockProject && !isProjectSpecific) {
     // If this is actually a general question but we ended up here, still provide heuristic
-    content = heuristicGeneralAnswer(message);
+    finalContent = heuristicGeneralAnswer(message);
   }
-  contextManager.addToHistory(req.user.id, message, content, projectContext);
-  return sendSuccess(res, 200, { response: { content, source: aiResponse?.source || 'unknown', metadata: aiResponse?.metadata || {}, aiStatus: (openAIService && openAIService.getStatus ? openAIService.getStatus() : undefined) } });
+  
+  contextManager.addToHistory(req.user.id, message, finalContent, projectContext);
+  return sendSuccess(res, 200, { 
+    response: { 
+      content: finalContent, 
+      source: aiResponse?.source || 'unknown', 
+      metadata: aiResponse?.metadata || {},
+      toolCalls: functionCalls ? functionCalls.length : 0,
+      aiStatus: (openAIService && openAIService.getStatus ? openAIService.getStatus() : undefined) 
+    } 
+  });
 }));
 
 // @desc    Get user's Bubbles conversation history

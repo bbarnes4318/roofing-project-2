@@ -51,31 +51,45 @@ class OpenAIService {
 
     const systemPrompt = context.systemPrompt || this.buildSystemPrompt(context);
     const messages = this.buildMessages(systemPrompt, prompt, context);
+    const tools = context.tools || null; // Support tools/functions parameter
 
     const attemptResponses = async (modelName) => {
       console.log('🔍 Making OpenAI API call (responses.create)...', modelName);
-      const response = await this.client.responses.create({
+      const requestConfig = {
         model: modelName,
         input: messages,
         max_output_tokens: 900,
         temperature: 0.8,
-      });
+      };
+      
+      // Add tools if provided
+      if (tools && Array.isArray(tools) && tools.length > 0) {
+        requestConfig.tools = tools;
+        requestConfig.tool_choice = 'auto'; // Let AI decide when to use tools
+      }
+      
+      const response = await this.client.responses.create(requestConfig);
       console.log('✅ OpenAI API call successful (responses.create)', modelName);
       this.lastError = null;
       this.lastUsedModel = modelName;
       this.lastUsedApi = 'responses';
+      
+      // Check for function calls in response
+      const functionCalls = response?.output?.[0]?.content?.filter(c => c.type === 'function_call') || [];
       const text = response.output_text 
-        || response?.output?.[0]?.content?.[0]?.text 
+        || response?.output?.[0]?.content?.find(c => c.type === 'text')?.text
         || response?.choices?.[0]?.message?.content 
         || '';
       const aiResponse = text || 'OK';
+      
       return {
         type: this.detectResponseType(prompt),
         content: aiResponse,
         confidence: 0.95,
         source: `openai:${modelName}`,
         suggestedActions: this.extractSuggestedActions(aiResponse, context),
-        metadata: { model: modelName, tokens: response.usage?.total_tokens, timestamp: new Date() }
+        metadata: { model: modelName, tokens: response.usage?.total_tokens, timestamp: new Date() },
+        functionCalls: functionCalls.length > 0 ? functionCalls : null
       };
     };
 
@@ -88,25 +102,59 @@ class OpenAIService {
         // Fallback path: try chat.completions for orgs without Responses API access
         try {
           console.log('🔁 Falling back to chat.completions API...', modelName);
-          const chatResponse = await this.client.chat.completions.create({
+          const requestConfig = {
             model: modelName,
             messages,
             max_tokens: 900,
             temperature: 0.8
-          });
+          };
+          
+          // Add tools if provided (chat.completions uses 'functions' for older models, 'tools' for newer)
+          if (tools && Array.isArray(tools) && tools.length > 0) {
+            // For newer models (gpt-4o, gpt-4o-mini), use 'tools' (already in correct format)
+            if (modelName.includes('gpt-4o') || modelName.includes('gpt-4-turbo')) {
+              requestConfig.tools = tools;
+              requestConfig.tool_choice = 'auto';
+            } else {
+              // For older models, extract function from tool format
+              requestConfig.functions = tools.map(tool => {
+                // Tool is in format { type: 'function', function: {...} }
+                // Extract the function part for older API
+                if (tool.type === 'function' && tool.function) {
+                  return {
+                    name: tool.function.name,
+                    description: tool.function.description,
+                    parameters: tool.function.parameters
+                  };
+                }
+                // Fallback: assume it's already in function format
+                return tool;
+              });
+              requestConfig.function_call = 'auto';
+            }
+          }
+          
+          const chatResponse = await this.client.chat.completions.create(requestConfig);
           console.log('✅ OpenAI API call successful (chat.completions.create)', modelName);
           this.lastError = null;
           this.lastUsedModel = modelName;
           this.lastUsedApi = 'chat.completions';
-          const text = chatResponse?.choices?.[0]?.message?.content || '';
+          
+          const message = chatResponse?.choices?.[0]?.message || {};
+          const text = message.content || '';
           const aiResponse = text || 'OK';
+          
+          // Check for function calls
+          const functionCalls = message.tool_calls || message.function_calls || null;
+          
           return {
             type: this.detectResponseType(prompt),
             content: aiResponse,
             confidence: 0.95,
             source: `openai:${modelName}`,
             suggestedActions: this.extractSuggestedActions(aiResponse, context),
-            metadata: { model: modelName, tokens: chatResponse.usage?.total_tokens, timestamp: new Date(), api: 'chat.completions' }
+            metadata: { model: modelName, tokens: chatResponse.usage?.total_tokens, timestamp: new Date(), api: 'chat.completions' },
+            functionCalls: functionCalls
           };
         } catch (chatErr) {
           console.error('❌ OpenAI chat.completions error:', chatErr?.message || chatErr);
@@ -162,7 +210,27 @@ Format:
   buildMessages(systemPrompt, prompt, context) {
     const messages = [{ role: 'system', content: systemPrompt }];
 
-    if (Array.isArray(context.conversationHistory) && context.conversationHistory.length > 0) {
+    // Handle tool results (from previous tool calls) - this is a follow-up call
+    if (Array.isArray(context.toolResults) && context.toolResults.length > 0) {
+      // Add the original user message
+      messages.push({ role: 'user', content: prompt });
+      
+      // Add assistant message with tool calls if we have conversation history with tool calls
+      if (Array.isArray(context.conversationHistory) && context.conversationHistory.length > 0) {
+        const lastItem = context.conversationHistory[context.conversationHistory.length - 1];
+        if (lastItem?.tool_calls) {
+          messages.push({
+            role: 'assistant',
+            content: lastItem.content || null,
+            tool_calls: lastItem.tool_calls
+          });
+        }
+      }
+      
+      // Add tool results
+      messages.push(...context.toolResults);
+    } else if (Array.isArray(context.conversationHistory) && context.conversationHistory.length > 0) {
+      // Regular conversation history (no tool calls)
       const recent = context.conversationHistory.slice(-8);
       for (const item of recent) {
         if (item && typeof item.message === 'string' && item.message.trim().length > 0) {
@@ -175,14 +243,17 @@ Format:
       }
     }
 
-    // Inject document context if available
-    if (Array.isArray(context.documentSnippets) && context.documentSnippets.length > 0) {
+    // Inject document context if available (only if not a tool result follow-up)
+    if (!context.toolResults && Array.isArray(context.documentSnippets) && context.documentSnippets.length > 0) {
       const block = ['--- DOCUMENT CONTEXT BEGIN ---', ...context.documentSnippets, '--- DOCUMENT CONTEXT END ---'].join('\n\n');
       messages.push({ role: 'user', content: block });
     }
 
-    const userPrompt = this.buildUserPrompt(prompt, context);
-    messages.push({ role: 'user', content: userPrompt });
+    // Only add user prompt if not a tool result follow-up (already added above)
+    if (!context.toolResults) {
+      const userPrompt = this.buildUserPrompt(prompt, context);
+      messages.push({ role: 'user', content: userPrompt });
+    }
 
     return messages;
   }

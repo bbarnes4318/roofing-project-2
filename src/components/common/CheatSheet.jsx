@@ -108,18 +108,32 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
                 Speak naturally. Give Bubbles the goal, who should get it, and which documents to attach. These quick plays keep projects moving without leaving your desk or jobsite.
               </p>
             </div>
-            <a 
-              href="/bubbles-quickstart.html" 
-              target="_blank" 
-              rel="noreferrer" 
-              className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium border ${
-                colorMode 
-                  ? 'border-slate-600 text-slate-100 hover:bg-slate-800/60' 
-                  : 'border-gray-300 text-gray-700 hover:bg-gray-100'
-              } transition`}
-            >
-              Printable guide
-            </a>
+            <div className="flex flex-col gap-2">
+              <a 
+                href="/bubbles-quickstart.html" 
+                target="_blank" 
+                rel="noreferrer"
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium border text-center ${
+                  colorMode 
+                    ? 'border-slate-600 text-slate-100 hover:bg-slate-800/60' 
+                    : 'border-gray-300 text-gray-700 hover:bg-gray-100'
+                } transition`}
+              >
+                Printable guide
+              </a>
+              <a 
+                href="/bubbles-advanced-features-playbook.html" 
+                target="_blank" 
+                rel="noreferrer"
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-center ${
+                  colorMode 
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500' 
+                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500'
+                } transition shadow-md`}
+              >
+                🚀 Advanced Features
+              </a>
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-3">
@@ -145,6 +159,31 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
                   <li><strong>Not sure?</strong> Use the document browser or ask "What documents are on project 10045?" then tell Bubbles which one to send.</li>
                   <li><strong>Bundle files:</strong> "Send the permit.pdf <em>and</em> latest_photos.zip to accounting."</li>
                 </ul>
+              </div>
+
+              <div className={`rounded-2xl border-2 ${colorMode ? 'border-purple-600 bg-purple-900/10' : 'border-purple-300 bg-purple-50'} p-4 shadow-sm`}> 
+                <div className="flex items-center gap-2 mb-2">
+                  <h4 className="text-xs font-semibold uppercase tracking-wide text-purple-600">✨ NEW: Advanced Features</h4>
+                  <span className={`text-[10px] px-2 py-0.5 rounded-full ${colorMode ? 'bg-purple-700 text-purple-200' : 'bg-purple-200 text-purple-700'}`}>Phase 3 & 4</span>
+                </div>
+                <ul className={`mt-2 space-y-1.5 text-sm ${colorMode ? 'text-slate-200' : 'text-gray-700'}`}>
+                  <li><strong>Multi-document:</strong> Send multiple files at once — "Send both report.pdf and photos.zip"</li>
+                  <li><strong>Proactive alerts:</strong> Ask "What needs my attention?" for overdue tasks and deadlines</li>
+                  <li><strong>Portfolio analytics:</strong> "What's the portfolio status?" or "Where are the bottlenecks?"</li>
+                  <li><strong>Enhanced detection:</strong> Bubbles understands natural language better — speak normally!</li>
+                </ul>
+                <a 
+                  href="/bubbles-advanced-features-playbook.html" 
+                  target="_blank" 
+                  rel="noreferrer"
+                  className={`mt-3 inline-block w-full text-center px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                    colorMode 
+                      ? 'bg-purple-700 text-white hover:bg-purple-600' 
+                      : 'bg-purple-600 text-white hover:bg-purple-700'
+                  }`}
+                >
+                  View Complete Guide →
+                </a>
               </div>
             </div>
 
