@@ -9,16 +9,29 @@ if (!prisma) {
 }
 
 // Add a method to check prisma availability
-const ensurePrismaConnection = () => {
+const ensurePrismaConnection = async () => {
   if (!prisma) {
     console.error('❌ FollowUpService: Prisma client is not available');
     throw new Error('Database connection not established');
   }
   
+  // Ensure Prisma is connected (this is idempotent - safe to call multiple times)
+  try {
+    await prisma.$connect();
+  } catch (error) {
+    // Connection might already be established, ignore if it is
+    const errorMsg = error.message?.toLowerCase() || '';
+    if (!errorMsg.includes('already connected') && !errorMsg.includes('already initialized')) {
+      console.error('❌ FollowUpService: Failed to connect to database:', error.message);
+      throw new Error('Database connection failed');
+    }
+  }
+  
   // Check if prisma client has the required methods
   if (typeof prisma.followUpTracking === 'undefined') {
     console.error('❌ FollowUpService: Prisma client not properly initialized - followUpTracking model not available');
-    throw new Error('Database models not available');
+    console.error('💡 Hint: Run "npx prisma generate" in the server directory to regenerate Prisma client');
+    throw new Error('Database models not available - Prisma client needs to be regenerated');
   }
   
   return prisma;
@@ -127,7 +140,7 @@ class FollowUpService {
       }
       
       // Get all pending follow-ups that are due
-      const db = ensurePrismaConnection();
+      const db = await ensurePrismaConnection();
       const pendingFollowUps = await db.followUpTracking.findMany({
       where: {
         status: 'PENDING',
