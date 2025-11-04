@@ -113,10 +113,11 @@ const Login = ({ onLoginSuccess }) => {
     setMessage({ type: '', text: '' });
 
     try {
-      // Build login URL - use relative path for same-origin requests
-      const loginUrl = API_BASE_URL.includes('localhost') 
-        ? `${API_BASE_URL}/auth/login`
-        : `/api/auth/login`;
+      // Always use the full API_BASE_URL for consistency
+      const loginUrl = `${API_BASE_URL}/auth/login`;
+      
+      console.log('🔐 LOGIN: Attempting login to:', loginUrl);
+      console.log('🔐 LOGIN: Email:', email.trim());
       
       const response = await fetch(loginUrl, {
         method: 'POST',
@@ -129,34 +130,50 @@ const Login = ({ onLoginSuccess }) => {
         }),
         credentials: 'include'
       });
+      
+      console.log('🔐 LOGIN: Response status:', response.status);
+      console.log('🔐 LOGIN: Response ok:', response.ok);
 
       let result;
       const text = await response.text();
+      console.log('🔐 LOGIN: Response text:', text.substring(0, 200));
+      
       try {
         result = text ? JSON.parse(text) : {};
+        console.log('🔐 LOGIN: Parsed result:', result);
       } catch (parseError) {
+        console.error('🔐 LOGIN: Parse error:', parseError);
+        console.error('🔐 LOGIN: Response text:', text);
         throw new Error(`Server error: ${text || 'Invalid response'}`);
       }
 
       if (!response.ok) {
         const errorMsg = result.message || result.error || `Login failed (${response.status})`;
+        console.error('🔐 LOGIN: Error response:', errorMsg);
         throw new Error(errorMsg);
       }
 
       if (result.success && result.data && result.data.token) {
+        console.log('🔐 LOGIN: Token received, storing...');
         localStorage.setItem('authToken', result.data.token);
         sessionStorage.setItem('authToken', result.data.token);
         localStorage.setItem('user', JSON.stringify(result.data.user));
+        
+        console.log('🔐 LOGIN: Token stored in localStorage:', !!localStorage.getItem('authToken'));
+        console.log('🔐 LOGIN: Token stored in sessionStorage:', !!sessionStorage.getItem('authToken'));
         
         setMessage({ type: 'success', text: 'Login successful!' });
         setLoading(false);
         
         if (onLoginSuccess) {
+          console.log('🔐 LOGIN: Calling onLoginSuccess callback');
           setTimeout(() => onLoginSuccess(result.data.user), 100);
         } else {
+          console.log('🔐 LOGIN: No callback, reloading page');
           setTimeout(() => window.location.reload(), 500);
         }
       } else {
+        console.error('🔐 LOGIN: Invalid response structure:', result);
         throw new Error(result.message || 'Login failed: Invalid response');
       }
     } catch (error) {

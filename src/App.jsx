@@ -29,7 +29,7 @@ import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import SetupProfilePage from './components/pages/SetupProfilePage';
 
 // Removed mock data import
-import { projectsService, activitiesService } from './services/api';
+import { projectsService, activitiesService, API_BASE_URL } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import AddProjectModal from './components/common/AddProjectModal';
@@ -202,7 +202,9 @@ export default function App() {
             
             // Re-check token after potential cleanup
             const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            console.log('🔍 AUTH: Checking for token. Found:', !!token);
             if (token) {
+                console.log('🔍 AUTH: Token found, verifying...');
                 try {
                     // Check if it's a demo token (bypass verification)
                     if (token.startsWith('demo-') || token.startsWith('temp-token-')) {
@@ -220,25 +222,31 @@ export default function App() {
                         const controller = new AbortController();
                         const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
                         
-                        const response = await fetch('/api/auth/me', {
+                        console.log('🔍 AUTH: Verifying token with API:', `${API_BASE_URL}/auth/me`);
+                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
                             headers: {
                                 'Authorization': `Bearer ${token}`
                             },
                             signal: controller.signal
                         });
                         
+                        console.log('🔍 AUTH: Token verification response status:', response.status);
+                        
                         clearTimeout(timeoutId);
                         
                         if (response.ok) {
                             const userData = await response.json();
-                            if (userData.user) {
-                                setCurrentUser(userData.user);
+                            console.log('🔍 AUTH: Token verification successful, user data:', userData);
+                            if (userData.user || userData.data?.user) {
+                                const user = userData.user || userData.data.user;
+                                console.log('🔍 AUTH: Setting authenticated user:', user);
+                                setCurrentUser(user);
                                 setIsAuthenticated(true);
                                 return;
                             }
                         } else {
                             // Token is invalid, clear it
-                            console.log('Token verification failed - clearing tokens');
+                            console.log('🔍 AUTH: Token verification failed - clearing tokens. Status:', response.status);
                             localStorage.removeItem('authToken');
                             sessionStorage.removeItem('authToken');
                         }
@@ -267,7 +275,7 @@ export default function App() {
             
             // Only try Supabase if no token exists and not in production
             // Skip Supabase check to avoid hanging
-            console.log('No valid token found - showing login screen');
+            console.log('🔍 AUTH: No valid token found - showing login screen');
             setIsAuthenticated(false);
             setCurrentUser(null);
         };
