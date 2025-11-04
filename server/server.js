@@ -1098,9 +1098,14 @@ server.listen(PORT, '0.0.0.0', (err) => {
   
   // Start follow-up scheduler with a delay to ensure database is fully ready
   setTimeout(() => {
-    const followUpScheduler = require('./jobs/followUpScheduler');
-    followUpScheduler.start();
-    console.log(`⏰ Follow-up scheduler started`);
+    try {
+      const followUpScheduler = require('./jobs/followUpScheduler');
+      followUpScheduler.start();
+      console.log(`⏰ Follow-up scheduler started`);
+    } catch (error) {
+      console.error(`⚠️ Follow-up scheduler failed to start:`, error.message);
+      console.log(`⚠️ Server will continue without follow-up scheduler`);
+    }
   }, 5000); // 5 second delay to ensure database connection is fully established
   
   console.log(`✅ Server startup completed successfully`);

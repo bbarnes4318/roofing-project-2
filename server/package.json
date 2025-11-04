@@ -52,6 +52,7 @@
     "supertest": "^6.3.4"
   },
   "scripts": {
+    "postinstall": "prisma generate",
     "start": "node server.js",
     "dev": "node server.js",
     "prisma:generate": "prisma generate",
