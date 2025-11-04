@@ -58,6 +58,7 @@
     "prisma:push": "prisma db push",
     "check:company-docs": "node scripts/check-database-state.js",
     "migrate:company-docs": "node scripts/run-company-docs-migration.js",
+    "migrate:customer-types": "node scripts/add-customer-phone-email-types.js",
     "seed:company-docs": "node scripts/seed-company-documents.js",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

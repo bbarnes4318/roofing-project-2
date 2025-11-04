@@ -1035,8 +1035,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   </div>
                 )}
 
-                {/* Primary Phone Selection - Show when both customers have phone numbers */}
-                {(formData.primaryPhone && formData.secondaryPhone) && (
+                {/* Primary Phone Selection - Show only when there are TWO customers (secondary customer added) with phone numbers */}
+                {showSecondaryCustomer && formData.secondaryName && formData.primaryPhone && formData.secondaryPhone && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                     <h4 className="text-base font-semibold text-yellow-800 mb-2 flex items-center gap-2">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">

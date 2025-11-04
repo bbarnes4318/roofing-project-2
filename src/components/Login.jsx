@@ -102,12 +102,23 @@ const Login = ({ onLoginSuccess }) => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Validate inputs
+    if (!email.trim() || !password) {
+      setMessage({ type: 'error', text: 'Please enter both email and password' });
+      return;
+    }
+    
     setLoading(true);
     setMessage({ type: '', text: '' });
 
     try {
-      // Use our backend API for login
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      // Build login URL - use relative path for same-origin requests
+      const loginUrl = API_BASE_URL.includes('localhost') 
+        ? `${API_BASE_URL}/auth/login`
+        : `/api/auth/login`;
+      
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,31 +126,44 @@ const Login = ({ onLoginSuccess }) => {
         body: JSON.stringify({
           email: email.trim(),
           password: password
-        })
+        }),
+        credentials: 'include'
       });
 
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Login failed');
+      let result;
+      const text = await response.text();
+      try {
+        result = text ? JSON.parse(text) : {};
+      } catch (parseError) {
+        throw new Error(`Server error: ${text || 'Invalid response'}`);
       }
 
-      if (result.success && result.data.token) {
-        // Store token and user data
+      if (!response.ok) {
+        const errorMsg = result.message || result.error || `Login failed (${response.status})`;
+        throw new Error(errorMsg);
+      }
+
+      if (result.success && result.data && result.data.token) {
         localStorage.setItem('authToken', result.data.token);
         sessionStorage.setItem('authToken', result.data.token);
         localStorage.setItem('user', JSON.stringify(result.data.user));
         
         setMessage({ type: 'success', text: 'Login successful!' });
+        setLoading(false);
         
-        // Call the parent's login success handler
         if (onLoginSuccess) {
-          onLoginSuccess(result.data.user);
+          setTimeout(() => onLoginSuccess(result.data.user), 100);
+        } else {
+          setTimeout(() => window.location.reload(), 500);
         }
+      } else {
+        throw new Error(result.message || 'Login failed: Invalid response');
       }
     } catch (error) {
-      setMessage({ type: 'error', text: error.message });
-    } finally {
+      setMessage({ 
+        type: 'error', 
+        text: error.message || 'Login failed. Please check your credentials and try again.' 
+      });
       setLoading(false);
     }
   };
@@ -173,7 +197,10 @@ const Login = ({ onLoginSuccess }) => {
         )}
 
         {mode === 'login' && (
-          <form onSubmit={handleLogin} className="space-y-4">
+          <form onSubmit={(e) => {
+            console.log('📝 Form submitted!');
+            handleLogin(e);
+          }} className="space-y-4">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email

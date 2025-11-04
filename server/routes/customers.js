@@ -391,37 +391,47 @@ router.post('/', asyncHandler(async (req, res, next) => {
       customerData = {
         primaryName: req.body.primaryName,
         primaryEmail: req.body.primaryEmail,
-        primaryEmailType: req.body.primaryEmailType || 'PERSONAL',
         primaryPhone: req.body.primaryPhone || '555-555-5555', // Default phone if not provided
-        primaryPhoneType: req.body.primaryPhoneType || 'MOBILE',
         secondaryName: req.body.secondaryName || null,
         secondaryEmail: req.body.secondaryEmail || null,
-        secondaryEmailType: req.body.secondaryEmailType || 'PERSONAL',
         secondaryPhone: req.body.secondaryPhone || null,
-        secondaryPhoneType: req.body.secondaryPhoneType || 'MOBILE',
         primaryContact: req.body.primaryContact || 'PRIMARY',
-        primaryPhoneContact: req.body.primaryPhoneContact || 'PRIMARY',
         address: req.body.address || 'No address provided'
         // notes field removed - not being sent from frontend
       };
+      
+      // Conditionally add email/phone type fields only if they exist in the schema
+      // These fields may not exist in the database yet, so we only include them if provided
+      // Only add secondary type fields if the corresponding secondary field exists
+      if (req.body.primaryEmailType) {
+        customerData.primaryEmailType = req.body.primaryEmailType;
+      }
+      if (req.body.primaryPhoneType) {
+        customerData.primaryPhoneType = req.body.primaryPhoneType;
+      }
+      if (req.body.secondaryEmail && req.body.secondaryEmailType) {
+        customerData.secondaryEmailType = req.body.secondaryEmailType;
+      }
+      if (req.body.secondaryPhone && req.body.secondaryPhoneType) {
+        customerData.secondaryPhoneType = req.body.secondaryPhoneType;
+      }
+      if (req.body.primaryPhoneContact) {
+        customerData.primaryPhoneContact = req.body.primaryPhoneContact;
+      }
     } else {
       // Legacy format - map to new schema
       customerData = {
         primaryName: req.body.name,
         primaryEmail: req.body.email,
-        primaryEmailType: 'PERSONAL',
         primaryPhone: req.body.phone || '555-555-5555',
-        primaryPhoneType: 'MOBILE',
         secondaryName: null,
         secondaryEmail: null,
-        secondaryEmailType: 'PERSONAL',
         secondaryPhone: null,
-        secondaryPhoneType: 'MOBILE',
         primaryContact: 'PRIMARY',
-        primaryPhoneContact: 'PRIMARY',
         address: req.body.address || 'No address provided'
         // notes field removed - not being sent from frontend
       };
+      // Don't include type fields for legacy format - they may not exist in DB
     }
 
     // Check if customer with this email already exists
@@ -444,9 +454,26 @@ router.post('/', asyncHandler(async (req, res, next) => {
     // Contacts are now stored directly in the Customer model fields (primaryName, secondaryName, etc.)
     // No separate Contact table needed
 
-    const customer = await prisma.customer.create({
-      data: customerData
-    });
+    let customer;
+    try {
+      // Try creating with all fields first
+      customer = await prisma.customer.create({
+        data: customerData
+      });
+    } catch (prismaError) {
+      // If Prisma doesn't recognize type fields, retry without them
+      if (prismaError.message && prismaError.message.includes('Unknown argument')) {
+        console.log('⚠️ Prisma error - retrying without type fields:', prismaError.message);
+        // Remove type fields that might not exist in database
+        const { primaryEmailType, primaryPhoneType, secondaryEmailType, secondaryPhoneType, primaryPhoneContact, ...baseCustomerData } = customerData;
+        customer = await prisma.customer.create({
+          data: baseCustomerData
+        });
+      } else {
+        // Re-throw if it's a different error
+        throw prismaError;
+      }
+    }
 
     // Transform customer for frontend compatibility
     const transformedCustomer = transformCustomerForFrontend(customer);

@@ -176,6 +176,18 @@ router.post('/register', registerValidation, asyncHandler(async (req, res, next)
 // @route   POST /api/auth/login
 // @access  Public
 router.post('/login', loginValidation, userRateLimit, asyncHandler(async (req, res, next) => {
+  console.log('🔐 LOGIN REQUEST RECEIVED:', {
+    method: req.method,
+    path: req.path,
+    body: { email: req.body?.email, hasPassword: !!req.body?.password },
+    ip: req.ip,
+    headers: {
+      'content-type': req.headers['content-type'],
+      'origin': req.headers['origin'],
+      'user-agent': req.headers['user-agent']
+    }
+  });
+  
   // If DB is unavailable, use dev fallback instead of 503
   if (global.__DB_CONNECTED__ === false && DevUserStore) {
     const errors = validationResult(req);
