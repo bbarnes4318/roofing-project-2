@@ -373,6 +373,36 @@ router.post('/assets/upload',
 
         console.log(`[Upload] Creating database record for: ${file.originalname}`);
 
+        // Determine uploadedById - check if user exists in database
+        let uploadedById = null;
+        if (req.user?.id && !req.user.id.startsWith('demo-') && !req.user.id.startsWith('temp-')) {
+          // Check if the user ID exists in the database
+          const userExists = await prisma.user.findUnique({
+            where: { id: req.user.id },
+            select: { id: true }
+          });
+          if (userExists) {
+            uploadedById = req.user.id;
+          }
+        }
+        
+        // If still no valid user ID, try to find any real user as fallback (for demo users)
+        if (!uploadedById) {
+          try {
+            const anyUser = await prisma.user.findFirst({
+              where: { isActive: true },
+              select: { id: true },
+              orderBy: { createdAt: 'asc' }
+            });
+            if (anyUser) {
+              uploadedById = anyUser.id;
+              console.log(`[Upload] Using fallback user ID: ${uploadedById} (original: ${req.user?.id})`);
+            }
+          } catch (fallbackError) {
+            console.warn('[Upload] Could not find fallback user, using null for uploadedById');
+          }
+        }
+
         // Create asset (without nested version to avoid schema mismatch)
         const asset = await prisma.companyAsset.create({
           data: {
@@ -386,7 +416,7 @@ router.post('/assets/upload',
             type: 'FILE',
             parentId: parentId || null,
             sortOrder: 0,
-            uploadedById: req.user.id,
+            uploadedById: uploadedById, // Can be null if no valid user found
             checksum,
             metadata,
             accessLevel,
@@ -415,7 +445,7 @@ router.post('/assets/upload',
             fileSize: file.size,
             checksum,
             changeDescription: 'Initial upload',
-            uploadedById: req.user.id,
+            uploadedById: uploadedById, // Use same verified user ID or null
             isCurrent: true
           }
         });
