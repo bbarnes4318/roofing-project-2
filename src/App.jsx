@@ -27,6 +27,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
 import OnboardingFlow from './components/onboarding/OnboardingFlow';
 import SetupProfilePage from './components/pages/SetupProfilePage';
+import GoogleOAuthCallback from './components/auth/GoogleOAuthCallback';
 
 // Removed mock data import
 import { projectsService, activitiesService, API_BASE_URL } from './services/api';
@@ -1446,6 +1447,17 @@ const apiUrl = window.location.hostname === 'localhost'
                     </div>
                 </AuthProvider>
                 <Toaster />
+            </QueryClientProvider>
+        );
+    }
+
+    // Check for OAuth callback route
+    if (window.location.pathname === '/auth/callback') {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <GoogleOAuthCallback onLoginSuccess={handleLoginSuccess} />
+                </AuthProvider>
             </QueryClientProvider>
         );
     }

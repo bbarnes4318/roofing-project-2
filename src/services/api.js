@@ -170,28 +170,6 @@ api.interceptors.response.use(
 
 // Auth Service
 export const authService = {
-  // Register new user
-  register: async (userData) => {
-    const response = await api.post('/auth/register', userData);
-    // Backend returns: { success: true, data: { user, token }, message: '...' }
-    if (response.data.data && response.data.data.token) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
-    }
-    return response.data;
-  },
-
-  // Login user
-  login: async (credentials) => {
-    const response = await api.post('/auth/login', credentials);
-    // Backend returns: { success: true, data: { user, token }, message: '...' }
-    if (response.data.data && response.data.data.token) {
-      localStorage.setItem('authToken', response.data.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.data.user));
-    }
-    return response.data;
-  },
-
   // Logout user
   logout: () => {
     // Clear both storages to ensure full logout

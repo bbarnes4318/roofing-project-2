@@ -1,9 +1,6 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 
-const GoogleOAuthCallback = () => {
-  const navigate = useNavigate();
-
+const GoogleOAuthCallback = ({ onLoginSuccess }) => {
   useEffect(() => {
     const handleCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
@@ -13,7 +10,9 @@ const GoogleOAuthCallback = () => {
 
       if (error) {
         console.error('OAuth error:', error);
-        navigate('/login?error=' + encodeURIComponent(error));
+        // Clear URL and reload to show login with error
+        window.history.replaceState({}, '', '/');
+        window.location.reload();
         return;
       }
 
@@ -28,20 +27,29 @@ const GoogleOAuthCallback = () => {
           
           console.log('✅ Google OAuth successful:', user);
           
-          // Redirect to dashboard
-          navigate('/dashboard');
+          // Clear URL parameters
+          window.history.replaceState({}, '', '/');
+          
+          // Call login success handler if provided, otherwise reload
+          if (onLoginSuccess) {
+            onLoginSuccess(user);
+          } else {
+            window.location.reload();
+          }
         } catch (parseError) {
           console.error('Error parsing user data:', parseError);
-          navigate('/login?error=Invalid user data');
+          window.history.replaceState({}, '', '/');
+          window.location.reload();
         }
       } else {
         console.error('Missing token or user data');
-        navigate('/login?error=Authentication failed');
+        window.history.replaceState({}, '', '/');
+        window.location.reload();
       }
     };
 
     handleCallback();
-  }, [navigate]);
+  }, [onLoginSuccess]);
 
   return (
     <div className="flex items-center justify-center min-h-screen">

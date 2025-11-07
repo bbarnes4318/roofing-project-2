@@ -50,30 +50,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (credentials) => {
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(credentials)
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('authToken', data.token);
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return { success: true };
-      } else {
-        const error = await response.json();
-        return { success: false, error: error.message };
-      }
-    } catch (error) {
-      return { success: false, error: 'Login failed' };
-    }
-  };
+  // Google OAuth login is handled via redirect, so no login function needed here
 
   const logout = () => {
     localStorage.removeItem('authToken');
@@ -90,7 +67,6 @@ export const AuthProvider = ({ children }) => {
     user,
     isAuthenticated,
     isLoading,
-    login,
     logout,
     updateUser,
     checkAuthStatus
