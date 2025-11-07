@@ -744,6 +744,51 @@ const apiUrl = window.location.hostname === 'localhost'
         window.addEventListener('dashboard:clearWorkflowRestore', handler);
         return () => window.removeEventListener('dashboard:clearWorkflowRestore', handler);
     }, []);
+    // Check for token in localStorage when not authenticated (handles OAuth callback race condition)
+    useEffect(() => {
+        if (!isAuthenticated && !isLoading) {
+            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const storedUser = localStorage.getItem('user');
+            
+            if (token && storedUser && !token.startsWith('demo-') && !token.startsWith('temp-token-')) {
+                // We have a real token but aren't authenticated - verify it
+                // This handles the race condition where callback stored token but state hasn't updated
+                const verifyToken = async () => {
+                    try {
+                        setIsLoading(true);
+                        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                        
+                        if (response.ok) {
+                            const userData = await response.json();
+                            if (userData.user || userData.data?.user) {
+                                const user = userData.user || userData.data.user;
+                                setCurrentUser(user);
+                                setIsAuthenticated(true);
+                            }
+                        } else {
+                            // Token is invalid, clear it
+                            localStorage.removeItem('authToken');
+                            sessionStorage.removeItem('authToken');
+                            localStorage.removeItem('user');
+                        }
+                    } catch (error) {
+                        console.error('Token verification failed in auth check:', error);
+                        localStorage.removeItem('authToken');
+                        sessionStorage.removeItem('authToken');
+                    } finally {
+                        setIsLoading(false);
+                    }
+                };
+                
+                verifyToken();
+            }
+        }
+    }, [isAuthenticated, isLoading]);
+
     // Gate the app behind Supabase login when unauthenticated
     if (!isAuthenticated) {
         return (

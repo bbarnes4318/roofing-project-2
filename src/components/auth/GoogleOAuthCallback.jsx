@@ -1,7 +1,12 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const GoogleOAuthCallback = ({ onLoginSuccess }) => {
+  const hasProcessed = useRef(false);
+
   useEffect(() => {
+    // Prevent processing multiple times
+    if (hasProcessed.current) return;
+    
     const handleCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
       const token = urlParams.get('token');
@@ -29,7 +34,11 @@ const GoogleOAuthCallback = ({ onLoginSuccess }) => {
           console.log('✅ Token stored:', token.substring(0, 20) + '...');
           console.log('✅ User stored:', user.email);
           
-          // Call login success handler FIRST to set React state
+          // Mark as processed to prevent re-processing
+          hasProcessed.current = true;
+          
+          // Call login success handler to set React state
+          // This will update isAuthenticated and currentUser in App.jsx
           if (onLoginSuccess) {
             console.log('✅ Calling onLoginSuccess handler with user:', user);
             console.log('✅ User object structure:', { 
@@ -41,15 +50,22 @@ const GoogleOAuthCallback = ({ onLoginSuccess }) => {
             // Call the handler to set authentication state
             // This will update isAuthenticated and currentUser in App.jsx
             onLoginSuccess(user);
+            
+            // Wait for React to process the state update before navigating
+            // Use requestAnimationFrame to wait for the next render cycle
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                // Clear URL parameters and navigate to root WITHOUT reload
+                // React will re-render automatically when isAuthenticated state changes
+                window.history.replaceState({}, '', '/');
+                // The App component will detect isAuthenticated=true and show dashboard
+              });
+            });
+          } else {
+            // If no handler, just navigate immediately
+            window.history.replaceState({}, '', '/');
+            window.location.reload();
           }
-          
-          // Clear URL parameters and navigate to root
-          // The App component will re-render because isAuthenticated changed
-          window.history.replaceState({}, '', '/');
-          
-          // Force a full page reload to ensure clean state
-          // The token and user are in localStorage, so auth check will succeed
-          window.location.reload();
         } catch (parseError) {
           console.error('Error parsing user data:', parseError);
           window.history.replaceState({}, '', '/');
