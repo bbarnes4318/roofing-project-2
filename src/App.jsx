@@ -1480,25 +1480,8 @@ const apiUrl = window.location.hostname === 'localhost'
         );
     }
 
-    // Show loading state while checking onboarding
-    if (!onboardingChecked) {
-        return (
-            <QueryClientProvider client={queryClient}>
-                <AuthProvider>
-                    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
-                        <div className="text-center">
-                            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
-                            <p className="text-gray-600">Please wait while we prepare everything for you.</p>
-                        </div>
-                    </div>
-                </AuthProvider>
-                <Toaster />
-            </QueryClientProvider>
-        );
-    }
-
-    // Check for OAuth callback route
+    // Check for OAuth callback route FIRST (before onboarding check)
+    // This allows OAuth callback to process and set authentication state
     if (window.location.pathname === '/auth/callback') {
         return (
             <QueryClientProvider client={queryClient}>
@@ -1527,6 +1510,25 @@ const apiUrl = window.location.hostname === 'localhost'
                 <AuthProvider>
                     <SetupProfilePage colorMode={colorMode} />
                 </AuthProvider>
+            </QueryClientProvider>
+        );
+    }
+
+    // Show loading state while checking onboarding
+    // Only show this if we're authenticated but onboarding check hasn't completed
+    if (!onboardingChecked && isAuthenticated) {
+        return (
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
+                            <p className="text-gray-600">Please wait while we prepare everything for you.</p>
+                        </div>
+                    </div>
+                </AuthProvider>
+                <Toaster />
             </QueryClientProvider>
         );
     }
