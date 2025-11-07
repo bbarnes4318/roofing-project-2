@@ -789,8 +789,10 @@ const apiUrl = window.location.hostname === 'localhost'
         }
     }, [isAuthenticated, isLoading]);
 
-    // Gate the app behind Supabase login when unauthenticated
-    if (!isAuthenticated) {
+    // Gate the app behind login when unauthenticated, but allow special routes to bypass
+    const currentPath = window.location.pathname;
+    const isBypassPath = currentPath === '/auth/callback' || currentPath === '/reset-password' || currentPath.startsWith('/setup-profile');
+    if (!isAuthenticated && !isBypassPath) {
         return (
             <QueryClientProvider client={queryClient}>
                 <Login onLoginSuccess={handleLoginSuccess} />
