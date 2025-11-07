@@ -34,14 +34,14 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Copy backend package files
+# Copy backend package files and Prisma schema (needed for postinstall)
 COPY server/package*.json ./
+COPY server/prisma ./prisma
 # Install server deps including dev so prisma generate can run
 RUN npm install --legacy-peer-deps
 
 # Copy backend source
 COPY server ./
-COPY server/prisma ./prisma
 
 # Copy built frontend
 COPY --from=frontend-build /app/build ./public
