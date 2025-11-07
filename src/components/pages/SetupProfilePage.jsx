@@ -4,8 +4,6 @@ import { API_BASE_URL } from '../../services/api';
 const SetupProfilePage = ({ colorMode }) => {
   const [token, setToken] = useState('');
   const [formData, setFormData] = useState({
-    password: '',
-    confirmPassword: '',
     phone: '',
     secondaryPhone: '',
     preferredPhone: '',
@@ -91,18 +89,6 @@ const SetupProfilePage = ({ colorMode }) => {
   };
 
   const validateForm = () => {
-    if (!formData.password) {
-      setError('Password is required');
-      return false;
-    }
-    if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      return false;
-    }
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return false;
-    }
     if (formData.phone && formData.secondaryPhone && !formData.preferredPhone) {
       setError('Please select which phone number is preferred for customer communications');
       return false;
@@ -128,7 +114,6 @@ const SetupProfilePage = ({ colorMode }) => {
         },
         body: JSON.stringify({
           token,
-          password: formData.password,
           phone: formData.phone,
           secondaryPhone: formData.secondaryPhone,
           preferredPhone: formData.preferredPhone,
@@ -180,10 +165,13 @@ const SetupProfilePage = ({ colorMode }) => {
             </div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">Profile Setup Complete!</h3>
             <p className="text-sm text-gray-600 mb-4">
-              Your profile has been successfully set up. You will be redirected to the login page shortly.
+              Your profile has been successfully set up. You can now sign in with Google OAuth.
             </p>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 mb-4">
               Redirecting to login in 3 seconds...
+            </p>
+            <p className="text-xs text-blue-600">
+              Remember: Use "Continue with Google" to sign in with your email address.
             </p>
           </div>
         </div>
@@ -247,37 +235,10 @@ const SetupProfilePage = ({ colorMode }) => {
                 <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>Role:</strong> {user.role}</p>
               </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
-                  Confirm Password *
-                </label>
-                <input
-                  type="password"
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
+              <div className="mt-3 pt-3 border-t border-blue-200">
+                <p className="text-xs text-blue-600">
+                  <strong>Note:</strong> You'll sign in using Google OAuth with your email address ({user.email}). No password needed!
+                </p>
               </div>
             </div>
 

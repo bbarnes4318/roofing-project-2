@@ -178,13 +178,13 @@ const AddTeamMemberPage = ({ colorMode }) => {
                   ✅ Team member has been added successfully!
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  ✅ Account created in both Supabase and backend database
+                  ✅ Account created in the system
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  ✅ Welcome email sent with setup instructions
+                  ✅ Welcome email sent with login instructions
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
-                  The team member can log in using their email and the temporary password you provided.
+                  The team member can log in using Google OAuth with their email address.
                 </p>
               </div>
             ) : (
@@ -196,7 +196,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
                   <p className="text-xs text-gray-600">Manual setup link: <code className="break-all">{setupLink}</code></p>
                 </div>
                 <p className="text-xs text-gray-500 mb-4">
-                  Please share this link with the team member so they can complete their profile setup.
+                  Please share this link with the team member so they can complete their profile setup. They will need to sign in with Google OAuth using their email address.
                 </p>
                 <button
                   onClick={() => navigator.clipboard.writeText(setupLink)}

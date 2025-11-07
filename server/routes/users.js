@@ -309,8 +309,7 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
     phone, 
     secondaryPhone, 
     preferredPhone, 
-    role,
-    password 
+    role
   } = req.body;
 
   console.log('🔍 ADD-TEAM-MEMBER: Request body:', {
@@ -320,8 +319,7 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
     phone,
     secondaryPhone,
     preferredPhone,
-    role,
-    hasPassword: !!password
+    role
   });
 
   // Validate required fields
@@ -426,7 +424,7 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
           secondaryPhone: cleanSecondaryPhone || null,
           preferredPhone: cleanPreferredPhone || null,
           role: normalizedRole,
-          password: await bcrypt.hash(password || 'TempPassword123!', 12), // Hash the password properly
+          password: 'GOOGLE_OAUTH_MANAGED', // Users authenticate via Google OAuth, no password needed
           isActive: true,
           isVerified: false,
           emailVerificationToken,
@@ -501,12 +499,16 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
               <a href="${setupLink}" class="button">Complete Profile Setup</a>
             </div>
             
-            <p><strong>What you'll need to do:</strong></p>
+            <p><strong>How to get started:</strong></p>
             <ul>
-              <li>Set up your password</li>
+              <li>Click the button below to access your account</li>
+              <li>Sign in with your Google account (${normalizedEmail})</li>
               <li>Complete your profile information</li>
               <li>Review your contact preferences</li>
             </ul>
+            
+            <p><strong>Login Instructions:</strong></p>
+            <p>To access your account, simply visit our app and click "Continue with Google". Make sure to use the email address: <strong>${normalizedEmail}</strong></p>
             
             <p><strong>Your contact information:</strong></p>
             <ul>
@@ -535,10 +537,14 @@ You've been added to our Kenstruction team as a ${newUser.role}. We're excited t
 To get started, please complete your profile setup by visiting this link:
 ${setupLink}
 
-What you'll need to do:
-- Set up your password
-- Complete your profile information  
+How to get started:
+- Click the link above to access your account
+- Sign in with your Google account (${normalizedEmail})
+- Complete your profile information
 - Review your contact preferences
+
+Login Instructions:
+To access your account, simply visit our app and click "Continue with Google". Make sure to use the email address: ${normalizedEmail}
 
 Your contact information:
 - Primary Phone: ${newUser.phone || 'Not provided'}

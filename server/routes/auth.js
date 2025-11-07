@@ -1099,7 +1099,6 @@ router.post('/verify-setup-token', asyncHandler(async (req, res) => {
 router.post('/complete-profile-setup', asyncHandler(async (req, res) => {
   const { 
     token, 
-    password, 
     phone, 
     secondaryPhone, 
     preferredPhone, 
@@ -1108,10 +1107,10 @@ router.post('/complete-profile-setup', asyncHandler(async (req, res) => {
     bio 
   } = req.body;
 
-  if (!token || !password) {
+  if (!token) {
     return res.status(400).json({
       success: false,
-      message: 'Setup token and password are required'
+      message: 'Setup token is required'
     });
   }
 
@@ -1134,15 +1133,10 @@ router.post('/complete-profile-setup', asyncHandler(async (req, res) => {
       });
     }
 
-    // Hash the password
-    const bcrypt = require('bcryptjs');
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Update user with completed profile
+    // Update user with completed profile (password remains GOOGLE_OAUTH_MANAGED)
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
-        password: hashedPassword,
         phone: phone || null,
         secondaryPhone: secondaryPhone || null,
         preferredPhone: preferredPhone || phone || null,
@@ -1151,8 +1145,7 @@ router.post('/complete-profile-setup', asyncHandler(async (req, res) => {
         bio: bio || null,
         isVerified: true,
         emailVerificationToken: null,
-        emailVerificationExpires: null,
-        passwordChangedAt: new Date()
+        emailVerificationExpires: null
       },
       select: {
         id: true,

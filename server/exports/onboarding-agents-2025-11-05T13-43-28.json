@@ -1,0 +1,33 @@
+[
+  {
+    "id": "cmflo3nqx0002j8g4u4cykcb5",
+    "firstName": "Jennifer",
+    "lastName": "Thompson",
+    "fullName": "Jennifer Thompson",
+    "email": "jennifer.thompson@kenstruction.com",
+    "phone": "(719) 555-0103",
+    "secondaryPhone": null,
+    "preferredPhone": null,
+    "role": "PROJECT_MANAGER",
+    "position": "Project Manager",
+    "department": "Project Management",
+    "isActive": true,
+    "isVerified": true,
+    "createdAt": "2025-09-15T22:00:16.377Z",
+    "updatedAt": "2025-09-15T22:11:06.798Z",
+    "lastLogin": null,
+    "lastLoginIP": null,
+    "hasCompletedOnboarding": true,
+    "onboardingData": null,
+    "avatar": null,
+    "skills": [],
+    "certifications": null,
+    "experience": null,
+    "emergencyContact": null,
+    "address": null,
+    "language": "en",
+    "timezone": "America/Denver",
+    "theme": "LIGHT",
+    "notificationPreferences": null
+  }
+]

@@ -1,0 +1,28 @@
+ONBOARDING AGENTS SUMMARY REPORT
+Generated: 11/5/2025, 8:43:28 AM
+Database: Digital Ocean PostgreSQL
+
+═══════════════════════════════════════════════════════════════════════════════
+
+OVERVIEW
+--------
+Total Agents Completed Onboarding: 1
+Active Users: 1 (100.0%)
+Verified Users: 1 (100.0%)
+Onboarded in Last 7 Days: 0
+
+ROLE BREAKDOWN
+--------------
+PROJECT_MANAGER     :   1 (100.0%)
+
+POSITION BREAKDOWN
+------------------
+Project Manager     :   1 (100.0%)
+
+RECENT ONBOARDING (Last 10)
+----------------------------
+Jennifer Thompson         | jennifer.thompson@kenstruction.com | PROJECT_MANAGER | Invalid Date
+
+═══════════════════════════════════════════════════════════════════════════════
+
+For detailed information, see the JSON and CSV exports.
