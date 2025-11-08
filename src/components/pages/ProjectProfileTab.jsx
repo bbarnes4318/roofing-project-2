@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { formatPhoneNumber } from '../../utils/helpers';
 import WorkflowProgressService from '../../services/workflowProgress';
 import api, { projectsService, customersService, documentsService, API_BASE_URL, API_ORIGIN } from '../../services/api';
@@ -71,6 +71,28 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [newFamilyMember, setNewFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
   const [editFamilyMember, setEditFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
   
+  // Refs to maintain focus on inputs
+  const nameInputRef = useRef(null);
+  const editNameInputRef = useRef(null);
+  
+  // Focus input when adding/editing starts
+  useEffect(() => {
+    if (isAddingFamilyMember && nameInputRef.current) {
+      nameInputRef.current.focus();
+    }
+  }, [isAddingFamilyMember]);
+  
+  useEffect(() => {
+    if (editingFamilyMemberId && editNameInputRef.current) {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        if (editNameInputRef.current) {
+          editNameInputRef.current.focus();
+        }
+      }, 10);
+    }
+  }, [editingFamilyMemberId]);
+  
   // Relation options
   const relationOptions = ['Spouse', 'Grandma', 'Grandpa', 'Child', 'Significant Other'];
 
@@ -125,6 +147,26 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     ];
   };
 
+  // Load family members when project changes
+  const loadFamilyMembers = useCallback(async () => {
+    if (!project?.customer?.id) return;
+    
+    setFamilyMembersLoading(true);
+    try {
+      const response = await customersService.getFamilyMembers(project.customer.id);
+      if (response?.success && Array.isArray(response.data)) {
+        setFamilyMembers(response.data);
+      } else {
+        setFamilyMembers([]);
+      }
+    } catch (error) {
+      console.error('Error loading family members:', error);
+      setFamilyMembers([]);
+    } finally {
+      setFamilyMembersLoading(false);
+    }
+  }, [project?.customer?.id]);
+
   // Load users for dropdown
   useEffect(() => {
     const loadUsers = async () => {
@@ -167,28 +209,11 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     };
 
     loadUsers();
-    loadFamilyMembers();
-  }, [project]);
-  
-  // Load family members when project changes
-  const loadFamilyMembers = async () => {
-    if (!project?.customer?.id) return;
-    
-    setFamilyMembersLoading(true);
-    try {
-      const response = await customersService.getFamilyMembers(project.customer.id);
-      if (response?.success && Array.isArray(response.data)) {
-        setFamilyMembers(response.data);
-      } else {
-        setFamilyMembers([]);
-      }
-    } catch (error) {
-      console.error('Error loading family members:', error);
-      setFamilyMembers([]);
-    } finally {
-      setFamilyMembersLoading(false);
+    // Only load family members if we're not currently adding/editing one
+    if (!isAddingFamilyMember && !editingFamilyMemberId) {
+      loadFamilyMembers();
     }
-  };
+  }, [project?.id, project?.customer?.id, isAddingFamilyMember, editingFamilyMemberId, loadFamilyMembers]);
 
   // Initialize edit form data when project changes
   useEffect(() => {
@@ -883,11 +908,16 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
               <input
+                ref={nameInputRef}
                 type="text"
                 placeholder="Name"
                 value={newFamilyMember.name}
-                onChange={(e) => setNewFamilyMember(prev => ({ ...prev, name: e.target.value }))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewFamilyMember(prev => ({ ...prev, name: value }));
+                }}
                 className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
               />
               <div className="flex gap-1">
                 <select
@@ -956,10 +986,15 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 {editingFamilyMemberId === member.id ? (
                   <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
                     <input
+                      ref={editNameInputRef}
                       type="text"
                       value={editFamilyMember.name}
-                      onChange={(e) => setEditFamilyMember(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setEditFamilyMember(prev => ({ ...prev, name: value }));
+                      }}
                       className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      autoFocus
                     />
                     <div className="flex gap-1">
                       <select
