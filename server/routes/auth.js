@@ -67,6 +67,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
       email: true,
       role: true,
       avatar: true,
+      displayName: true,
       phone: true,
       position: true,
       department: true,
@@ -103,7 +104,7 @@ router.get('/me', authenticateToken, asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
-  const { firstName, lastName, phone, position, department, bio, theme, language, timezone, /* displayName */ _, email } = req.body;
+  const { firstName, lastName, phone, position, department, bio, theme, language, timezone, displayName, email } = req.body;
 
   // Validate field lengths to prevent database errors
   const validationErrors = [];
@@ -126,7 +127,9 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
   if (bio && bio.length > 500) {
     validationErrors.push('Bio must be 500 characters or less');
   }
-  // Note: User model does not have displayName; ignore if provided
+  if (displayName && displayName.length > 255) {
+    validationErrors.push('Display name must be 255 characters or less');
+  }
   if (email && email.length > 255) {
     validationErrors.push('Email must be 255 characters or less');
   }
@@ -172,6 +175,9 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
   if (bio !== undefined && bio !== null) {
     updateData.bio = bio.trim();
   }
+  if (displayName !== undefined && displayName !== null) {
+    updateData.displayName = displayName.trim().substring(0, 255);
+  }
   if (theme !== undefined && theme !== null) {
     updateData.theme = theme;
   }
@@ -198,6 +204,7 @@ router.put('/profile', authenticateToken, asyncHandler(async (req, res) => {
         email: true,
         role: true,
         avatar: true,
+        displayName: true,
         phone: true,
         position: true,
         department: true,

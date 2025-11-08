@@ -99,9 +99,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             onUserUpdated(updatedUser);
           }
           
-          // Clear the profile picture state after successful upload
+          // Clear the profile picture file state after successful upload
+          // Keep preview until currentUser prop updates with new avatar
           setProfilePicture(null);
-          setProfilePicturePreview(null);
+          // Don't clear preview immediately - let it persist until currentUser.avatar updates
+          // The preview will be replaced by currentUser.avatar once the parent component updates
           
           setSuccessMessage('Profile picture updated successfully!');
           setSuccess(true);
@@ -238,6 +240,18 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     }
   }, [currentUserId]); // Only run when user ID changes, not on every currentUser update
 
+  // Clear profile picture preview when currentUser.avatar updates (after upload completes)
+  // This ensures we use the actual avatar URL once it's available instead of the preview
+  useEffect(() => {
+    if (currentUser?.avatar && profilePicturePreview) {
+      // Small delay to ensure the avatar URL is fully loaded before clearing preview
+      const timer = setTimeout(() => {
+        setProfilePicturePreview(null);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [currentUser?.avatar, profilePicturePreview]); // Run when avatar or preview changes
+
   const handleSave = async (e) => {
     e.preventDefault();
     if (isSaving) return;
@@ -273,9 +287,10 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
             console.log('🔄 AVATAR UPLOAD: Calling onUserUpdated callback');
             onUserUpdated(updatedUser);
           }
-          // Clear the profile picture state after successful upload
+          // Clear the profile picture file state after successful upload
+          // Keep preview until currentUser prop updates with new avatar
           setProfilePicture(null);
-          setProfilePicturePreview(null);
+          // Don't clear preview immediately - let it persist until currentUser.avatar updates
         } else {
           throw new Error(uploadResult.message || 'Failed to upload profile picture');
         }
@@ -290,14 +305,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
       if (phone && phone.trim()) payload.phone = phone.trim();
       if (timezone) payload.timezone = timezone;
       if (language) payload.language = language;
-      // Note: displayName is not in the User model, so we'll store it in localStorage separately
-      if (displayName && displayName.trim()) {
-        try {
-          const user = JSON.parse(localStorage.getItem('user') || '{}');
-          user.displayName = displayName.trim();
-          localStorage.setItem('user', JSON.stringify(user));
-        } catch (_) {}
+      // Include displayName in payload to save to database
+      if (displayName !== undefined && displayName !== null) {
+        payload.displayName = displayName.trim() || null;
       }
+      
       console.log('🔍 PROFILE SAVE: Sending payload:', payload);
       const res = await authService.updateUserProfile(payload);
       console.log('🔍 PROFILE SAVE: API response:', res);
@@ -310,22 +322,21 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           updated.avatar = updatedUser.avatar;
         }
         
-        // Merge displayName from localStorage if it exists
-        try {
-          const localUser = JSON.parse(localStorage.getItem('user') || '{}');
-          if (localUser.displayName) {
-            updated.displayName = localUser.displayName;
-          }
-          // Also preserve avatar from localStorage if it's not in the updated user
-          if (!updated.avatar && localUser.avatar) {
-            updated.avatar = localUser.avatar;
-          }
-        } catch (_) {}
+        // Also preserve avatar from localStorage if it's not in the updated user
+        if (!updated.avatar) {
+          try {
+            const localUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (localUser.avatar) {
+              updated.avatar = localUser.avatar;
+            }
+          } catch (_) {}
+        }
         
         setFirstName(updated.firstName || '');
         setLastName(updated.lastName || '');
         setEmail(updated.email || '');
         setPhone(updated.phone || '');
+        // DisplayName is now saved to database and returned from API
         setDisplayName(updated.displayName || '');
         setName(`${updated.firstName || ''} ${updated.lastName || ''}`.trim());
         try {
@@ -817,15 +828,8 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     <div className="space-y-3">
       <div className="flex items-center gap-3 mb-3">
         <div className="relative">
-          {profilePicturePreview ? (
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
-              <img 
-                src={profilePicturePreview} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
-              />
-            </div>
-          ) : currentUser?.avatar ? (
+          {/* Prioritize currentUser.avatar over preview - avatar URL is more reliable */}
+          {currentUser?.avatar ? (
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
               <img 
                 src={currentUser.avatar.startsWith('spaces://') 
@@ -838,6 +842,14 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                   console.error('Profile image failed to load:', e);
                   e.target.style.display = 'none';
                 }}
+              />
+            </div>
+          ) : profilePicturePreview ? (
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
+              <img 
+                src={profilePicturePreview} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
               />
             </div>
           ) : (

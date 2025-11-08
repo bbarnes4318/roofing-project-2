@@ -16,6 +16,7 @@ model User {
   email                    String                    @unique @db.VarChar(320)
   password                 String                    @db.VarChar(255)
   avatar                   String?                   @db.VarChar(2000)
+  displayName              String?                   @db.VarChar(255)
   phone                    String?                   @db.VarChar(20)
   secondaryPhone           String?                   @db.VarChar(20)
   preferredPhone           String?                   @db.VarChar(20)
