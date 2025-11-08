@@ -921,9 +921,12 @@ app.get('/users/team-members', (req, res) => {
   res.redirect(301, `/api${req.path}`);
 });
 
-app.get('/bubbles/status', (req, res) => {
-  res.redirect(301, `/api${req.path}`);
-});
+// Mount bubbles routes at both /bubbles and /api/bubbles for backward compatibility
+// This handles cases where axios baseURL might not be set correctly
+if (bubblesRoutes) {
+  app.use('/bubbles', bubblesRoutes);
+  console.log('✅ SERVER: Bubbles routes also registered at /bubbles (backward compatibility)');
+}
 
 // Serve React build files in production
 if (process.env.NODE_ENV === 'production') {
