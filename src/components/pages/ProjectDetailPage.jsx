@@ -2489,34 +2489,6 @@ const ProjectDetailPage = ({ project, onBack, initialView = 'Project Workflow', 
                 {/* Scrollable Content with proper spacing */}
                 <div className="p-3 bg-white">
                     <div className="min-h-[calc(100vh-200px)] bg-white">
-                        {/* Compact Project Details header visible on Project Profile tab */}
-                        {activeView === 'Project Profile' && (
-                            <div className="mb-4">
-                                <div className="flex items-center gap-2 mb-1">
-                                    <span className="text-[12px] font-semibold text-gray-800">{String(project.projectNumber || project.id || '').padStart(5, '0')}</span>
-                                    <h1 className="text-[14px] font-bold text-gray-900 truncate">{(project.address || project.customer?.address || '').trim() || 'Address not provided'}</h1>
-                                    {project.projectType && (
-                                        <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium border ${colorMode ? getProjectTypeColorDark(project.projectType) : getProjectTypeColor(project.projectType)}`}>
-                                            {formatProjectType(project.projectType)}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <label className="text-[11px] text-gray-600">Address:</label>
-                                    <input
-                                        type="text"
-                                        defaultValue={(project.address || project.customer?.address || '').trim()}
-                                        onBlur={async (e) => {
-                                            const value = e.target.value;
-                                            try { await projectsService.update(project.id, { address: value }); } catch (_) {}
-                                        }}
-                                        className="min-w-[260px] max-w-[520px] flex-1 px-2 py-1 border rounded-md text-[11px] bg-white border-gray-300 text-gray-800 placeholder-gray-400"
-                                        placeholder="Project address"
-                                        title="Click to edit project address"
-                                    />
-                                </div>
-                            </div>
-                        )}
 
                         {(() => {
                             // Pass local workflow target into ProjectChecklistPage via render

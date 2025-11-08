@@ -853,6 +853,18 @@ app.use('/api/email', emailRoutes);
 if (bubblesRoutes) {
   app.use('/api/bubbles', bubblesRoutes);
   console.log('✅ SERVER: Bubbles routes registered at /api/bubbles');
+  // Debug: List all registered routes
+  if (bubblesRoutes.stack && bubblesRoutes.stack.length > 0) {
+    const routes = bubblesRoutes.stack.map(r => {
+      if (r.route) {
+        return `${Object.keys(r.route.methods).join(',').toUpperCase()} ${r.route.path}`;
+      }
+      return `MIDDLEWARE: ${r.regexp}`;
+    }).join(', ');
+    console.log('🔍 SERVER: Bubbles router stack:', routes);
+  } else {
+    console.log('⚠️ SERVER: Bubbles router stack is empty!');
+  }
 } else {
   console.log('❌ SERVER: Bubbles routes not registered due to loading error');
 }

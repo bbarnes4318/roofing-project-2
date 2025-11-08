@@ -1355,4 +1355,151 @@ router.post('/:id/team-members', authenticateToken, asyncHandler(async (req, res
   }
 }));
 
+// ==================== Pets Routes ====================
+
+// @desc    Get all pets for a project
+// @route   GET /api/projects/:projectId/pets
+// @access  Private
+router.get('/:projectId/pets', authenticateToken, asyncHandler(async (req, res, next) => {
+  try {
+    // Verify project exists
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.projectId }
+    });
+
+    if (!project) {
+      return next(new AppError('Project not found', 404));
+    }
+
+    // Get pets
+    const pets = await prisma.pet.findMany({
+      where: { projectId: req.params.projectId },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    sendSuccess(res, 200, pets, 'Pets retrieved successfully');
+  } catch (error) {
+    console.error('Error fetching pets:', error);
+    return next(new AppError('Failed to fetch pets', 500));
+  }
+}));
+
+// @desc    Create a new pet
+// @route   POST /api/projects/:projectId/pets
+// @access  Private
+router.post('/:projectId/pets', authenticateToken, asyncHandler(async (req, res, next) => {
+  try {
+    const { name, type, hasYardAccess } = req.body;
+
+    // Validate required fields
+    if (!name || !name.trim()) {
+      return next(new AppError('Pet name is required', 400));
+    }
+    if (!type || !type.trim()) {
+      return next(new AppError('Pet type is required', 400));
+    }
+
+    // Verify project exists
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.projectId }
+    });
+
+    if (!project) {
+      return next(new AppError('Project not found', 404));
+    }
+
+    // Create pet
+    const pet = await prisma.pet.create({
+      data: {
+        name: name.trim(),
+        type: type.trim(),
+        hasYardAccess: hasYardAccess === true || hasYardAccess === 'true',
+        projectId: req.params.projectId
+      }
+    });
+
+    sendSuccess(res, 201, pet, 'Pet created successfully');
+  } catch (error) {
+    console.error('Error creating pet:', error);
+    return next(new AppError('Failed to create pet', 500));
+  }
+}));
+
+// @desc    Update a pet
+// @route   PUT /api/projects/:projectId/pets/:id
+// @access  Private
+router.put('/:projectId/pets/:id', authenticateToken, asyncHandler(async (req, res, next) => {
+  try {
+    const { name, type, hasYardAccess } = req.body;
+
+    // Verify pet exists and belongs to project
+    const pet = await prisma.pet.findFirst({
+      where: {
+        id: req.params.id,
+        projectId: req.params.projectId
+      }
+    });
+
+    if (!pet) {
+      return next(new AppError('Pet not found', 404));
+    }
+
+    // Build update data
+    const updateData = {};
+    if (name !== undefined && name !== null) {
+      updateData.name = name.trim();
+    }
+    if (type !== undefined && type !== null) {
+      updateData.type = type.trim();
+    }
+    if (hasYardAccess !== undefined && hasYardAccess !== null) {
+      updateData.hasYardAccess = hasYardAccess === true || hasYardAccess === 'true';
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      return next(new AppError('No fields provided to update', 400));
+    }
+
+    // Update pet
+    const updatedPet = await prisma.pet.update({
+      where: { id: req.params.id },
+      data: updateData
+    });
+
+    sendSuccess(res, 200, updatedPet, 'Pet updated successfully');
+  } catch (error) {
+    console.error('Error updating pet:', error);
+    return next(new AppError('Failed to update pet', 500));
+  }
+}));
+
+// @desc    Delete a pet
+// @route   DELETE /api/projects/:projectId/pets/:id
+// @access  Private
+router.delete('/:projectId/pets/:id', authenticateToken, asyncHandler(async (req, res, next) => {
+  try {
+    // Verify pet exists and belongs to project
+    const pet = await prisma.pet.findFirst({
+      where: {
+        id: req.params.id,
+        projectId: req.params.projectId
+      }
+    });
+
+    if (!pet) {
+      return next(new AppError('Pet not found', 404));
+    }
+
+    // Delete pet
+    await prisma.pet.delete({
+      where: { id: req.params.id }
+    });
+
+    sendSuccess(res, 200, null, 'Pet deleted successfully');
+  } catch (error) {
+    console.error('Error deleting pet:', error);
+    return next(new AppError('Failed to delete pet', 500));
+  }
+}));
+
 module.exports = router;

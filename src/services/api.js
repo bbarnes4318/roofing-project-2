@@ -347,6 +347,31 @@ export const projectsService = {
   updateWorkflowStep: async (projectId, stepId, updateData) => {
     const response = await api.put(`/test/workflow/${projectId}/step/${stepId}`, updateData);
     return response.data;
+  },
+
+  // Pets
+  // Get all pets for a project
+  getPets: async (projectId) => {
+    const response = await api.get(`/projects/${projectId}/pets`);
+    return response.data;
+  },
+
+  // Create a new pet
+  createPet: async (projectId, petData) => {
+    const response = await api.post(`/projects/${projectId}/pets`, petData);
+    return response.data;
+  },
+
+  // Update a pet
+  updatePet: async (projectId, petId, petData) => {
+    const response = await api.put(`/projects/${projectId}/pets/${petId}`, petData);
+    return response.data;
+  },
+
+  // Delete a pet
+  deletePet: async (projectId, petId) => {
+    const response = await api.delete(`/projects/${projectId}/pets/${petId}`);
+    return response.data;
   }
 };
 

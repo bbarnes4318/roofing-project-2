@@ -621,6 +621,9 @@ router.get('/test', (req, res) => {
   res.json({ success: true, message: 'Bubbles routes are working!' });
 });
 
+// Explicitly register chat route to ensure it's available
+console.log('🔍 BUBBLES: Registering /chat route');
+
 // Bubbles AI Context Manager (from bubbles.js)
 class BubblesContextManager {
   constructor() {
@@ -2518,6 +2521,7 @@ router.post('/complete-action', asyncHandler(async (req, res) => {
  * @access  Private
  * @summary This new chat route uses the powerful tool-calling architecture from bubbles2.js
  */
+console.log('🔍 BUBBLES: Registering POST /chat route handler');
 router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -3827,5 +3831,13 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
   sendSuccess(res, 200, { current }, 'Current step fetched');
 }));
 
+// Verify chat route is registered
+const chatRoute = router.stack.find(layer => layer.route && layer.route.path === '/chat' && layer.route.methods.post);
+if (chatRoute) {
+  console.log('✅ BUBBLES: /chat route successfully registered');
+} else {
+  console.error('❌ BUBBLES: /chat route NOT found in router stack!');
+  console.error('🔍 BUBBLES: Available routes:', router.stack.filter(l => l.route).map(l => `${Object.keys(l.route.methods).join(',')} ${l.route.path}`));
+}
 
 module.exports = router;

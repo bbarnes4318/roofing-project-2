@@ -57,7 +57,6 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     pmId: '',
     doublePull: false,
     petNames: '',
-    petsHaveYardAccess: false
   });
   const [isSaving, setIsSaving] = useState(false);
   const [users, setUsers] = useState([]);
@@ -71,9 +70,19 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
   const [newFamilyMember, setNewFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
   const [editFamilyMember, setEditFamilyMember] = useState({ name: '', relation: '', customRelation: '' });
   
+  // Pets state
+  const [pets, setPets] = useState([]);
+  const [petsLoading, setPetsLoading] = useState(false);
+  const [isAddingPet, setIsAddingPet] = useState(false);
+  const [editingPetId, setEditingPetId] = useState(null);
+  const [newPet, setNewPet] = useState({ name: '', type: '', customType: '', hasYardAccess: false });
+  const [editPet, setEditPet] = useState({ name: '', type: '', customType: '', hasYardAccess: false });
+  
   // Refs to maintain focus on inputs
   const nameInputRef = useRef(null);
   const editNameInputRef = useRef(null);
+  const petNameInputRef = useRef(null);
+  const editPetNameInputRef = useRef(null);
   
   // Focus input when adding/editing starts
   useEffect(() => {
@@ -92,6 +101,24 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       }, 10);
     }
   }, [editingFamilyMemberId]);
+
+  // Focus pet input when adding/editing starts
+  useEffect(() => {
+    if (isAddingPet && petNameInputRef.current) {
+      petNameInputRef.current.focus();
+    }
+  }, [isAddingPet]);
+  
+  useEffect(() => {
+    if (editingPetId && editPetNameInputRef.current) {
+      // Small delay to ensure the input is rendered
+      setTimeout(() => {
+        if (editPetNameInputRef.current) {
+          editPetNameInputRef.current.focus();
+        }
+      }, 10);
+    }
+  }, [editingPetId]);
   
   // Relation options
   const relationOptions = ['Spouse', 'Grandma', 'Grandpa', 'Child', 'Significant Other'];
@@ -167,6 +194,26 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     }
   }, [project?.customer?.id]);
 
+  // Load pets when project changes
+  const loadPets = useCallback(async () => {
+    if (!project?.id) return;
+    
+    setPetsLoading(true);
+    try {
+      const response = await projectsService.getPets(project.id);
+      if (response?.success && Array.isArray(response.data)) {
+        setPets(response.data);
+      } else {
+        setPets([]);
+      }
+    } catch (error) {
+      console.error('Error loading pets:', error);
+      setPets([]);
+    } finally {
+      setPetsLoading(false);
+    }
+  }, [project?.id]);
+
   // Load users for dropdown
   useEffect(() => {
     const loadUsers = async () => {
@@ -213,7 +260,14 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     if (!isAddingFamilyMember && !editingFamilyMemberId) {
       loadFamilyMembers();
     }
-  }, [project?.id, project?.customer?.id, isAddingFamilyMember, editingFamilyMemberId, loadFamilyMembers]);
+    // Only load pets if we're not currently adding/editing one
+    if (!isAddingPet && !editingPetId) {
+      loadPets();
+    }
+  }, [project?.id, project?.customer?.id, isAddingFamilyMember, editingFamilyMemberId, isAddingPet, editingPetId, loadFamilyMembers, loadPets]);
+
+  // Pet type options
+  const petTypeOptions = ['Dog', 'Cat'];
 
   // Initialize edit form data when project changes
   useEffect(() => {
@@ -232,8 +286,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         pmPhone: project.projectManager?.phone || project.pmPhone || '',
         pmEmail: project.projectManager?.email || project.pmEmail || '',
         pmId: project.projectManager?.id || project.projectManagerId || '',
-        doublePull: project.doublePull || false,
-        petNames: project.petNames || ''
+        doublePull: project.doublePull || false
       });
     }
   }, [project]);
@@ -282,8 +335,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         pmEmail: project.projectManager?.email || project.pmEmail || '',
         pmId: project.projectManager?.id || project.projectManagerId || '',
         doublePull: project.doublePull || false,
-        petNames: project.petNames || '',
-        petsHaveYardAccess: project.petsHaveYardAccess || false
+        petNames: project.petNames || ''
       });
     }
   };
@@ -322,8 +374,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         pmPhone: editFormData.pmPhone || null,
         pmEmail: editFormData.pmEmail || null,
         doublePull: editFormData.doublePull || false,
-        petNames: editFormData.petNames || null,
-        petsHaveYardAccess: editFormData.petsHaveYardAccess || false
+        petNames: editFormData.petNames || null
       };
 
       // Remove empty/null values
@@ -703,45 +754,15 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             </label>
           </div>
           
-          {/* Pet Names */}
-          <div>
-            <label htmlFor="petNames" className="block text-xs font-medium text-gray-700 mb-1">
-              Pet Names
-            </label>
-            <input
-              type="text"
-              id="petNames"
-              value={editFormData.petNames}
-              onChange={(e) => setEditFormData(prev => ({ ...prev, petNames: e.target.value }))}
-              placeholder="Enter pet names (comma-separated)"
-              className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          
-          {/* Pets Have Yard Access */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="petsHaveYardAccess"
-              checked={editFormData.petsHaveYardAccess}
-              onChange={(e) => setEditFormData(prev => ({ ...prev, petsHaveYardAccess: e.target.checked }))}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
-            />
-            <label htmlFor="petsHaveYardAccess" className="text-xs font-medium text-gray-700 cursor-pointer">
-              Pets have access to yard
-            </label>
-          </div>
         </div>
-        {/* Save button for Double Pull, Pet Names, and Pets Have Yard Access */}
-        {(editFormData.doublePull !== (project.doublePull || false) || editFormData.petNames !== (project.petNames || '') || editFormData.petsHaveYardAccess !== (project.petsHaveYardAccess || false)) && (
+        {/* Save button for Double Pull */}
+        {(editFormData.doublePull !== (project.doublePull || false)) && (
           <div className="mt-3 flex gap-2">
             <button
               onClick={async () => {
                 try {
                   const updateData = {
-                    doublePull: editFormData.doublePull,
-                    petNames: editFormData.petNames || null,
-                    petsHaveYardAccess: editFormData.petsHaveYardAccess
+                    doublePull: editFormData.doublePull
                   };
                   await projectsService.update(project.id, updateData);
                   toast.success('Project details updated successfully!');
@@ -764,9 +785,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               onClick={() => {
                 setEditFormData(prev => ({
                   ...prev,
-                  doublePull: project.doublePull || false,
-                  petNames: project.petNames || '',
-                  petsHaveYardAccess: project.petsHaveYardAccess || false
+                  doublePull: project.doublePull || false
                 }));
               }}
               className="px-3 py-1.5 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
@@ -1057,6 +1076,329 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                       </button>
                       <button
                         onClick={() => handleDeleteFamilyMember(member.id)}
+                        className="p-1 text-gray-600 hover:text-red-600"
+                        title="Delete"
+                      >
+                        <XCircleIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Pets Section
+  const PetsSection = () => {
+    const handleAddPet = async () => {
+      if (!newPet.name.trim() || !newPet.type.trim()) {
+        toast.error('Please enter both pet name and type');
+        return;
+      }
+      
+      if (!project?.id) {
+        toast.error('Project information not available');
+        return;
+      }
+      
+      try {
+        const response = await projectsService.createPet(project.id, {
+          name: newPet.name.trim(),
+          type: newPet.type.trim(),
+          hasYardAccess: newPet.hasYardAccess || false
+        });
+        
+        if (response?.success) {
+          toast.success('Pet added successfully');
+          setNewPet({ name: '', type: '', customType: '', hasYardAccess: false });
+          setIsAddingPet(false);
+          loadPets();
+        } else {
+          throw new Error(response?.message || 'Failed to add pet');
+        }
+      } catch (error) {
+        console.error('Error adding pet:', error);
+        toast.error(error.message || 'Failed to add pet');
+      }
+    };
+    
+    const handleUpdatePet = async (id) => {
+      if (!editPet.name.trim() || !editPet.type.trim()) {
+        toast.error('Please enter both pet name and type');
+        return;
+      }
+      
+      if (!project?.id) {
+        toast.error('Project information not available');
+        return;
+      }
+      
+      try {
+        const response = await projectsService.updatePet(project.id, id, {
+          name: editPet.name.trim(),
+          type: editPet.type.trim(),
+          hasYardAccess: editPet.hasYardAccess || false
+        });
+        
+        if (response?.success) {
+          toast.success('Pet updated successfully');
+          setEditingPetId(null);
+          setEditPet({ name: '', type: '', customType: '', hasYardAccess: false });
+          loadPets();
+        } else {
+          throw new Error(response?.message || 'Failed to update pet');
+        }
+      } catch (error) {
+        console.error('Error updating pet:', error);
+        toast.error(error.message || 'Failed to update pet');
+      }
+    };
+    
+    const handleDeletePet = async (id) => {
+      if (!window.confirm('Are you sure you want to delete this pet?')) {
+        return;
+      }
+      
+      if (!project?.id) {
+        toast.error('Project information not available');
+        return;
+      }
+      
+      try {
+        const response = await projectsService.deletePet(project.id, id);
+        
+        if (response?.success) {
+          toast.success('Pet deleted successfully');
+          loadPets();
+        } else {
+          throw new Error(response?.message || 'Failed to delete pet');
+        }
+      } catch (error) {
+        console.error('Error deleting pet:', error);
+        toast.error(error.message || 'Failed to delete pet');
+      }
+    };
+    
+    const startEditing = (pet) => {
+      setEditingPetId(pet.id);
+      const isCustomType = !petTypeOptions.includes(pet.type);
+      setEditPet({ 
+        name: pet.name, 
+        type: isCustomType ? 'Other' : pet.type,
+        customType: isCustomType ? pet.type : '',
+        hasYardAccess: pet.hasYardAccess || false
+      });
+    };
+    
+    const cancelEditing = () => {
+      setEditingPetId(null);
+      setEditPet({ name: '', type: '', customType: '', hasYardAccess: false });
+    };
+    
+    return (
+      <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft mt-4">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+            <h3 className="text-sm font-semibold text-gray-900">Pets</h3>
+          </div>
+          {!isAddingPet && (
+            <button
+              onClick={() => setIsAddingPet(true)}
+              className="px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded flex items-center gap-1"
+            >
+              <PlusIcon className="w-3 h-3" />
+              Add
+            </button>
+          )}
+        </div>
+        
+        {/* Add Pet Form */}
+        {isAddingPet && (
+          <div className="mb-4 p-3 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+              <input
+                ref={petNameInputRef}
+                type="text"
+                placeholder="Pet Name"
+                value={newPet.name}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setNewPet(prev => ({ ...prev, name: value }));
+                }}
+                className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                autoFocus
+              />
+              <div className="flex gap-1">
+                <select
+                  value={newPet.type}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === 'Other') {
+                      setNewPet(prev => ({ ...prev, type: 'Other', customType: prev.customType || '' }));
+                    } else {
+                      setNewPet(prev => ({ ...prev, type: value, customType: '' }));
+                    }
+                  }}
+                  className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  <option value="">Select Type</option>
+                  {petTypeOptions.map(option => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                  <option value="Other">Other</option>
+                </select>
+                {newPet.type === 'Other' && (
+                  <input
+                    type="text"
+                    placeholder="Enter pet type"
+                    value={newPet.customType || ''}
+                    onChange={(e) => setNewPet(prev => ({ ...prev, customType: e.target.value, type: e.target.value }))}
+                    className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    autoFocus
+                  />
+                )}
+              </div>
+            </div>
+            <div className="mb-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={newPet.hasYardAccess}
+                  onChange={(e) => setNewPet(prev => ({ ...prev, hasYardAccess: e.target.checked }))}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-xs font-medium text-gray-700">Has access to yard</span>
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddPet}
+                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => {
+                  setIsAddingPet(false);
+                  setNewPet({ name: '', type: '', customType: '', hasYardAccess: false });
+                }}
+                className="px-3 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Pets List */}
+        {petsLoading ? (
+          <div className="text-xs text-gray-500 py-2">Loading...</div>
+        ) : pets.length === 0 ? (
+          <div className="text-xs text-gray-500 py-2 italic">No pets added yet</div>
+        ) : (
+          <div className="space-y-2">
+            {pets.map((pet) => (
+              <div
+                key={pet.id}
+                className="flex items-center justify-between p-2 bg-gray-50 rounded border border-gray-200"
+              >
+                {editingPetId === pet.id ? (
+                  <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-2">
+                    <input
+                      ref={editPetNameInputRef}
+                      type="text"
+                      value={editPet.name}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setEditPet(prev => ({ ...prev, name: value }));
+                      }}
+                      className="w-full px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      autoFocus
+                    />
+                    <div className="flex gap-1">
+                      <select
+                        value={editPet.type}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === 'Other') {
+                            setEditPet(prev => ({ ...prev, type: 'Other', customType: prev.customType || '' }));
+                          } else {
+                            setEditPet(prev => ({ ...prev, type: value, customType: '' }));
+                          }
+                        }}
+                        className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      >
+                        <option value="">Select Type</option>
+                        {petTypeOptions.map(option => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                        <option value="Other">Other</option>
+                      </select>
+                      {editPet.type === 'Other' && (
+                        <input
+                          type="text"
+                          placeholder="Enter pet type"
+                          value={editPet.customType || ''}
+                          onChange={(e) => setEditPet(prev => ({ ...prev, customType: e.target.value, type: e.target.value }))}
+                          className="flex-1 px-2 py-1 text-xs border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                          autoFocus
+                        />
+                      )}
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={editPet.hasYardAccess}
+                          onChange={(e) => setEditPet(prev => ({ ...prev, hasYardAccess: e.target.checked }))}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer"
+                        />
+                        <span className="text-xs font-medium text-gray-700">Has access to yard</span>
+                      </label>
+                    </div>
+                    <div className="flex gap-2 md:col-span-2">
+                      <button
+                        onClick={() => handleUpdatePet(pet.id)}
+                        className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={cancelEditing}
+                        className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 font-medium"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-medium text-gray-900">{pet.name}</span>
+                        <span className="text-xs text-gray-500">({pet.type})</span>
+                        {pet.hasYardAccess && (
+                          <span className="text-xs text-green-600 font-medium">• Yard Access</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEditing(pet)}
+                        className="p-1 text-gray-600 hover:text-blue-600"
+                        title="Edit"
+                      >
+                        <PencilIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => handleDeletePet(pet.id)}
                         className="p-1 text-gray-600 hover:text-red-600"
                         title="Delete"
                       >
@@ -1725,31 +2067,6 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     Double Pull House (requires two ladders to access roof)
                   </label>
                 </div>
-                <div>
-                  <label htmlFor="editPetNames" className="block text-sm font-medium text-gray-700 mb-2">
-                    Pet Names
-                  </label>
-                  <input
-                    type="text"
-                    id="editPetNames"
-                    value={editFormData.petNames}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, petNames: e.target.value }))}
-                    placeholder="Enter pet names (comma-separated)"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    id="editPetsHaveYardAccess"
-                    checked={editFormData.petsHaveYardAccess}
-                    onChange={(e) => setEditFormData(prev => ({ ...prev, petsHaveYardAccess: e.target.checked }))}
-                    className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                  />
-                  <label htmlFor="editPetsHaveYardAccess" className="text-sm font-medium text-gray-700 cursor-pointer">
-                    Pets have access to yard
-                  </label>
-                </div>
               </div>
             </div>
           </div>
@@ -1840,6 +2157,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         <div className="lg:col-span-2 space-y-4">
           <ContactCards />
           <FamilyMembersSection />
+          <PetsSection />
           <DocumentsPanel />
         </div>
         {/* Right Column - Progress with PM and Subcontractors */}
