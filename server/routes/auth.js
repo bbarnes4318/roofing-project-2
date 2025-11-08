@@ -283,7 +283,10 @@ router.post('/upload-avatar', authenticateToken, upload.single('avatar'), asyncH
       ACL: 'public-read' // Make avatar publicly accessible
     }));
 
-    const avatarUrl = `spaces://${key}`;
+    // Store a fully-qualified HTTPS URL so clients don't depend on frontend env to resolve spaces://
+    const endpoint = process.env.DO_SPACES_CDN || process.env.DO_SPACES_ENDPOINT || 'nyc3.digitaloceanspaces.com';
+    const host = process.env.DO_SPACES_CDN ? process.env.DO_SPACES_CDN : `${bucket}.${endpoint}`;
+    const avatarUrl = `https://${host}/${key}`;
 
     // Update user's avatar in database
     const updatedUser = await prisma.user.update({

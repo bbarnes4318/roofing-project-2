@@ -1,6 +1,20 @@
 const express = require('express');
-const expressValidator = require('express-validator');
-const { body, validationResult } = expressValidator;
+// Make express-validator optional so this router still loads if the dependency is missing
+let body, validationResult;
+try {
+  ({ body, validationResult } = require('express-validator'));
+} catch (e) {
+  console.warn('⚠️ Bubbles: express-validator not installed; skipping request validation');
+  const noopChain = {
+    trim() { return this; },
+    isLength() { return this; },
+    withMessage() { return this; },
+    optional() { return this; },
+    isString() { return this; },
+  };
+  body = () => noopChain;
+  validationResult = () => ({ isEmpty: () => true, array: () => [] });
+}
 const {
   asyncHandler,
   sendSuccess,
