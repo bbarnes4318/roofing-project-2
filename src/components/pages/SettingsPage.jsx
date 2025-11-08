@@ -244,11 +244,25 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
   // This ensures we use the actual avatar URL once it's available instead of the preview
   useEffect(() => {
     if (currentUser?.avatar && profilePicturePreview) {
-      // Small delay to ensure the avatar URL is fully loaded before clearing preview
-      const timer = setTimeout(() => {
+      // Test if the avatar URL actually loads before clearing preview
+      const testImage = new Image();
+      const avatarUrl = currentUser.avatar.startsWith('spaces://') 
+        ? `https://${process.env.REACT_APP_DO_SPACES_NAME || 'kenstruction'}.${process.env.REACT_APP_DO_SPACES_ENDPOINT || 'nyc3.digitaloceanspaces.com'}/${currentUser.avatar.replace('spaces://', '')}`
+        : currentUser.avatar;
+      
+      testImage.onload = () => {
+        // Image loads successfully, clear the preview
+        console.log('✅ Avatar image loaded successfully, clearing preview');
         setProfilePicturePreview(null);
-      }, 100);
-      return () => clearTimeout(timer);
+      };
+      
+      testImage.onerror = () => {
+        // Image failed to load, keep showing preview
+        console.error('❌ Avatar image failed to load, keeping preview');
+        console.error('Failed URL:', avatarUrl);
+      };
+      
+      testImage.src = avatarUrl;
     }
   }, [currentUser?.avatar, profilePicturePreview]); // Run when avatar or preview changes
 
@@ -828,8 +842,16 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     <div className="space-y-3">
       <div className="flex items-center gap-3 mb-3">
         <div className="relative">
-          {/* Prioritize currentUser.avatar over preview - avatar URL is more reliable */}
-          {currentUser?.avatar ? (
+          {/* Show preview first if available, otherwise show avatar */}
+          {profilePicturePreview ? (
+            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
+              <img 
+                src={profilePicturePreview} 
+                alt="Profile" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : currentUser?.avatar ? (
             <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
               <img 
                 src={currentUser.avatar.startsWith('spaces://') 
@@ -840,16 +862,10 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   console.error('Profile image failed to load:', e);
+                  console.error('Avatar URL:', currentUser.avatar);
+                  console.error('Constructed URL:', e.target.src);
                   e.target.style.display = 'none';
                 }}
-              />
-            </div>
-          ) : profilePicturePreview ? (
-            <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500">
-              <img 
-                src={profilePicturePreview} 
-                alt="Profile" 
-                className="w-full h-full object-cover"
               />
             </div>
           ) : (
