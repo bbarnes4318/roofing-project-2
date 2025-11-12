@@ -31,6 +31,7 @@ import { toast } from 'react-hot-toast';
 const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorMode }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [commentAttachments, setCommentAttachments] = useState([]);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [showStatusMenu, setShowStatusMenu] = useState(false);
   const [showAssigneeMenu, setShowAssigneeMenu] = useState(false);
@@ -145,14 +146,107 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
     onStatusChange(feedback.id, { tags: updatedTags });
   };
 
+  // Helper function to convert file to data URL
+  const fileToDataURL = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Process files for comment attachments
+  const processCommentFiles = async (files) => {
+    const validFiles = [];
+    const rejectedFiles = [];
+
+    for (const file of files) {
+      const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
+      const isValidType = file.type.startsWith('image/');
+      
+      if (isValidSize && isValidType) {
+        try {
+          const dataUrl = await fileToDataURL(file);
+          validFiles.push({
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            dataUrl,
+            isImage: true
+          });
+        } catch (error) {
+          console.error('Error processing image:', error);
+          rejectedFiles.push(file.name);
+        }
+      } else {
+        rejectedFiles.push(file.name);
+      }
+    }
+
+    if (rejectedFiles.length > 0) {
+      toast.error('Some images were rejected. Only images up to 10MB are allowed.');
+    }
+
+    if (validFiles.length > 0) {
+      setCommentAttachments(prev => [...prev, ...validFiles]);
+      toast.success(`Added ${validFiles.length} image(s)`);
+    }
+  };
+
+  // Handle paste for comment textarea
+  const handleCommentPaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageFiles = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          const file = new File([blob], `snippet-${Date.now()}.png`, { type: blob.type });
+          imageFiles.push(file);
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      await processCommentFiles(imageFiles);
+      toast.success(`Pasted ${imageFiles.length} image(s) from clipboard`);
+    }
+  };
+
+  const removeCommentAttachment = (index) => {
+    setCommentAttachments(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmitComment = async () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() && commentAttachments.length === 0) return;
 
     setIsSubmittingComment(true);
     try {
+      // Build comment body with text and embedded images
+      let commentBody = newComment.trim();
+      
+      // Add images as HTML img tags if there are attachments
+      if (commentAttachments.length > 0) {
+        const imageHtml = commentAttachments
+          .filter(att => att.isImage && att.dataUrl)
+          .map(att => `<img src="${att.dataUrl}" alt="${att.name || 'Image'}" style="max-width: 100%; height: auto; border-radius: 8px; margin: 8px 0;" />`)
+          .join('\n');
+        
+        if (commentBody) {
+          commentBody = commentBody + '\n\n' + imageHtml;
+        } else {
+          commentBody = imageHtml;
+        }
+      }
+
       // Use real API database
       const response = await feedbackService.addComment(feedback.id, {
-        body: newComment,
+        body: commentBody,
         isDeveloper: isDeveloper,
         parentId: null
       });
@@ -185,6 +279,7 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
         return newComments;
       });
       setNewComment('');
+      setCommentAttachments([]);
       toast.success('Comment posted successfully!');
     } catch (error) {
       console.error('Failed to submit comment:', error);
@@ -456,7 +551,8 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
                     <textarea
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
-                      placeholder="Add a comment..."
+                      onPaste={handleCommentPaste}
+                      placeholder="Add a comment... (You can paste images from clipboard)"
                       rows={3}
                       className={`w-full px-3 py-2 rounded-lg border ${
                         colorMode 
@@ -464,12 +560,42 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
                           : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                       } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
                     />
-                    <div className="flex justify-end mt-2">
+                    
+                    {/* Comment Attachments Preview */}
+                    {commentAttachments.length > 0 && (
+                      <div className="mt-2 space-y-2">
+                        {commentAttachments.map((att, index) => (
+                          <div key={index} className={`relative inline-block rounded-lg overflow-hidden border ${
+                            colorMode ? 'border-slate-500' : 'border-gray-300'
+                          }`}>
+                            <img 
+                              src={att.dataUrl} 
+                              alt={att.name || `Attachment ${index + 1}`}
+                              className="max-w-xs h-auto max-h-32 object-contain"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeCommentAttachment(index)}
+                              className={`absolute top-1 right-1 p-1 rounded-full ${
+                                colorMode ? 'bg-slate-800 text-white' : 'bg-white text-gray-700'
+                              } hover:bg-red-500 hover:text-white transition-colors`}
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between items-center mt-2">
+                      <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        💡 Tip: Paste images directly from clipboard (e.g., Windows Snipping Tool)
+                      </div>
                       <button
                         onClick={handleSubmitComment}
-                        disabled={!newComment.trim() || isSubmittingComment}
+                        disabled={(!newComment.trim() && commentAttachments.length === 0) || isSubmittingComment}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
-                          !newComment.trim() || isSubmittingComment
+                          (!newComment.trim() && commentAttachments.length === 0) || isSubmittingComment
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : 'bg-blue-500 text-white hover:bg-blue-600'
                         }`}
@@ -553,7 +679,15 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
                             </span>
                           </div>
                           <div className={`whitespace-pre-wrap ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {comment.body}
+                            <div 
+                              dangerouslySetInnerHTML={{ 
+                                __html: comment.body.replace(/\n/g, '<br>') 
+                              }}
+                              className="comment-content"
+                              style={{
+                                wordBreak: 'break-word'
+                              }}
+                            />
                           </div>
                         </div>
                       </div>
