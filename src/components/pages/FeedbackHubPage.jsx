@@ -99,6 +99,26 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
     }
   });
 
+  // Handle feedback deletion
+  const deleteFeedbackMutation = useMutation({
+    mutationFn: async (feedbackId) => {
+      const response = await feedbackService.deleteFeedback(feedbackId);
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['feedback']);
+      toast.success('Feedback deleted successfully');
+    },
+    onError: (error) => {
+      console.error('Failed to delete feedback:', error);
+      toast.error('Failed to delete feedback. Please try again.');
+    }
+  });
+
+  const handleDeleteFeedback = async (feedbackId) => {
+    await deleteFeedbackMutation.mutateAsync(feedbackId);
+  };
+
   const handleFeedbackClick = (feedback) => {
     setSelectedFeedback(feedback);
     setShowDrawer(true);
@@ -217,6 +237,9 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
                     key={feedback.id}
                     feedback={feedback}
                     onClick={() => handleFeedbackClick(feedback)}
+                    onDelete={handleDeleteFeedback}
+                    onVote={handleVote}
+                    currentUser={currentUser}
                     colorMode={colorMode}
                   />
                 ))

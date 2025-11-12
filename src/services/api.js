@@ -1287,6 +1287,7 @@ export const feedbackService = {
   updateStatus: (feedbackId, updates) => api.patch(`/feedback/${feedbackId}/status`, updates),
   addComment: (feedbackId, commentData) => api.post(`/feedback/${feedbackId}/comments`, commentData),
   getComments: (feedbackId) => api.get(`/feedback/${feedbackId}/comments`),
+  deleteComment: (feedbackId, commentId) => api.delete(`/feedback/${feedbackId}/comments/${commentId}`),
   uploadFile: (file, type = 'attachment') => {
     const formData = new FormData();
     formData.append('file', file);

@@ -13,12 +13,14 @@ import {
   XCircle,
   AlertCircle,
   Play,
-  Pause
+  Pause,
+  Trash2
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 
-const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => {
+const FeedbackCard = ({ feedback, currentUser, onVote, onClick, onDelete, colorMode }) => {
   const [isVoting, setIsVoting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -111,6 +113,17 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => 
     }
   };
 
+  const handleDelete = async (e) => {
+    e.stopPropagation();
+    if (window.confirm('Are you sure you want to delete this feedback post? This action cannot be undone.')) {
+      if (onDelete) {
+        await onDelete(feedback.id);
+      }
+    }
+  };
+
+  const isAuthor = currentUser?.id === feedback.author?.id;
+
   const TypeIcon = getTypeIcon(feedback.type);
   const StatusIcon = getStatusIcon(feedback.status);
   const typeColor = getTypeColor(feedback.type);
@@ -163,6 +176,19 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => 
             <Clock className="h-4 w-4" />
             <span>{formatDistanceToNow(new Date(feedback.createdAt), { addSuffix: true })}</span>
           </div>
+          {isAuthor && onDelete && (
+            <button
+              onClick={handleDelete}
+              className={`p-1.5 rounded-lg transition-colors ${
+                colorMode 
+                  ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300' 
+                  : 'hover:bg-red-50 text-red-600 hover:text-red-700'
+              }`}
+              title="Delete this post"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 

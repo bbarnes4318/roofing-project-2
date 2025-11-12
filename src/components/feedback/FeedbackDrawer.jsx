@@ -222,6 +222,22 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
     setCommentAttachments(prev => prev.filter((_, i) => i !== index));
   };
 
+  // Handle comment deletion
+  const handleDeleteComment = async (commentId) => {
+    if (!window.confirm('Are you sure you want to delete this comment? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await feedbackService.deleteComment(feedback.id, commentId);
+      setComments(prev => prev.filter(comment => comment.id !== commentId));
+      toast.success('Comment deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete comment:', error);
+      toast.error('Failed to delete comment. Please try again.');
+    }
+  };
+
   const handleSubmitComment = async () => {
     if (!newComment.trim() && commentAttachments.length === 0) return;
 
@@ -650,44 +666,73 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
                           {comment.author?.name?.charAt(0) || 'U'}
                         </div>
                         <div className="flex-1">
-                          <div className="flex items-center space-x-2 mb-2">
-                            <span className={`font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                              {comment.author?.name || 'Anonymous'}
-                            </span>
-                            {comment.isDeveloper && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                Developer
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center space-x-2">
+                              <span className={`font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                                {comment.author?.name || 'Anonymous'}
                               </span>
-                            )}
-                            {comment.isPinned && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                <Pin className="h-3 w-3 mr-1" />
-                                Pinned
+                              {comment.isDeveloper && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                  Developer
+                                </span>
+                              )}
+                              {comment.isPinned && (
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                  <Pin className="h-3 w-3 mr-1" />
+                                  Pinned
+                                </span>
+                              )}
+                              <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                {(() => {
+                                  try {
+                                    if (!comment.createdAt) return 'Just now';
+                                    const date = new Date(comment.createdAt);
+                                    if (isNaN(date.getTime())) return 'Just now';
+                                    return formatDistanceToNow(date, { addSuffix: true });
+                                  } catch (error) {
+                                    return 'Just now';
+                                  }
+                                })()}
                               </span>
+                            </div>
+                            {currentUser?.id === comment.author?.id && (
+                              <button
+                                onClick={() => handleDeleteComment(comment.id)}
+                                className={`p-1.5 rounded-lg transition-colors ${
+                                  colorMode 
+                                    ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300' 
+                                    : 'hover:bg-red-50 text-red-600 hover:text-red-700'
+                                }`}
+                                title="Delete this comment"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
                             )}
-                            <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              {(() => {
-                                try {
-                                  if (!comment.createdAt) return 'Just now';
-                                  const date = new Date(comment.createdAt);
-                                  if (isNaN(date.getTime())) return 'Just now';
-                                  return formatDistanceToNow(date, { addSuffix: true });
-                                } catch (error) {
-                                  return 'Just now';
-                                }
-                              })()}
-                            </span>
                           </div>
-                          <div className={`whitespace-pre-wrap ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            <div 
-                              dangerouslySetInnerHTML={{ 
-                                __html: comment.body.replace(/\n/g, '<br>') 
-                              }}
-                              className="comment-content"
-                              style={{
-                                wordBreak: 'break-word'
-                              }}
-                            />
+                          <div className={`${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                            {comment.body && (comment.body.includes('<img') || comment.body.includes('data:image')) ? (
+                              // Render HTML content (includes images)
+                              <div 
+                                dangerouslySetInnerHTML={{ 
+                                  __html: comment.body
+                                    .replace(/\n/g, '<br>')
+                                    .replace(/&lt;img/g, '<img')
+                                    .replace(/&gt;/g, '>')
+                                    .replace(/&quot;/g, '"')
+                                    .replace(/&#x27;/g, "'")
+                                    .replace(/&amp;/g, '&')
+                                }}
+                                className="comment-content [&_img]:max-w-full [&_img]:h-auto [&_img]:rounded-lg [&_img]:my-2 [&_img]:block"
+                                style={{
+                                  wordBreak: 'break-word'
+                                }}
+                              />
+                            ) : (
+                              // Render plain text content
+                              <div className="whitespace-pre-wrap">
+                                {comment.body}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
