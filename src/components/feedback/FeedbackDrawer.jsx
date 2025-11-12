@@ -18,7 +18,9 @@ import {
   Lock,
   Unlock,
   Plus,
-  Send
+  Send,
+  Image,
+  FileText
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -249,19 +251,57 @@ const FeedbackDrawer = ({ feedback, currentUser, onClose, onStatusChange, colorM
               </div>
             </div>
 
-            {/* Attachments */}
-            {feedback.attachments && feedback.attachments.length > 0 && (
+            {/* Attachments - Display images inline */}
+            {feedback.attachments && Array.isArray(feedback.attachments) && feedback.attachments.length > 0 && (
               <div className="mt-6">
                 <h4 className={`text-sm font-medium mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  Attachments
+                  Attachments ({feedback.attachments.length})
                 </h4>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-4">
                   {feedback.attachments.map((attachment, index) => (
-                    <div key={index} className={`p-3 rounded-lg border ${colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'}`}>
-                      <div className="flex items-center space-x-2">
-                        <div className="text-sm font-medium">{attachment.name}</div>
-                        <div className="text-xs text-gray-500">({(attachment.size / 1024 / 1024).toFixed(1)}MB)</div>
+                    <div key={index} className={`p-4 rounded-lg border ${
+                      colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'
+                    }`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          {attachment.isImage ? (
+                            <Image className="h-4 w-4 text-blue-500" />
+                          ) : (
+                            <FileText className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            {attachment.name || `Attachment ${index + 1}`}
+                          </span>
+                          {attachment.size && (
+                            <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              ({(attachment.size / 1024 / 1024).toFixed(1)}MB)
+                            </span>
+                          )}
+                        </div>
                       </div>
+                      {attachment.isImage && attachment.dataUrl && (
+                        <div className="mt-3 rounded-lg overflow-hidden border border-gray-300 max-w-2xl">
+                          <img 
+                            src={attachment.dataUrl} 
+                            alt={attachment.name || `Attachment ${index + 1}`}
+                            className="w-full h-auto max-h-96 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              // Open image in new tab/window for full view
+                              const newWindow = window.open();
+                              if (newWindow) {
+                                newWindow.document.write(`
+                                  <html>
+                                    <head><title>${attachment.name || 'Image'}</title></head>
+                                    <body style="margin: 0; padding: 20px; background: #1e1e1e; display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+                                      <img src="${attachment.dataUrl}" style="max-width: 100%; height: auto; border-radius: 8px;" />
+                                    </body>
+                                  </html>
+                                `);
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

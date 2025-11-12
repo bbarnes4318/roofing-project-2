@@ -171,6 +171,37 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, colorMode }) => 
         {feedback.description}
       </div>
 
+      {/* Attachments - Display images inline */}
+      {feedback.attachments && Array.isArray(feedback.attachments) && feedback.attachments.length > 0 && (
+        <div className="mb-3 space-y-2">
+          {feedback.attachments
+            .filter(att => att.isImage && att.dataUrl)
+            .slice(0, 3) // Show max 3 images in card preview
+            .map((att, index) => (
+              <div key={index} className="rounded-lg overflow-hidden border border-gray-300 max-w-full">
+                <img 
+                  src={att.dataUrl} 
+                  alt={att.name || `Attachment ${index + 1}`}
+                  className="w-full h-auto max-h-48 object-contain cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    // Open image in new tab/window for full view
+                    const newWindow = window.open();
+                    if (newWindow) {
+                      newWindow.document.write(`<img src="${att.dataUrl}" style="max-width: 100%; height: auto;" />`);
+                    }
+                  }}
+                />
+              </div>
+            ))}
+          {feedback.attachments.filter(att => att.isImage && att.dataUrl).length > 3 && (
+            <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              +{feedback.attachments.filter(att => att.isImage && att.dataUrl).length - 3} more image(s)
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Tags */}
       {feedback.tags && feedback.tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mb-3">

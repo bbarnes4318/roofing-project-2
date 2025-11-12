@@ -21,6 +21,7 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const fileInputRef = useRef(null);
+  const formRef = useRef(null);
 
   const feedbackTypes = [
     { id: 'bug', label: 'Bug Report', icon: AlertTriangle, color: 'red' },
@@ -39,19 +40,92 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const files = Array.from(event.target.files);
-    const validFiles = files.filter(file => {
+    await processFiles(files);
+  };
+
+  const processFiles = async (files) => {
+    const validFiles = [];
+    const rejectedFiles = [];
+
+    for (const file of files) {
       const isValidSize = file.size <= 10 * 1024 * 1024; // 10MB
       const isValidType = file.type.startsWith('image/') || file.type === 'application/pdf';
-      return isValidSize && isValidType;
-    });
-
-    if (validFiles.length !== files.length) {
-      toast.error('Some files were rejected. Only images and PDFs up to 10MB are allowed.');
+      
+      if (isValidSize && isValidType) {
+        if (file.type.startsWith('image/')) {
+          // Convert image to base64 data URL for inline display
+          try {
+            const dataUrl = await fileToDataURL(file);
+            validFiles.push({
+              file,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+              dataUrl, // Store as data URL for inline display
+              isImage: true
+            });
+          } catch (error) {
+            console.error('Error processing image:', error);
+            rejectedFiles.push(file.name);
+          }
+        } else {
+          // PDFs - store file reference
+          validFiles.push({
+            file,
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            isImage: false
+          });
+        }
+      } else {
+        rejectedFiles.push(file.name);
+      }
     }
 
-    setAttachments(prev => [...prev, ...validFiles]);
+    if (rejectedFiles.length > 0) {
+      toast.error(`Some files were rejected. Only images and PDFs up to 10MB are allowed.`);
+    }
+
+    if (validFiles.length > 0) {
+      setAttachments(prev => [...prev, ...validFiles]);
+      toast.success(`Added ${validFiles.length} file(s)`);
+    }
+  };
+
+  const fileToDataURL = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handlePaste = async (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const imageFiles = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.indexOf('image') !== -1) {
+        const blob = item.getAsFile();
+        if (blob) {
+          // Create a File object from the blob
+          const file = new File([blob], `snippet-${Date.now()}.png`, { type: blob.type });
+          imageFiles.push(file);
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault();
+      await processFiles(imageFiles);
+      toast.success(`Pasted ${imageFiles.length} image(s) from clipboard`);
+    }
   };
 
   const removeAttachment = (index) => {
@@ -78,10 +152,19 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
         }
       };
 
+      // Format attachments for backend (store as JSON array with image data URLs)
+      const formattedAttachments = attachments.map(att => ({
+        name: att.name,
+        type: att.type,
+        size: att.size,
+        dataUrl: att.dataUrl || null, // Base64 data URL for images
+        isImage: att.isImage || false
+      }));
+
       const submissionData = {
         ...formData,
         environment,
-        attachments
+        attachments: formattedAttachments
         // authorId is handled by the backend from the JWT token
       };
 
@@ -124,7 +207,12 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
   if (!isOpen) return null;
 
   return (
-    <form onSubmit={handleSubmit} className="overflow-y-auto">
+    <form 
+      ref={formRef}
+      onSubmit={handleSubmit} 
+      className="overflow-y-auto"
+      onPaste={handlePaste}
+    >
           {/* Type Selection */}
           <div className="mb-6">
             <label className={`block text-sm font-medium mb-3 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -410,35 +498,49 @@ const FeedbackForm = ({ onSubmit, colorMode, currentUser, isOpen = true, onClose
               </button>
               
               {attachments.length > 0 && (
-                <div className="space-y-2">
-                  {attachments.map((file, index) => (
-                    <div key={index} className={`flex items-center justify-between p-3 rounded-lg ${
-                      colorMode ? 'bg-slate-700' : 'bg-gray-100'
+                <div className="space-y-3">
+                  {attachments.map((att, index) => (
+                    <div key={index} className={`p-3 rounded-lg border ${
+                      colorMode ? 'bg-slate-700 border-slate-600' : 'bg-gray-50 border-gray-200'
                     }`}>
-                      <div className="flex items-center space-x-2">
-                        {file.type.startsWith('image/') ? (
-                          <Image className="h-4 w-4 text-blue-500" />
-                        ) : (
-                          <FileText className="h-4 w-4 text-red-500" />
-                        )}
-                        <span className={`text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
-                          {file.name}
-                        </span>
-                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                          ({(file.size / 1024 / 1024).toFixed(1)}MB)
-                        </span>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center space-x-2">
+                          {att.isImage ? (
+                            <Image className="h-4 w-4 text-blue-500" />
+                          ) : (
+                            <FileText className="h-4 w-4 text-red-500" />
+                          )}
+                          <span className={`text-sm font-medium ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            {att.name}
+                          </span>
+                          <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            ({(att.size / 1024 / 1024).toFixed(1)}MB)
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAttachment(index)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(index)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+                      {att.isImage && att.dataUrl && (
+                        <div className="mt-2 rounded-lg overflow-hidden border border-gray-300 max-w-md">
+                          <img 
+                            src={att.dataUrl} 
+                            alt={att.name}
+                            className="w-full h-auto max-h-64 object-contain"
+                          />
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
+              <div className={`text-xs mt-2 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                💡 Tip: You can paste images directly from your clipboard (e.g., Windows Snipping Tool)
+              </div>
             </div>
           </div>
 
