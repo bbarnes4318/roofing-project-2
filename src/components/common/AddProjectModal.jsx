@@ -566,29 +566,28 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[90vh] flex flex-col animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-5 flex-shrink-0 rounded-t-2xl">
+        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 flex-shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">Create New Project</h2>
-              <p className="text-blue-100 mt-1">Add a new project to your portfolio</p>
+              <h2 className="text-xl font-bold">Create New Project</h2>
             </div>
             <button
               onClick={() => {
                 resetForm();
                 onClose();
               }}
-              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
           
           {/* Progress Steps */}
-          <div className="flex items-center justify-center mt-4">
+          <div className="flex items-center justify-center mt-2">
             {STEPS.map((step, index) => (
               <div key={step.id} className="flex items-center">
                 <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${
@@ -615,32 +614,31 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         </div>
 
         {/* Form Content */}
-        <div className="p-6 flex-1 overflow-y-auto modal-content scroll-smooth">
+        <div className="p-4 flex-1 overflow-y-auto modal-content scroll-smooth">
           <form onSubmit={handleSubmit}>
             {/* Step 1: Customer Information */}
             {currentStep === 1 && (
-              <div className="space-y-6 animate-slide-up">
+              <div className="space-y-4 animate-slide-up">
                 <div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2">Customer Information</h3>
-                  <p className="text-gray-600">Enter primary and secondary customer details</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Customer Information</h3>
                 </div>
 
                 {/* Validation Requirements */}
                 <ValidationRequirements requirements={validationRequirements} />
 
                 {/* Primary Customer Section */}
-                <div className="bg-blue-50 rounded-xl p-5 border border-blue-100">
-                  <h4 className="text-lg font-semibold text-blue-900 mb-4 flex items-center gap-2">
+                <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
+                  <h4 className="text-base font-semibold text-blue-900 mb-3 flex items-center gap-2">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
                     </svg>
                     Primary Customer
                   </h4>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Name */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Full Name <span className="text-red-500">*</span>
                       </label>
                       <input
@@ -648,7 +646,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         name="primaryName"
                         value={formData.primaryName}
                         onChange={handleInputChange}
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                           errors.primaryName ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                         placeholder="John Doe"
@@ -665,7 +663,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     {/* Email with Type */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Email Address <span className="text-red-500">*</span>
                       </label>
                       <div className="flex gap-2">
@@ -674,7 +672,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="primaryEmail"
                           value={formData.primaryEmail}
                           onChange={handleInputChange}
-                          className={`flex-1 px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                             errors.primaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder="john@email.com"
@@ -684,7 +682,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="primaryEmailType"
                           value={formData.primaryEmailType}
                           onChange={handleInputChange}
-                          className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                          className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                         >
                           <option value="PERSONAL">Personal</option>
                           <option value="WORK">Work</option>
@@ -702,7 +700,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     {/* Primary Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Primary Phone <span className="text-red-500">*</span>
                       </label>
                       <div className="flex gap-2">
@@ -715,7 +713,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             const formatted = formatPhoneNumber(e.target.value);
                             setFormData(prev => ({ ...prev, primaryPhone: formatted }));
                           }}
-                          className={`flex-1 px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                          className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                             errors.primaryPhone ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder="(865) 555-1212"
@@ -725,7 +723,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="primaryPhoneType"
                           value={formData.primaryPhoneType}
                           onChange={handleInputChange}
-                          className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                          className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                         >
                           <option value="MOBILE">Mobile</option>
                           <option value="HOME">Home</option>
@@ -744,7 +742,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     {/* Secondary Phone */}
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Secondary Phone <span className="text-gray-400 text-xs">(Optional)</span>
                       </label>
                       <div className="flex gap-2">
@@ -757,14 +755,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             const formatted = formatPhoneNumber(e.target.value);
                             setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
                           }}
-                          className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
                           placeholder="(865) 555-1212"
                         />
                         <select
                           name="secondaryPhoneType"
                           value={formData.secondaryPhoneType}
                           onChange={handleInputChange}
-                          className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                          className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                         >
                           <option value="MOBILE">Mobile</option>
                           <option value="HOME">Home</option>
@@ -775,14 +773,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     {/* Contact Type */}
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Contact Type
                       </label>
                       <select
                         name="customerTypeOfContact"
                         value={formData.customerTypeOfContact}
                         onChange={handleInputChange}
-                        className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                       >
                         <option value="PRIMARY_CONTACT">Primary Contact</option>
                         <option value="SECONDARY_CONTACT">Secondary Contact</option>
@@ -794,7 +792,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                     {/* Project Address */}
                     <div className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
                         Project Address <span className="text-red-500">*</span>
                       </label>
                       <GoogleMapsAutocomplete
@@ -803,7 +801,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         onChange={handleInputChange}
                         onPlaceSelect={handlePlaceSelect}
                         placeholder="Enter full project address"
-                        className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                        className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                           errors.address ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                         }`}
                         required
@@ -874,9 +872,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     </button>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 rounded-xl p-5 border border-gray-200">
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                           <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                         </svg>
@@ -902,10 +900,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </button>
                     </div>
                   
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Secondary Name */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Full Name
                         </label>
                         <input
@@ -913,7 +911,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="secondaryName"
                           value={formData.secondaryName}
                           onChange={handleInputChange}
-                          className={`w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                          className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                             errors.secondaryName ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder="Jane Doe"
@@ -930,7 +928,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                       {/* Secondary Email */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Email Address
                         </label>
                         <div className="flex gap-2">
@@ -939,7 +937,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             name="secondaryEmail"
                             value={formData.secondaryEmail}
                             onChange={handleInputChange}
-                            className={`flex-1 px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
+                            className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
                               errors.secondaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                             }`}
                             placeholder="jane@email.com"
@@ -948,7 +946,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             name="secondaryEmailType"
                             value={formData.secondaryEmailType}
                             onChange={handleInputChange}
-                            className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                            className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                           >
                             <option value="PERSONAL">Personal</option>
                             <option value="WORK">Work</option>
@@ -966,7 +964,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                       {/* Secondary Phone */}
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Phone Number
                         </label>
                         <div className="flex gap-2">
@@ -979,14 +977,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                               const formatted = formatPhoneNumber(e.target.value);
                               setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
                             }}
-                            className="flex-1 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
+                            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
                             placeholder="(865) 555-1212"
                           />
                           <select
                             name="secondaryPhoneType"
                             value={formData.secondaryPhoneType}
                             onChange={handleInputChange}
-                            className="w-28 px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                            className="w-28 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                           >
                             <option value="MOBILE">Mobile</option>
                             <option value="HOME">Home</option>
@@ -997,14 +995,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                       {/* Secondary Contact Type */}
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
                           Contact Type
                         </label>
                         <select
                           name="secondaryTypeOfContact"
                           value={formData.secondaryTypeOfContact}
                           onChange={handleInputChange}
-                          className="w-full px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                         >
                           <option value="PRIMARY_CONTACT">Primary Contact</option>
                           <option value="SECONDARY_CONTACT">Secondary Contact</option>
@@ -1153,7 +1151,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   <p className="text-sm text-gray-600 mb-4">
                     Select the phase to start the project. All previous phases will be automatically marked as completed.
                   </p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {WORKFLOW_PHASES.map(phase => (
                       <label
                         key={phase.value}
@@ -1295,7 +1293,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                 {/* Description */}
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">
                     Project Description
                   </label>
                   <textarea
@@ -1303,7 +1301,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     value={formData.description}
                     onChange={handleInputChange}
                     rows={3}
-                    className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 resize-none"
+                    className="w-full p-3 border-2 border-gray-200 rounded-xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 resize-none"
                     placeholder="Describe the project scope, special requirements, or additional notes..."
                   />
                 </div>
@@ -1421,13 +1419,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             )}
             
             {/* Form Actions */}
-            <div className="bg-gray-50 px-6 py-4 border-t border-gray-200 flex-shrink-0 -mx-6 -mb-6 rounded-b-2xl">
+            <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex-shrink-0 -mx-4 -mb-4 rounded-b-2xl">
               <div className="flex items-center justify-between">
                 <button
                   type="button"
                   onClick={prevStep}
                   disabled={currentStep === 1}
-                  className={`px-5 py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
                     currentStep === 1
                       ? 'text-gray-400 cursor-not-allowed'
                       : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
@@ -1446,7 +1444,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       resetForm();
                       onClose();
                     }}
-                    className="px-5 py-2.5 text-gray-700 bg-white border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
+                    className="px-4 py-2 text-gray-700 bg-white border-2 border-gray-300 rounded-lg font-medium hover:bg-gray-50 hover:border-gray-400 transition-all duration-200"
                   >
                     Cancel
                   </button>
@@ -1455,7 +1453,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="px-5 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2"
                     >
                       Next
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1467,7 +1465,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       type="button"
                       onClick={handleSubmit}
                       disabled={isSubmitting}
-                      className="px-6 py-2.5 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-5 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {isSubmitting ? (
                         <>
