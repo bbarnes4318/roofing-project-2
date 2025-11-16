@@ -626,6 +626,14 @@ function heuristicGeneralAnswer(message) {
 // Explicitly register chat route to ensure it's available
 console.log('🔍 BUBBLES: Registering /chat route');
 
+// Apply authentication to all routes
+router.use(authenticateToken);
+
+// Test route to verify bubbles routes are loading
+router.get('/test', (req, res) => {
+  res.json({ success: true, message: 'Bubbles routes are working!' });
+});
+
 // Bubbles AI Context Manager (from bubbles.js)
 class BubblesContextManager {
   constructor() {
@@ -1655,7 +1663,7 @@ const getSystemPrompt = async (user, projectContext, currentWorkflowData = null)
     let prompt = `# BUBBLES AI ASSISTANT - BULLETPROOF SYSTEM PROMPT
 
 ## IDENTITY & CONTEXT
-You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing and construction company.
+You are "Bubbles," an expert AI assistant for Bubbles AI, a premier roofing and construction company.
 - **User:** ${userName}
 - **Date:** ${currentDate}
 - **Role:** Project workflow copilot and assistant
@@ -1669,7 +1677,7 @@ You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing an
 6. **Never Ask Twice:** Once project is selected, NEVER ask for project identification again
 
 ## COMPLETE ROOFING PROJECT WORKFLOW KNOWLEDGE
-You have complete knowledge of the Kenstruction workflow with ALL phases, sections, and line items:
+You have complete knowledge of the Bubbles AI workflow with ALL phases, sections, and line items:
 
 ### 1. LEAD PHASE
 **Input Customer Information**
@@ -3323,7 +3331,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   // Heuristic 2: General/company questions → Use OpenAI directly (but not for workflow knowledge)
   if (!projectContext && !isProjectSpecific && !isWorkflowKnowledge) {
-    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Kenstruction. Answer general questions about any topic helpfully and accurately.`;
+    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Bubbles AI. Answer general questions about any topic helpfully and accurately.`;
     if (!aiAvailable) {
       const contentGeneric = heuristicGeneralAnswer(message);
       contextManager.addToHistory(req.user.id, message, contentGeneric, projectContext || null);
@@ -3833,29 +3841,13 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
   sendSuccess(res, 200, { current }, 'Current step fetched');
 }));
 
-// Explicitly register chat route to ensure it's available
+// Verify chat route is registered
 const chatRoute = router.stack.find(layer => layer.route && layer.route.path === '/chat' && layer.route.methods.post);
 if (chatRoute) {
-  console.log('✅ BUBBLES: Chat route is registered at POST /chat');
+  console.log('✅ BUBBLES: /chat route successfully registered');
 } else {
-  console.error('❌ BUBBLES: Chat route is NOT registered! Adding it now...');
-  
-  // Add the chat route explicitly if it wasn't found
-  router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
-    }
-    
-    const { message, projectId } = req.body;
-    const userId = req.user.id;
-    
-    console.log(`💬 BUBBLES: Processing chat message from user ${userId}: ${message.substring(0, 50)}...`);
-    
-    // Rest of your chat handler implementation here...
-    // ...
-    
-  }));
-  
-  console.log('✅ BUBBLES: Chat route has been manually registered at POST /chat');
+  console.error('❌ BUBBLES: /chat route NOT found in router stack!');
+  console.error('🔍 BUBBLES: Available routes:', router.stack.filter(l => l.route).map(l => `${Object.keys(l.route.methods).join(',')} ${l.route.path}`));
 }
+
+module.exports = router;
