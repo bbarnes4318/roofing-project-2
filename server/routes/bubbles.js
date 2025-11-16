@@ -3830,13 +3830,118 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
   sendSuccess(res, 200, { current }, 'Current step fetched');
 }));
 
-// Verify chat route is registered
-const chatRoute = router.stack.find(layer => layer.route && layer.route.path === '/chat' && layer.route.methods.post);
-if (chatRoute) {
-  console.log('✅ BUBBLES: /chat route successfully registered');
-} else {
-  console.error('❌ BUBBLES: /chat route NOT found in router stack!');
-  console.error('🔍 BUBBLES: Available routes:', router.stack.filter(l => l.route).map(l => `${Object.keys(l.route.methods).join(',')} ${l.route.path}`));
-}
+// Chat endpoint for AI assistant
+router.post('/chat', 
+  authenticateToken,
+  [
+    body('message').trim().isString().notEmpty().withMessage('Message is required'),
+    body('conversationId').optional().isString(),
+    body('projectId').optional().isString(),
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      throw new AppError('Validation failed', 400, { errors: formatValidationErrors(errors) });
+    }
+
+    const { message, conversationId, projectId } = req.body;
+    const userId = req.user.id;
+
+    try {
+      // Get or create conversation
+      let conversation;
+      if (conversationId) {
+        conversation = await prisma.conversation.findUnique({
+          where: { id: conversationId },
+          include: { messages: { orderBy: { createdAt: 'asc' } } }
+        });
+      }
+
+      if (!conversation) {
+        conversation = await prisma.conversation.create({
+          data: {
+            userId,
+            title: `Chat ${new Date().toLocaleString()}`,
+            projectId: projectId || null,
+            messages: {
+              create: [
+                {
+                  role: 'user',
+                  content: message,
+                  userId
+                }
+              ]
+            }
+          },
+          include: {
+            messages: true
+          }
+        });
+      } else {
+        // Add message to existing conversation
+        await prisma.message.create({
+          data: {
+            role: 'user',
+            content: message,
+            userId,
+            conversationId: conversation.id
+          }
+        });
+      }
+
+      // Process the message with AI
+      let aiResponse;
+      try {
+        if (openAIService) {
+          const messages = conversation.messages
+            .map(m => ({ role: m.role, content: m.content }))
+            .concat([{ role: 'user', content: message }]);
+          
+          aiResponse = await openAIService.chatCompletion({
+            messages,
+            model: 'gpt-4',
+            temperature: 0.7,
+            max_tokens: 1000
+          });
+        } else {
+          // Fallback to heuristic response if AI service is not available
+          aiResponse = {
+            content: 'I apologize, but the AI service is currently unavailable. Please try again later.',
+            role: 'assistant'
+          };
+        }
+      } catch (aiError) {
+        console.error('AI processing error:', aiError);
+        aiResponse = {
+          content: 'I encountered an error while processing your request. Please try again.',
+          role: 'assistant'
+        };
+      }
+
+      // Save AI response to conversation
+      const assistantMessage = await prisma.message.create({
+        data: {
+          role: 'assistant',
+          content: aiResponse.content,
+          conversationId: conversation.id,
+          metadata: {
+            model: 'gpt-4',
+            tokens: aiResponse.usage?.total_tokens
+          }
+        }
+      });
+
+      return sendSuccess(res, 200, {
+        conversationId: conversation.id,
+        message: assistantMessage,
+        response: aiResponse.content
+      });
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      throw new AppError('Failed to process chat message', 500, { error: error.message });
+    }
+  })
+);
 
 module.exports = router;
