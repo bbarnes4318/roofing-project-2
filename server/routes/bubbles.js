@@ -580,23 +580,23 @@ function heuristicGeneralAnswer(message) {
     if (mentionsMiami) {
       return [
         '**Recommendation for Miami, FL:**',
-        '- **Hurricane‑rated metal (standing seam)** or **concrete/clay tile** for steep‑slope homes (great wind uplift, long life).',
-        '- **TPO/PVC single‑ply** for low‑slope areas (reflective, heat‑welded seams, good in high heat/humidity).',
+        '- **Hurricane-rated metal (standing seam)** or **concrete/clay tile** for steep-slope homes (great wind uplift, long life).',
+        '- **TPO/PVC single-ply** for low-slope areas (reflective, heat-welded seams, good in high heat/humidity).',
         '- Avoid standard **EPDM** in high UV + heat unless fully adhered and protected (white EPDM less common).',
         '',
-        '**Why:** Miami has high wind, salt air, extreme UV, and heavy rains. Use Miami‑Dade/High‑Velocity Hurricane Zone (HVHZ) approved assemblies, proper underlayment, and corrosion‑resistant fasteners.',
+        '**Why:** Miami has high wind, salt air, extreme UV, and heavy rains. Use Miami-Dade/High-Velocity Hurricane Zone (HVHZ) approved assemblies, proper underlayment, and corrosion-resistant fasteners.',
         '',
         '**Next steps:**',
         '- Confirm roof slope and code zone (HVHZ).',
         '- Choose light/reflective color for energy savings.',
-        '- Get wind‑uplift engineering and permit set.'
+        '- Get wind-uplift engineering and permit set.'
       ].join('\n');
     }
 
     if (mentionsTpo && mentionsEpdm) {
       return [
         '**TPO vs. EPDM (quick guide):**',
-        '- **TPO:** white/reflective, heat‑welded seams, good in hot climates; seams are strong; watch for quality of membrane brand.',
+        '- **TPO:** white/reflective, heat-welded seams, good in hot climates; seams are strong; watch for quality of membrane brand.',
         '- **EPDM:** black (or white), glued/taped seams, excellent longevity in temperate climates; can run hotter in sun.',
         '',
         '**Pick TPO** for hot/sunny climates or energy savings; **Pick EPDM** for cold/temperate zones or retrofit over certain decks.'
@@ -606,8 +606,8 @@ function heuristicGeneralAnswer(message) {
     if (mentionsWarehouse) {
       return [
         '**Warehouse roof options:**',
-        '- **TPO/PVC single‑ply** (reflective, fast install, good seams).',
-        '- **Coatings** (if existing roof is sound) for cost‑effective life extension.',
+        '- **TPO/PVC single-ply** (reflective, fast install, good seams).',
+        '- **Coatings** (if existing roof is sound) for cost-effective life extension.',
         '- **Metal retrofit** with insulation if structure allows.',
         '',
         '**Decide by:** deck condition, slope, budget, and required warranty length.'
@@ -617,11 +617,14 @@ function heuristicGeneralAnswer(message) {
     // Generic roofing guidance
     return [
       '**Roof selection factors:** climate, slope, deck condition, code/wind zone, energy goals, budget, desired warranty.',
-      '- Low‑slope: TPO/PVC; Steep‑slope: metal or architectural shingle/tile.',
-      '- In hot climates, prefer reflective membranes or light‑colored metal/tile.'
+      '- Low-slope: TPO/PVC; Steep-slope: metal or architectural shingle/tile.',
+      '- In hot climates, prefer reflective membranes or light-colored metal/tile.'
     ].join('\n');
   }
 
+  // Fallback: no heuristic answer
+  return null;
+} // ✅ CLOSES THE FUNCTION
 
 // Explicitly register chat route to ensure it's available
 console.log('🔍 BUBBLES: Registering /chat route');
