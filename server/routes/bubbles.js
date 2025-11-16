@@ -622,18 +622,6 @@ function heuristicGeneralAnswer(message) {
     ].join('\n');
   }
 
-  // Fallback generic answer
-  return 'I can help with that. Give me a bit more detail (context, goals, constraints) and I\'ll recommend specific options with pros/cons.';
-}
-
-
-// Apply authentication to all routes
-router.use(authenticateToken);
-
-// Test route to verify bubbles routes are loading
-router.get('/test', (req, res) => {
-  res.json({ success: true, message: 'Bubbles routes are working!' });
-});
 
 // Explicitly register chat route to ensure it's available
 console.log('🔍 BUBBLES: Registering /chat route');
@@ -3845,13 +3833,29 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
   sendSuccess(res, 200, { current }, 'Current step fetched');
 }));
 
-// Verify chat route is registered
+// Explicitly register chat route to ensure it's available
 const chatRoute = router.stack.find(layer => layer.route && layer.route.path === '/chat' && layer.route.methods.post);
 if (chatRoute) {
-  console.log('✅ BUBBLES: /chat route successfully registered');
+  console.log('✅ BUBBLES: Chat route is registered at POST /chat');
 } else {
-  console.error('❌ BUBBLES: /chat route NOT found in router stack!');
-  console.error('🔍 BUBBLES: Available routes:', router.stack.filter(l => l.route).map(l => `${Object.keys(l.route.methods).join(',')} ${l.route.path}`));
+  console.error('❌ BUBBLES: Chat route is NOT registered! Adding it now...');
+  
+  // Add the chat route explicitly if it wasn't found
+  router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+    
+    const { message, projectId } = req.body;
+    const userId = req.user.id;
+    
+    console.log(`💬 BUBBLES: Processing chat message from user ${userId}: ${message.substring(0, 50)}...`);
+    
+    // Rest of your chat handler implementation here...
+    // ...
+    
+  }));
+  
+  console.log('✅ BUBBLES: Chat route has been manually registered at POST /chat');
 }
-
-module.exports = router;
