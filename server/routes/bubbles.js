@@ -20,19 +20,80 @@ const {
   sendSuccess,
   formatValidationErrors,
   AppError
-} = require('../middleware/errorHandler');
-const { authenticateToken } = require('../middleware/auth');
-const { prisma } = require('../config/prisma');
-const EmbeddingService = require('../services/EmbeddingService');
-const IngestionService = require('../services/IngestionService');
+} = require('./middleware/errorHandler');
+const { authenticateToken } = require('./middleware/auth');
+const { prisma } = require('./config/prisma');
 const path = require('path');
 const fs = require('fs').promises;
-const { findAssetByMention } = require('../services/AssetLookup');
-const { findMultipleAssetsByMention, detectIntent } = require('../services/EnhancedDocumentDetection');
-const emailService = require('../services/EmailService');
-const bubblesContextService = require('../services/BubblesContextService');
-const proactiveNotificationsService = require('../services/ProactiveNotificationsService');
-const crossProjectAnalyticsService = require('../services/CrossProjectAnalyticsService');
+
+// Make all these services optional so a missing file doesn't kill the whole router
+let EmbeddingService = null;
+let IngestionService = null;
+let findAssetByMention = null;
+let findMultipleAssetsByMention = null;
+let detectIntent = null;
+let emailService = null;
+let bubblesContextService = null;
+let proactiveNotificationsService = null;
+let crossProjectAnalyticsService = null;
+
+try {
+  EmbeddingService = require('./services/EmbeddingService');
+  console.log('✅ Bubbles: EmbeddingService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: EmbeddingService not available:', e.message);
+}
+
+try {
+  IngestionService = require('./services/IngestionService');
+  console.log('✅ Bubbles: IngestionService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: IngestionService not available:', e.message);
+}
+
+try {
+  ({ findAssetByMention } = require('./services/AssetLookup'));
+  console.log('✅ Bubbles: AssetLookup loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: AssetLookup not available:', e.message);
+}
+
+try {
+  ({ findMultipleAssetsByMention, detectIntent } =
+    require('./services/EnhancedDocumentDetection'));
+  console.log('✅ Bubbles: EnhancedDocumentDetection loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: EnhancedDocumentDetection not available:', e.message);
+}
+
+try {
+  emailService = require('./services/EmailService');
+  console.log('✅ Bubbles: EmailService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: EmailService not available:', e.message);
+}
+
+try {
+  bubblesContextService = require('./services/BubblesContextService');
+  console.log('✅ Bubbles: BubblesContextService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: BubblesContextService not available:', e.message);
+}
+
+try {
+  proactiveNotificationsService = require('./services/ProactiveNotificationsService');
+  console.log('✅ Bubbles: ProactiveNotificationsService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: ProactiveNotificationsService not available:', e.message);
+}
+
+try {
+  crossProjectAnalyticsService =
+    require('./services/CrossProjectAnalyticsService');
+  console.log('✅ Bubbles: CrossProjectAnalyticsService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: CrossProjectAnalyticsService not available:', e.message);
+}
 
 // Try to load services with error handling
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
