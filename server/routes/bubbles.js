@@ -15,14 +15,18 @@ try {
   body = () => noopChain;
   validationResult = () => ({ isEmpty: () => true, array: () => [] });
 }
+
 const {
   asyncHandler,
   sendSuccess,
   formatValidationErrors,
   AppError
-} = require('./middleware/errorHandler');
-const { authenticateToken } = require('./middleware/auth');
-const { prisma } = require('./config/prisma');
+} = require('../middleware/errorHandler');   // 👈 ../ not ./
+const openAIService = require('../services/OpenAIService');
+const bubblesInsightsService = require('../services/BubblesInsightsService');
+const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+const { authenticateToken } = require('../middleware/auth'); // 👈 ../
+const { prisma } = require('../config/prisma');              // 👈 ../
 const path = require('path');
 const fs = require('fs').promises;
 
@@ -38,21 +42,21 @@ let proactiveNotificationsService = null;
 let crossProjectAnalyticsService = null;
 
 try {
-  EmbeddingService = require('./services/EmbeddingService');
+  EmbeddingService = require('../services/EmbeddingService');      // 👈 ../
   console.log('✅ Bubbles: EmbeddingService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: EmbeddingService not available:', e.message);
 }
 
 try {
-  IngestionService = require('./services/IngestionService');
+  IngestionService = require('../services/IngestionService');      // 👈 ../
   console.log('✅ Bubbles: IngestionService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: IngestionService not available:', e.message);
 }
 
 try {
-  ({ findAssetByMention } = require('./services/AssetLookup'));
+  ({ findAssetByMention } = require('../services/AssetLookup'));   // 👈 ../
   console.log('✅ Bubbles: AssetLookup loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: AssetLookup not available:', e.message);
@@ -60,28 +64,29 @@ try {
 
 try {
   ({ findMultipleAssetsByMention, detectIntent } =
-    require('./services/EnhancedDocumentDetection'));
+    require('../services/EnhancedDocumentDetection'));             // 👈 ../
   console.log('✅ Bubbles: EnhancedDocumentDetection loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: EnhancedDocumentDetection not available:', e.message);
 }
 
 try {
-  emailService = require('./services/EmailService');
+  emailService = require('../services/EmailService');              // 👈 ../
   console.log('✅ Bubbles: EmailService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: EmailService not available:', e.message);
 }
 
 try {
-  bubblesContextService = require('./services/BubblesContextService');
+  bubblesContextService = require('../services/BubblesContextService'); // 👈 ../
   console.log('✅ Bubbles: BubblesContextService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: BubblesContextService not available:', e.message);
 }
 
 try {
-  proactiveNotificationsService = require('./services/ProactiveNotificationsService');
+  proactiveNotificationsService =
+    require('../services/ProactiveNotificationsService');          // 👈 ../
   console.log('✅ Bubbles: ProactiveNotificationsService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: ProactiveNotificationsService not available:', e.message);
@@ -89,7 +94,7 @@ try {
 
 try {
   crossProjectAnalyticsService =
-    require('./services/CrossProjectAnalyticsService');
+    require('../services/CrossProjectAnalyticsService');           // 👈 ../
   console.log('✅ Bubbles: CrossProjectAnalyticsService loaded');
 } catch (e) {
   console.warn('⚠️ Bubbles: CrossProjectAnalyticsService not available:', e.message);
@@ -99,7 +104,7 @@ try {
 let openAIService, bubblesInsightsService, WorkflowActionService, workflowActionService;
 
 try {
-  openAIService = require('../services/OpenAIService');
+  openAIService = require('../services/OpenAIService');            // 👈 ../
   console.log('✅ Bubbles: OpenAIService loaded');
 } catch (error) {
   console.error('❌ Bubbles: Failed to load OpenAIService:', error.message);
@@ -4007,5 +4012,28 @@ router.post('/chat',
     }
   })
 );
+
+// @desc    Get current workflow step for a project
+// @route   GET /api/bubbles/project/:projectId/current-step
+// @access  Private
+router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => {
+  const { projectId } = req.params;
+  
+  // Use the service to get the current state
+  const tracker = await WorkflowProgressionService.getMainWorkflowTracker(projectId);
+  
+  if (!tracker) {
+    return res.status(404).json({ success: false, message: 'Project workflow not found' });
+  }
+  
+  // Return the structure the frontend expects
+  sendSuccess(res, 200, {
+    currentStep: tracker.currentLineItem,
+    section: tracker.currentSection,
+    phase: tracker.currentPhase,
+    trackerId: tracker.id,
+    isComplete: !tracker.currentLineItemId
+  }, 'Current workflow step retrieved');
+}));
 
 module.exports = router;
