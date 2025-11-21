@@ -16,19 +16,6 @@ try {
   validationResult = () => ({ isEmpty: () => true, array: () => [] });
 }
 
-const {
-  asyncHandler,
-  sendSuccess,
-  formatValidationErrors,
-  AppError
-} = require('../middleware/errorHandler');   // 👈 ../ not ./
-const openAIService = require('../services/OpenAIService');
-const bubblesInsightsService = require('../services/BubblesInsightsService');
-const WorkflowProgressionService = require('../services/WorkflowProgressionService');
-const { authenticateToken } = require('../middleware/auth'); // 👈 ../
-const { prisma } = require('../config/prisma');              // 👈 ../
-const path = require('path');
-const fs = require('fs').promises;
 
 // Make all these services optional so a missing file doesn't kill the whole router
 let EmbeddingService = null;
