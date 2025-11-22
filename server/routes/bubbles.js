@@ -1,4 +1,9 @@
 const express = require('express');
+const fs = require('fs').promises;
+const path = require('path');
+const { prisma } = require('../config/prisma');
+const { authenticateToken } = require('../middleware/auth');
+const { AppError, asyncHandler, formatValidationErrors, sendSuccess } = require('../middleware/errorHandler');
 // Make express-validator optional so this router still loads if the dependency is missing
 let body, validationResult;
 try {
@@ -96,6 +101,20 @@ try {
 } catch (error) {
   console.error('❌ Bubbles: Failed to load OpenAIService:', error.message);
   openAIService = null;
+}
+
+try {
+  bubblesInsightsService = require('../services/BubblesInsightsService');
+  console.log('✅ Bubbles: BubblesInsightsService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: BubblesInsightsService not available:', e.message);
+}
+
+try {
+  WorkflowActionService = require('../services/WorkflowActionService');
+  console.log('✅ Bubbles: WorkflowActionService loaded');
+} catch (e) {
+  console.warn('⚠️ Bubbles: WorkflowActionService not available:', e.message);
 }
 
 // Helper: extract recipient names from freeform message (supports "to" and "for" phrases)
@@ -290,7 +309,7 @@ function extractNumberedSteps(rawText, maxSteps = 20) {
   const steps = [];
   let current = null;
   let currentNum = null;
-  const startRe = /^(\d{1,2})[\.)\-]\s*(.*)$/;
+  const startRe = /^(\d{1,2})[.)-]\s*(.*)$/;
   for (const line of lines) {
     const m = line.match(startRe);
     if (m) {
@@ -3124,14 +3143,14 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
       if (!steps || steps.length === 0) {
         // Fallback: try bullets that start with - or •
         const lines = fileData.text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-        const bullets = lines.filter(l => /^([\-•\*])\s+/.test(l)).slice(0, 20).map((t, i) => ({ n: i + 1, text: t.replace(/^([\-•\*])\s+/, '') }));
+        const bullets = lines.filter(l => /^([-•*])\s+/.test(l)).slice(0, 20).map((t, i) => ({ n: i + 1, text: t.replace(/^([-•*])\s+/, '') }));
         steps = bullets;
       }
       // Prefer first 11 if more
       const top = steps.slice(0, 11);
       const content = top.length
         ? `Here are the steps from "${asset.title}":\n\n` + top.map(s => `${s.n}. ${s.text}`).join('\n')
-        : `I opened "${asset.title}" but couldn\'t detect numbered steps. Try asking for a summary and I\'ll extract key points.`;
+        : `I opened "${asset.title}" but couldn't detect numbered steps. Try asking for a summary and I'll extract key points.`;
       contextManager.addToHistory(req.user.id, message, content, projectContext || null);
       return sendSuccess(res, 200, { response: { content } });
     } catch (docErr) {
@@ -3363,7 +3382,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
 
   // Heuristic 2: General/company questions → Use OpenAI directly (but not for workflow knowledge)
   if (!projectContext && !isProjectSpecific && !isWorkflowKnowledge) {
-    const genericSystemPrompt = `You are \"Bubbles,\" an expert AI assistant for Bubbles AI. Answer general questions about any topic helpfully and accurately.`;
+    const genericSystemPrompt = `You are "Bubbles," an expert AI assistant for Bubbles AI. Answer general questions about any topic helpfully and accurately.`;
     if (!aiAvailable) {
       const contentGeneric = heuristicGeneralAnswer(message);
       contextManager.addToHistory(req.user.id, message, contentGeneric, projectContext || null);
@@ -3871,143 +3890,6 @@ router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => 
     responsibleRole: li.responsibleRole
   } : null;
   sendSuccess(res, 200, { current }, 'Current step fetched');
-}));
-
-// Chat endpoint for AI assistant
-router.post('/chat', 
-  authenticateToken,
-  [
-    body('message').trim().isString().notEmpty().withMessage('Message is required'),
-    body('conversationId').optional().isString(),
-    body('projectId').optional().isString(),
-  ],
-  asyncHandler(async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new AppError('Validation failed', 400, { errors: formatValidationErrors(errors) });
-    }
-
-    const { message, conversationId, projectId } = req.body;
-    const userId = req.user.id;
-
-    try {
-      // Get or create conversation
-      let conversation;
-      if (conversationId) {
-        conversation = await prisma.conversation.findUnique({
-          where: { id: conversationId },
-          include: { messages: { orderBy: { createdAt: 'asc' } } }
-        });
-      }
-
-      if (!conversation) {
-        conversation = await prisma.conversation.create({
-          data: {
-            userId,
-            title: `Chat ${new Date().toLocaleString()}`,
-            projectId: projectId || null,
-            messages: {
-              create: [
-                {
-                  role: 'user',
-                  content: message,
-                  userId
-                }
-              ]
-            }
-          },
-          include: {
-            messages: true
-          }
-        });
-      } else {
-        // Add message to existing conversation
-        await prisma.message.create({
-          data: {
-            role: 'user',
-            content: message,
-            userId,
-            conversationId: conversation.id
-          }
-        });
-      }
-
-      // Process the message with AI
-      let aiResponse;
-      try {
-        if (openAIService) {
-          const messages = conversation.messages
-            .map(m => ({ role: m.role, content: m.content }))
-            .concat([{ role: 'user', content: message }]);
-          
-          aiResponse = await openAIService.chatCompletion({
-            messages,
-            model: 'gpt-4',
-            temperature: 0.7,
-            max_tokens: 1000
-          });
-        } else {
-          // Fallback to heuristic response if AI service is not available
-          aiResponse = {
-            content: 'I apologize, but the AI service is currently unavailable. Please try again later.',
-            role: 'assistant'
-          };
-        }
-      } catch (aiError) {
-        console.error('AI processing error:', aiError);
-        aiResponse = {
-          content: 'I encountered an error while processing your request. Please try again.',
-          role: 'assistant'
-        };
-      }
-
-      // Save AI response to conversation
-      const assistantMessage = await prisma.message.create({
-        data: {
-          role: 'assistant',
-          content: aiResponse.content,
-          conversationId: conversation.id,
-          metadata: {
-            model: 'gpt-4',
-            tokens: aiResponse.usage?.total_tokens
-          }
-        }
-      });
-
-      return sendSuccess(res, 200, {
-        conversationId: conversation.id,
-        message: assistantMessage,
-        response: aiResponse.content
-      });
-
-    } catch (error) {
-      console.error('Chat error:', error);
-      throw new AppError('Failed to process chat message', 500, { error: error.message });
-    }
-  })
-);
-
-// @desc    Get current workflow step for a project
-// @route   GET /api/bubbles/project/:projectId/current-step
-// @access  Private
-router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => {
-  const { projectId } = req.params;
-  
-  // Use the service to get the current state
-  const tracker = await WorkflowProgressionService.getMainWorkflowTracker(projectId);
-  
-  if (!tracker) {
-    return res.status(404).json({ success: false, message: 'Project workflow not found' });
-  }
-  
-  // Return the structure the frontend expects
-  sendSuccess(res, 200, {
-    currentStep: tracker.currentLineItem,
-    section: tracker.currentSection,
-    phase: tracker.currentPhase,
-    trackerId: tracker.id,
-    isComplete: !tracker.currentLineItemId
-  }, 'Current workflow step retrieved');
 }));
 
 module.exports = router;
