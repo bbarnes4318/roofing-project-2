@@ -2639,7 +2639,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   const isSimpleMessageRequest = simpleMessagePatterns.some(pattern => pattern.test(message));
 
   // Check if this is a simple message request (not a document send)
-  const mentionsDocument = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
+  const mentionsDocument = /\b[\w\-\s]+\.(pdf|docx?|txt|jpg|jpeg|png|gif|webp|svg)\b/i.test(message || '');
 
   if (isSimpleMessageRequest && !mentionsDocument) {
     // Try to resolve project from message text (e.g., "for project #10012")
@@ -2729,7 +2729,7 @@ router.post('/chat', chatValidation, asyncHandler(async (req, res) => {
   }
 
   // Heuristic 0: Explicit document request (e.g., "give me all 11 steps" + filename or checklist)
-  const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx|doc)\b/i.test(message || '');
+  const mentionsFileName = /\b[\w\-\s]+\.(pdf|docx?|txt|jpg|jpeg|png|gif|webp|svg)\b/i.test(message || '');
   const mentionsChecklist = lower.includes('checklist') || lower.includes('start the day') || lower.includes('upfront');
   const asksForSteps = lower.includes('steps') || lower.includes('step') || lower.includes('give me') || lower.includes('list') || lower.includes('what is the other point');
   
