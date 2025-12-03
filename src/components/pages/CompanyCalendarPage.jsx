@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon, PlusCircleIcon } from '../common/Icons';
-import { authService } from '../../services/api';
+import { authService, usersService } from '../../services/api';
 
 // Simple ChevronRightIcon component
 const ChevronRightIcon = ({ className = "w-5 h-5" }) => (
@@ -13,6 +13,9 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const [currentDate, setCurrentDate] = useState(new Date());
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [viewMode, setViewMode] = useState('month');
+    const [calendarView, setCalendarView] = useState('team');
+    const [teamMembers, setTeamMembers] = useState([]);
+    const [selectedAssignees, setSelectedAssignees] = useState([]);
     const [filterType, setFilterType] = useState('all');
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [showEventModal, setShowEventModal] = useState(false);
@@ -62,7 +65,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const fetchCalendarEvents = async () => {
         try {
             setLoading(true);
-            const response = await fetch('/api/calendar-events');
+            const response = await fetch(`/api/calendar-events?view=${calendarView}`);
             if (response.ok) {
                 const data = await response.json();
                 // Ensure we always have an array, even if API returns different structure
@@ -81,6 +84,21 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     // Fetch events on component mount
     useEffect(() => {
         fetchCalendarEvents();
+    }, [calendarView]);
+
+    // Fetch team members
+    useEffect(() => {
+        const fetchTeam = async () => {
+            try {
+                const response = await usersService.getTeamMembers();
+                if (response.success) {
+                    setTeamMembers(response.data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch team members:', error);
+            }
+        };
+        fetchTeam();
     }, []);
 
     const getDaysInMonth = (date) => {
@@ -406,6 +424,11 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             return;
         }
 
+        if (selectedAssignees.length === 0) {
+            alert('Please assign at least one user');
+            return;
+        }
+
         try {
             // Format the time for display
             const timeString = newEvent.time;
@@ -427,7 +450,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 endTime: endTime.toISOString(),
                 eventType: newEvent.type.toUpperCase(),
                 organizerId: currentUser?.id,
-                projectId: newEvent.projectId || undefined
+                projectId: newEvent.projectId || undefined,
+                attendees: selectedAssignees.map(userId => ({ userId }))
             };
 
             // Make API call to save event
@@ -472,6 +496,22 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                     
                     {/* Controls */}
                     <div className="flex items-center gap-2">
+                        {/* View Toggle: Personal vs Team */}
+                        <div className={`flex rounded-md p-0.5 shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white border border-gray-200'}`}>
+                            {['personal', 'team'].map(view => (
+                                <button
+                                    key={view}
+                                    onClick={() => setCalendarView(view)}
+                                    className={`px-3 py-0.5 text-xs font-medium rounded transition-all duration-200 ${
+                                        calendarView === view
+                                            ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-md'}`
+                                            : `${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`
+                                    }`}
+                                >
+                                    {view.charAt(0).toUpperCase() + view.slice(1)}
+                                </button>
+                            ))}
+                        </div>
                         <div className={`flex rounded-md p-0.5 shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white border border-gray-200'}`}>
                             {['month', 'week', 'day'].map(mode => (
                                 <button
@@ -734,6 +774,53 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         } focus:outline-none transition-all duration-200`}
                                         placeholder="Enter event title"
                                     />
+                                </div>
+
+                                {/* Assign to User(s) */}
+                                <div>
+                                    <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        Assign to User(s) *
+                                    </label>
+                                    <div className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm min-h-[46px] ${
+                                        colorMode 
+                                            ? 'bg-[#374151] border-gray-600' 
+                                            : 'bg-white border-gray-300'
+                                    }`}>
+                                        <div className="flex flex-wrap gap-2 mb-2">
+                                            {selectedAssignees.map(userId => {
+                                                const user = teamMembers.find(u => u.id === userId);
+                                                return (
+                                                    <span key={userId} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                        {user ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
+                                                        <button
+                                                            onClick={() => setSelectedAssignees(prev => prev.filter(id => id !== userId))}
+                                                            className="ml-1 text-blue-600 hover:text-blue-800"
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </span>
+                                                );
+                                            })}
+                                        </div>
+                                        <select
+                                            onChange={(e) => {
+                                                const userId = e.target.value;
+                                                if (userId && !selectedAssignees.includes(userId)) {
+                                                    setSelectedAssignees(prev => [...prev, userId]);
+                                                }
+                                                e.target.value = '';
+                                            }}
+                                            className={`w-full bg-transparent focus:outline-none ${colorMode ? 'text-white' : 'text-gray-900'}`}
+                                        >
+                                            <option value="">Select a user...</option>
+                                            {teamMembers.filter(u => !selectedAssignees.includes(u.id)).map(user => (
+                                                <option key={user.id} value={user.id}>
+                                                    {user.firstName} {user.lastName}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+
                                 </div>
 
                                 {/* Event Type */}

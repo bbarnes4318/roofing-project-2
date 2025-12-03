@@ -13,30 +13,52 @@ router.use(authenticateToken);
 // @access  Private
 router.get('/', asyncHandler(async (req, res) => {
   console.log('📅 CALENDAR: GET /api/calendar-events - Request received');
-  const { startDate, endDate, eventType, projectId, organizerId } = req.query;
+  const { startDate, endDate, eventType, projectId, organizerId, view } = req.query;
   let where = {};
   
-  if (startDate && endDate) {
+  // View Logic: Personal vs Team
+  if (view === 'personal') {
+    // Personal View: Events where user is attendee OR organizer
     where.OR = [
-      {
-        startTime: {
-          gte: new Date(startDate),
-          lte: new Date(endDate)
-        }
-      },
-      {
-        endTime: {
-          gte: new Date(startDate),
-          lte: new Date(endDate)
-        }
-      },
-      {
-        AND: [
-          { startTime: { lte: new Date(startDate) } },
-          { endTime: { gte: new Date(endDate) } }
-        ]
-      }
+      { organizerId: req.user.id },
+      { attendees: { some: { userId: req.user.id } } }
     ];
+  }
+
+  if (startDate && endDate) {
+    const dateFilter = {
+      OR: [
+        {
+          startTime: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
+          }
+        },
+        {
+          endTime: {
+            gte: new Date(startDate),
+            lte: new Date(endDate)
+          }
+        },
+        {
+          AND: [
+            { startTime: { lte: new Date(startDate) } },
+            { endTime: { gte: new Date(endDate) } }
+          ]
+        }
+      ]
+    };
+
+    if (where.OR) {
+      // If we already have an OR clause (from personal view), we need to combine them carefully
+      where.AND = [
+        { OR: where.OR },
+        dateFilter
+      ];
+      delete where.OR; // Remove the top-level OR
+    } else {
+      where.OR = dateFilter.OR;
+    }
   }
   
   if (eventType) {
@@ -337,6 +359,55 @@ router.post('/', asyncHandler(async (req, res) => {
     } catch (error) {
       console.error('Error creating follow-up for calendar event:', error);
       // Don't fail the event creation if follow-up creation fails
+    }
+  }
+
+  // Send email notifications to attendees
+  if (attendees && attendees.length > 0) {
+    try {
+      const EmailService = require('../services/EmailService');
+      const attendeeIds = attendees.map(a => a.userId);
+      
+      // Fetch attendee details to get emails
+      const attendeeUsers = await prisma.user.findMany({
+        where: { id: { in: attendeeIds } },
+        select: { id: true, email: true, firstName: true }
+      });
+
+      // Send email to each attendee
+      const emailPromises = attendeeUsers.map(user => {
+        if (!user.email) return Promise.resolve();
+
+        const emailContent = `
+          <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #2563eb;">New Calendar Event Assigned</h2>
+            <p>Hello ${user.firstName || 'User'},</p>
+            <p>You have been added to a new calendar event:</p>
+            <div style="background-color: #f3f4f6; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <h3 style="margin-top: 0;">${title}</h3>
+              <p><strong>Date:</strong> ${startDate.toLocaleDateString()}</p>
+              <p><strong>Time:</strong> ${startDate.toLocaleTimeString()} - ${endDate.toLocaleTimeString()}</p>
+              ${location ? `<p><strong>Location:</strong> ${location}</p>` : ''}
+              ${description ? `<p><strong>Description:</strong><br>${description}</p>` : ''}
+            </div>
+            <p>Please check your calendar for more details.</p>
+          </div>
+        `;
+
+        return EmailService.sendEmail({
+          to: user.email,
+          subject: `New Event: ${title}`,
+          html: emailContent,
+          tags: { type: 'calendar_invite', eventId: event.id }
+        });
+      });
+
+      await Promise.all(emailPromises);
+      console.log(`📧 Sent calendar notifications to ${attendeeUsers.length} attendees`);
+
+    } catch (error) {
+      console.error('❌ Error sending calendar notifications:', error);
+      // Don't fail the request if email sending fails
     }
   }
   
@@ -891,4 +962,4 @@ router.delete('/:eventId/comments/:commentId', asyncHandler(async (req, res) => 
   });
 }));
 
-module.exports = router; 
+module.exports = router;

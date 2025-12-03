@@ -506,7 +506,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                         {editFormData.addressComponents.postal_code && (
                           <div>
                             <span className="text-gray-600">ZIP: </span>
-                            <span className="text-gray-800 font-semibold text-blue-700">{editFormData.addressComponents.postal_code}</span>
+                            <span className="font-semibold text-blue-700">{editFormData.addressComponents.postal_code}</span>
                           </div>
                         )}
                       </div>
