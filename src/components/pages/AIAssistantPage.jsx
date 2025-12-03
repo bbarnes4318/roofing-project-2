@@ -1267,6 +1267,14 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
         setCustomEmails([]);
         setCustomEmailInput('');
 
+        // Hide the recipient picker UI on the message that triggered it
+        setMessages(prev => prev.map(msg => {
+            if (msg.requiresRecipientSelection) {
+                return { ...msg, requiresRecipientSelection: false };
+            }
+            return msg;
+        }));
+
         const cancelMessage = {
             id: Date.now(),
             type: 'assistant',
@@ -2073,7 +2081,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
 
 
     return (
-        <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-col bg-white rounded-lg shadow-sm overflow-hidden relative" style={{ height: '100vh' }}>
+        <div ref={containerRef} className="ai-assistant-container min-h-0 flex flex-row bg-white rounded-lg shadow-sm overflow-hidden relative" style={{ height: '100vh' }}>
+            <div className="flex-1 flex flex-col min-w-0">
             {/* Custom styles for message formatting */}
             <style>{`
                 .ai-assistant-container {
@@ -2262,16 +2271,22 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             {/* Input Area - Moved to top, above messages */}
             <div ref={inputRef} className="flex-shrink-0 p-1 px-3 md:px-4 border-b border-gray-200 bg-gray-50">
                 <form onSubmit={handleSubmit} className="w-full max-w-2xl flex items-center gap-1">
-                    <input
+                    <textarea
                         ref={actualInputRef}
-                        type="text"
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
+                        }}
                         placeholder={selectedProject 
                             ? `Ask about ${selectedProject.projectName || selectedProject.name}...` 
                             : "Send a message..."
                         }
-                        className="flex-1 px-3 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm"
+                        rows={3}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm resize-none"
                     />
                     <button
                         type="submit"
@@ -2501,22 +2516,15 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 </div>
             )}
 
-            {/* Document Browser Popup */}
+            {/* Document Browser Panel - Persistent Side Drawer */}
             {showDocumentBrowser && (
-                <>
-                    {/* Backdrop */}
-                    <div 
-                        className="fixed inset-0 bg-black bg-opacity-25 z-40"
-                        onClick={() => setShowDocumentBrowser(false)}
-                    />
-                    {/* Popup */}
-                    <div className="fixed top-20 right-4 w-80 max-h-[80vh] z-50 bg-white border border-gray-200 rounded-lg shadow-xl flex flex-col overflow-hidden">
-                    <div className="p-4 border-b border-gray-200 bg-white">
+                <div className="w-80 border-l border-gray-200 bg-white flex flex-col shadow-xl z-30">
+                    <div className="p-4 border-b border-gray-200 bg-gray-50">
                         <div className="flex items-center justify-between mb-3">
                             <h3 className="text-sm font-semibold text-gray-800">Available Documents</h3>
                             <button
                                 onClick={() => setShowDocumentBrowser(false)}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1 hover:bg-gray-200 rounded text-gray-500 hover:text-gray-700"
                                 title="Close"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2589,8 +2597,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             </div>
                         )}
                     </div>
-                    </div>
-                </>
+                </div>
             )}
             
             {/* Messages Area - Centered, wider column for more visible text */}
@@ -3053,6 +3060,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             {/* Bubbles Assistant Playbook Modal */}
             <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={colorMode} />
 
+            {/* Bubbles Assistant Playbook Modal */}
+            <CheatSheetModal visible={showPlaybook} onClose={() => setShowPlaybook(false)} colorMode={colorMode} />
+            </div>
         </div>
     );
 };
