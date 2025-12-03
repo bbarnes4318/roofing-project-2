@@ -8,7 +8,7 @@ const UserManagementPage = ({ colorMode }) => {
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [activeTab, setActiveTab] = useState('active'); // 'active' or 'inactive'
   const [editingUser, setEditingUser] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [deletingUser, setDeletingUser] = useState(null);
@@ -23,14 +23,6 @@ const UserManagementPage = ({ colorMode }) => {
     { value: 'FOREMAN', label: 'Foreman', color: 'bg-green-100 text-green-800' },
     { value: 'WORKER', label: 'Worker', color: 'bg-gray-100 text-gray-800' },
     { value: 'SUBCONTRACTOR', label: 'Subcontractor', color: 'bg-purple-100 text-purple-800' }
-  ];
-
-  const statusOptions = [
-    { value: 'ALL', label: 'All Users' },
-    { value: 'ACTIVE', label: 'Active' },
-    { value: 'INACTIVE', label: 'Inactive' },
-    { value: 'VERIFIED', label: 'Verified' },
-    { value: 'UNVERIFIED', label: 'Unverified' }
   ];
 
   useEffect(() => {
@@ -90,6 +82,43 @@ const UserManagementPage = ({ colorMode }) => {
       setUsers([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleStatus = async (user) => {
+    const newStatus = !user.isActive;
+    
+    // Optimistically update UI
+    setUsers(users.map(u => 
+      u.id === user.id ? { ...u, isActive: newStatus } : u
+    ));
+
+    try {
+      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      const response = await fetch(`${API_BASE_URL}/users/${user.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ isActive: newStatus })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+      
+      // Show success message briefly
+      setSuccessMessage(`User ${user.firstName} moved to ${newStatus ? 'Active' : 'Inactive'} list`);
+      setTimeout(() => setSuccessMessage(''), 2000);
+      
+    } catch (err) {
+      console.error('Error toggling status:', err);
+      setError('Failed to update user status');
+      // Revert change
+      setUsers(users.map(u => 
+        u.id === user.id ? { ...u, isActive: !newStatus } : u
+      ));
     }
   };
 
@@ -214,26 +243,14 @@ const UserManagementPage = ({ colorMode }) => {
     
     const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
     
-    const matchesStatus = 
-      statusFilter === 'ALL' ||
-      (statusFilter === 'ACTIVE' && user.isActive) ||
-      (statusFilter === 'INACTIVE' && !user.isActive) ||
-      (statusFilter === 'VERIFIED' && user.isVerified) ||
-      (statusFilter === 'UNVERIFIED' && !user.isVerified);
+    // Filter by active tab
+    const matchesStatus = activeTab === 'active' ? user.isActive : !user.isActive;
     
     return matchesSearch && matchesRole && matchesStatus;
   });
 
   const getRoleInfo = (role) => {
     return roles.find(r => r.value === role) || { label: role, color: 'bg-gray-100 text-gray-800' };
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
   };
 
   if (loading) {
@@ -256,9 +273,33 @@ const UserManagementPage = ({ colorMode }) => {
                 <p className="text-gray-600 mt-1">Manage team members and their roles</p>
               </div>
               <div className="text-sm text-gray-500">
-                {filteredUsers.length} of {users.length} users
+                {filteredUsers.length} users
               </div>
             </div>
+          </div>
+
+          {/* Tabs */}
+          <div className="flex border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('active')}
+              className={`flex-1 py-3 text-sm font-medium text-center transition-colors ${
+                activeTab === 'active'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Active Users
+            </button>
+            <button
+              onClick={() => setActiveTab('inactive')}
+              className={`flex-1 py-3 text-sm font-medium text-center transition-colors ${
+                activeTab === 'inactive'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Inactive Users
+            </button>
           </div>
 
           {error && (
@@ -293,7 +334,7 @@ const UserManagementPage = ({ colorMode }) => {
 
           {/* Filters */}
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Search</label>
                 <input
@@ -317,18 +358,6 @@ const UserManagementPage = ({ colorMode }) => {
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {statusOptions.map(status => (
-                    <option key={status.value} value={status.value}>{status.label}</option>
-                  ))}
-                </select>
-              </div>
               <div className="flex items-end">
                 <button
                   onClick={fetchUsers}
@@ -348,8 +377,7 @@ const UserManagementPage = ({ colorMode }) => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Joined</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Active</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
@@ -390,21 +418,15 @@ const UserManagementPage = ({ colorMode }) => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col space-y-1">
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                        }`}>
-                          {user.isActive ? 'Active' : 'Inactive'}
-                        </span>
-                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          user.isVerified ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'
-                        }`}>
-                          {user.isVerified ? 'Verified' : 'Unverified'}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(user.createdAt)}
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={user.isActive}
+                          onChange={() => handleToggleStatus(user)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center gap-3">
@@ -434,9 +456,9 @@ const UserManagementPage = ({ colorMode }) => {
           {filteredUsers.length === 0 && (
             <div className="text-center py-12">
               <div className="text-gray-500">
-                {searchTerm || roleFilter !== 'ALL' || statusFilter !== 'ALL' 
+                {searchTerm || roleFilter !== 'ALL' 
                   ? 'No users match your filters' 
-                  : 'No users found'
+                  : `No ${activeTab} users found`
                 }
               </div>
             </div>

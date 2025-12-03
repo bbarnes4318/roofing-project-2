@@ -1623,6 +1623,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
     const [docsError, setDocsError] = useState('');
     const [uploadModalOpen, setUploadModalOpen] = useState(false);
     const [selectedFiles, setSelectedFiles] = useState([]);
+    const [fileNames, setFileNames] = useState({});
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
 
@@ -1708,9 +1709,15 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         console.log('📁 Using project folder for assets:', projectFolder?.id, projectFolder?.title);
         
         // Upload files one by one since the endpoint only supports single file upload
-        for (const file of selectedFiles) {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          const customName = fileNames[i] || file.name;
+          
+          // Create a new file object with the custom name
+          const renamedFile = new File([file], customName, { type: file.type });
+          
           const formData = new FormData();
-          formData.append('file', file);
+          formData.append('file', renamedFile);
           formData.append('projectId', project.id);
           formData.append('description', 'Uploaded from Project Profile');
           formData.append('fileType', 'OTHER');
@@ -1720,7 +1727,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           
           // Also upload to assets service for organization
           await assetsService.uploadFiles({ 
-            files: [file], 
+            files: [renamedFile], 
             parentId: projectFolder?.id || null, 
             description: 'Uploaded from Project Profile',
             tags: []
@@ -1736,6 +1743,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
         toast.success('Documents uploaded and organized in project folder!');
         setUploadModalOpen(false);
         setSelectedFiles([]);
+        setFileNames({});
         // Reload documents
         const res = await documentsService.getByProject(project.id);
         setDocs(Array.isArray(res?.data?.documents) ? res.data.documents : []);
@@ -1869,7 +1877,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Upload Documents</h3>
                 <button
-                  onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
+                  onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); setFileNames({}); }}
                   className="text-gray-400 hover:text-gray-600"
                 >
                   <XCircleIcon className="w-5 h-5" />
@@ -1891,14 +1899,35 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                     ref={fileInputRef}
                     type="file"
                     multiple
-                    onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))}
+                    onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        setSelectedFiles(files);
+                        const initialNames = {};
+                        files.forEach((f, i) => {
+                            initialNames[i] = f.name;
+                        });
+                        setFileNames(initialNames);
+                    }}
                     className="hidden"
                   />
                   {selectedFiles.length > 0 && (
-                    <div className="mt-2 space-y-1">
+                    <div className="mt-4 space-y-3 max-h-60 overflow-y-auto pr-1">
                       {selectedFiles.map((file, index) => (
-                        <div key={index} className="text-xs text-gray-600">
-                          {file.name} ({(file.size / (1024 * 1024)).toFixed(1)} MB)
+                        <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-gray-500 font-medium">Original: {file.name}</span>
+                                <span className="text-xs text-gray-400">{(file.size / (1024 * 1024)).toFixed(1)} MB</span>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 mb-1">File Name</label>
+                                <input 
+                                    type="text" 
+                                    value={fileNames[index] || ''}
+                                    onChange={(e) => setFileNames(prev => ({...prev, [index]: e.target.value}))}
+                                    className="w-full text-sm border border-gray-300 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                    placeholder="Enter file name"
+                                />
+                            </div>
                         </div>
                       ))}
                     </div>
@@ -1907,7 +1936,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
                 
                 <div className="flex gap-3 pt-4">
                   <button
-                    onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); }}
+                    onClick={() => { setUploadModalOpen(false); setSelectedFiles([]); setFileNames({}); }}
                     className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition"
                   >
                     Cancel

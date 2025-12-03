@@ -1132,91 +1132,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
     </div>
   );
 
-  const [isClearingData, setIsClearingData] = useState(false);
 
-  const handleClearMockData = async () => {
-    const confirmed = window.confirm(
-      '⚠️ CLEAR ALL MOCK DATA?\n\n' +
-      'This will permanently delete:\n' +
-      '• All tasks\n' +
-      '• All calendar events/reminders\n' +
-      '• All project messages\n\n' +
-      'This action CANNOT be undone!\n\n' +
-      'Are you absolutely sure you want to proceed?'
-    );
-
-    if (!confirmed) return;
-
-    // Double confirmation for safety
-    const doubleConfirmed = window.confirm(
-      '🚨 FINAL CONFIRMATION\n\n' +
-      'You are about to DELETE ALL tasks, reminders, and messages from the system.\n\n' +
-      'Click OK to proceed with deletion, or Cancel to abort.'
-    );
-
-    if (!doubleConfirmed) return;
-
-    setIsClearingData(true);
-
-    try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('authToken');
-      
-      // Delete all tasks
-      const tasksResponse = await fetch(`${API_BASE_URL}/tasks`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // Delete all calendar events (reminders)
-      const calendarResponse = await fetch(`${API_BASE_URL}/calendar`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      // Delete all project messages
-      const messagesResponse = await fetch(`${API_BASE_URL}/project-messages`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      const results = {
-        tasks: tasksResponse.ok,
-        calendar: calendarResponse.ok,
-        messages: messagesResponse.ok
-      };
-
-      if (results.tasks && results.calendar && results.messages) {
-        showSuccessMessage('✅ All mock data has been cleared successfully!');
-        
-        // Reload the page after 2 seconds to refresh all data
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-      } else {
-        const failed = [];
-        if (!results.tasks) failed.push('tasks');
-        if (!results.calendar) failed.push('calendar events');
-        if (!results.messages) failed.push('messages');
-        
-        showSuccessMessage(`⚠️ Partial success. Failed to clear: ${failed.join(', ')}`);
-      }
-
-    } catch (error) {
-      console.error('Error clearing mock data:', error);
-      showSuccessMessage('❌ Failed to clear mock data: ' + (error.message || 'Unknown error'));
-    } finally {
-      setIsClearingData(false);
-    }
-  };
 
   const renderSecurityTab = () => (
     <div className="space-y-3">
@@ -1313,59 +1229,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
         </div>
       </div>
 
-      {/* Clear Mock Data Section */}
-      <div className={`mt-6 border rounded-lg p-4 ${
-        colorMode
-          ? 'bg-red-900/20 border-red-500/40'
-          : 'bg-red-50 border-red-200'
-      }`}>
-        <h3 className={`text-sm font-semibold mb-2 flex items-center gap-2 ${
-          colorMode ? 'text-red-300' : 'text-red-900'
-        }`}>
-          <span>🗑️</span>
-          Clear All Mock Data
-        </h3>
-        <p className={`text-xs mb-3 ${
-          colorMode ? 'text-red-200' : 'text-red-700'
-        }`}>
-          After trialing the software, use this to remove all test data and start fresh with real data.
-        </p>
-        <div className={`text-xs space-y-1 mb-3 ${
-          colorMode ? 'text-red-200' : 'text-red-600'
-        }`}>
-          <p><strong>⚠️ Warning:</strong> This will permanently delete:</p>
-          <ul className="list-disc list-inside ml-2 space-y-1">
-            <li>All tasks (TODO, IN_PROGRESS, DONE)</li>
-            <li>All calendar events and reminders</li>
-            <li>All project messages and conversations</li>
-          </ul>
-          <p className="mt-2"><strong>❌ This action CANNOT be undone!</strong></p>
-        </div>
-        <button
-          type="button"
-          onClick={handleClearMockData}
-          disabled={isClearingData}
-          className={`w-full px-4 py-2 rounded font-semibold text-sm transition-colors ${
-            isClearingData
-              ? 'bg-gray-400 text-gray-600 cursor-not-allowed'
-              : colorMode
-                ? 'bg-red-600 hover:bg-red-700 text-white'
-                : 'bg-red-600 hover:bg-red-700 text-white'
-          }`}
-        >
-          {isClearingData ? (
-            <span className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Clearing All Data...
-            </span>
-          ) : (
-            '🗑️ Clear All Mock Data'
-          )}
-        </button>
-      </div>
+
     </div>
   );
 

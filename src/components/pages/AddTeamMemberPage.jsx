@@ -2,76 +2,20 @@ import React, { useState } from 'react';
 import { API_BASE_URL } from '../../services/api';
 
 const AddTeamMemberPage = ({ colorMode }) => {
-  const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    secondaryPhone: '',
-    preferredPhone: '',
-    role: 'WORKER'
-  });
-  
+  const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [emailStatus, setEmailStatus] = useState(null);
   const [setupLink, setSetupLink] = useState('');
 
-  const roles = [
-    { value: 'ADMIN', label: 'Administrator' },
-    { value: 'MANAGER', label: 'Manager' },
-    { value: 'PROJECT_MANAGER', label: 'Project Manager' },
-    { value: 'FOREMAN', label: 'Foreman' },
-    { value: 'WORKER', label: 'Worker' },
-    { value: 'SUBCONTRACTOR', label: 'Subcontractor' }
-  ];
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePhoneChange = (e) => {
-    const { name, value } = e.target;
-    // Basic phone number formatting
-    const formatted = value.replace(/\D/g, '').replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
-    setFormData(prev => ({
-      ...prev,
-      [name]: formatted
-    }));
-  };
-
-  const handlePreferredPhoneChange = (e) => {
-    const { value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      preferredPhone: value
-    }));
-  };
-
   const validateForm = () => {
-    if (!formData.firstName.trim()) {
-      setError('First name is required');
-      return false;
-    }
-    if (!formData.lastName.trim()) {
-      setError('Last name is required');
-      return false;
-    }
-    if (!formData.email.trim()) {
+    if (!email.trim()) {
       setError('Email is required');
       return false;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address');
-      return false;
-    }
-    if (formData.phone && formData.secondaryPhone && !formData.preferredPhone) {
-      setError('Please select which phone number is preferred for customer communications');
       return false;
     }
     return true;
@@ -95,7 +39,8 @@ const AddTeamMemberPage = ({ colorMode }) => {
         throw new Error('Authentication required. Please log in again.');
       }
 
-      // Use backend API to create team member (this actually works!)
+      // Use backend API to create team member
+      // We send default values for required fields that are hidden from UI
       const response = await fetch(`${API_BASE_URL}/users/add-team-member`, {
         method: 'POST',
         headers: {
@@ -103,13 +48,13 @@ const AddTeamMemberPage = ({ colorMode }) => {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          firstName: formData.firstName.trim(),
-          lastName: formData.lastName.trim(),
-          email: formData.email.trim(),
-          phone: formData.phone || null,
-          secondaryPhone: formData.secondaryPhone || null,
-          preferredPhone: formData.preferredPhone || formData.phone || null,
-          role: formData.role
+          firstName: 'Team',
+          lastName: 'Member',
+          email: email.trim(),
+          phone: null,
+          secondaryPhone: null,
+          preferredPhone: null,
+          role: 'WORKER'
         })
       });
 
@@ -122,9 +67,9 @@ const AddTeamMemberPage = ({ colorMode }) => {
         // Handle validation errors with more detail
         if (result.errors && Object.keys(result.errors).length > 0) {
           const errorMessages = Object.values(result.errors).flat();
-          throw new Error(errorMessages.join(', ') || result.message || 'Failed to add team member');
+          throw new Error(errorMessages.join(', ') || result.message || 'Failed to send invite');
         }
-        throw new Error(result.message || result.error || 'Failed to add team member');
+        throw new Error(result.message || result.error || 'Failed to send invite');
       }
 
       if (result.success) {
@@ -132,23 +77,13 @@ const AddTeamMemberPage = ({ colorMode }) => {
         setSuccess(true);
         setEmailStatus(result.data?.emailSent || false);
         setSetupLink(result.data?.setupLink || '');
-        
-        // Reset form
-        setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          phone: '',
-          secondaryPhone: '',
-          preferredPhone: '',
-          role: 'WORKER'
-        });
+        setEmail('');
       } else {
-        throw new Error(result.message || 'Failed to add team member');
+        throw new Error(result.message || 'Failed to send invite');
       }
     } catch (err) {
       console.error('❌ ADD-TEAM-MEMBER: Error details:', err);
-      setError(err.message || 'Failed to add team member');
+      setError(err.message || 'Failed to send invite');
     } finally {
       setIsSubmitting(false);
     }
@@ -159,6 +94,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     setError('');
     setEmailStatus(null);
     setSetupLink('');
+    setEmail('');
   };
 
   if (success) {
@@ -171,17 +107,11 @@ const AddTeamMemberPage = ({ colorMode }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Team Member Added Successfully!</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Invite Sent Successfully!</h3>
             {emailStatus ? (
               <div>
                 <p className="text-sm text-gray-600 mb-4">
-                  ✅ Team member has been added successfully!
-                </p>
-                <p className="text-xs text-gray-500 mb-4">
-                  ✅ Account created in the system
-                </p>
-                <p className="text-xs text-gray-500 mb-4">
-                  ✅ Welcome email sent with login instructions
+                  ✅ Invitation email has been sent to <strong>{email}</strong>
                 </p>
                 <p className="text-xs text-gray-500 mb-4">
                   The team member can log in using Google OAuth with their email address.
@@ -190,14 +120,11 @@ const AddTeamMemberPage = ({ colorMode }) => {
             ) : (
               <div>
                 <p className="text-sm text-yellow-600 mb-4">
-                  ⚠️ Team member was added to the system, but the welcome email failed to send.
+                  ⚠️ User created, but the invitation email failed to send.
                 </p>
                 <div className="bg-gray-100 p-3 rounded-md mb-4">
                   <p className="text-xs text-gray-600">Manual setup link: <code className="break-all">{setupLink}</code></p>
                 </div>
-                <p className="text-xs text-gray-500 mb-4">
-                  Please share this link with the team member so they can complete their profile setup. They will need to sign in with Google OAuth using their email address.
-                </p>
                 <button
                   onClick={() => navigator.clipboard.writeText(setupLink)}
                   className="text-blue-600 hover:text-blue-800 text-sm underline"
@@ -208,9 +135,9 @@ const AddTeamMemberPage = ({ colorMode }) => {
             )}
             <button
               onClick={resetForm}
-              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+              className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors mt-4"
             >
-              Add Another Team Member
+              Invite Another Member
             </button>
           </div>
         </div>
@@ -222,7 +149,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     <div className={`${colorMode ? 'bg-slate-800' : 'bg-white'} rounded-lg shadow-sm border border-gray-200`}>
       <div className="px-4 py-3 border-b border-gray-200">
         <h1 className="text-lg font-semibold text-gray-900">Add Team Member</h1>
-        <p className="text-sm text-gray-600">Add a new team member to your organization</p>
+        <p className="text-sm text-gray-600">Invite a new team member via email</p>
       </div>
       
       <form onSubmit={handleSubmit} className="p-4 space-y-4">
@@ -241,38 +168,6 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 mb-1">
-                  First Name *
-                </label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 mb-1">
-                  Last Name *
-                </label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
-            </div>
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                 Email Address *
@@ -281,115 +176,34 @@ const AddTeamMemberPage = ({ colorMode }) => {
                 type="email"
                 id="email"
                 name="email"
-                value={formData.email}
-                onChange={handleInputChange}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="colleague@example.com"
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Primary Phone
-                </label>
-                <input
-                  type="tel"
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handlePhoneChange}
-                  placeholder="(555) 123-4567"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="secondaryPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                  Secondary Phone
-                </label>
-                <input
-                  type="tel"
-                  id="secondaryPhone"
-                  name="secondaryPhone"
-                  value={formData.secondaryPhone}
-                  onChange={handlePhoneChange}
-                  placeholder="(555) 123-4567"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-            </div>
-
-            {(formData.phone || formData.secondaryPhone) && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Preferred Phone for Customer Communications
-                </label>
-                <div className="space-y-1">
-                  {formData.phone && (
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="preferredPhone"
-                        value={formData.phone}
-                        checked={formData.preferredPhone === formData.phone}
-                        onChange={handlePreferredPhoneChange}
-                        className="mr-2"
-                      />
-                      <span className="text-sm text-gray-700">Primary Phone: {formData.phone}</span>
-                    </label>
-                  )}
-                  {formData.secondaryPhone && (
-                    <label className="flex items-center">
-                      <input
-                        type="radio"
-                        name="preferredPhone"
-                        value={formData.secondaryPhone}
-                        checked={formData.preferredPhone === formData.secondaryPhone}
-                        onChange={handlePreferredPhoneChange}
-                        className="mr-2"
-                      />
-                      <span className="text-sm text-gray-700">Secondary Phone: {formData.secondaryPhone}</span>
-                    </label>
-                  )}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Role *
-              </label>
-              <select
-                id="role"
-                name="role"
-                value={formData.role}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                {roles.map(role => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                An invitation will be sent to this email address. They can sign in using their Google Account.
+              </p>
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
               <button
-                type="button"
-                onClick={resetForm}
-                className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
                 type="submit"
                 disabled={isSubmitting}
-                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center"
               >
-                {isSubmitting ? 'Adding Team Member...' : 'Add Team Member'}
+                {isSubmitting ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Sending Invite...
+                  </>
+                ) : (
+                  'Send Invite'
+                )}
               </button>
             </div>
           </form>
