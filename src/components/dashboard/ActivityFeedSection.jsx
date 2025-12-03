@@ -71,23 +71,26 @@ const ActivityFeedSection = ({
   }, [itemsSignature, activityFeedItems, actions]);
 
   // Expand all items by default - keep track of which items we've already expanded
-  const expandedInitRef = useRef(null);
-  if (!expandedInitRef.current) {
-    expandedInitRef.current = new Set();
-  }
+  const expandedInitRef = useRef(new Set());
   
   useEffect(() => {
     const items = state.items || [];
     if (items.length > 0) {
       // Expand any items that haven't been expanded yet
+      let hasChanges = false;
       items.forEach(it => {
-        if (!expandedInitRef.current.has(it.id) && !state.expandedItems.has(it.id)) {
-          actions.toggleExpanded(it.id);
+        // Only try to expand if we haven't touched this item yet
+        if (!expandedInitRef.current.has(it.id)) {
+          // Check if it needs expansion (not already in expandedItems)
+          if (!state.expandedItems.has(it.id)) {
+            actions.toggleExpanded(it.id);
+            hasChanges = true;
+          }
           expandedInitRef.current.add(it.id);
         }
       });
     }
-  }, [state.items, state.expandedItems, actions]);
+  }, [state.items, actions]); // Removed state.expandedItems to prevent fighting user interaction
 
   // Expand/Collapse handlers
   const handleExpandAllActivity = () => {
@@ -186,7 +189,9 @@ const ActivityFeedSection = ({
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                   (() => {
                     const currentCount = (state.items || []).length;
-                    return state.expandedItems.size === currentCount && currentCount > 0
+                    // Active (Brand) if NOT all expanded (size < count)
+                    // Disabled (White) if ALL expanded (size === count)
+                    return state.expandedItems.size < currentCount && currentCount > 0
                       ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
                       : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
                   })()
@@ -206,7 +211,9 @@ const ActivityFeedSection = ({
               <button
                 onClick={handleCollapseAllActivity}
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
-                  state.expandedItems.size === 0
+                  // Active (Orange) if ANY expanded (size > 0)
+                  // Disabled (White) if NONE expanded (size === 0)
+                  state.expandedItems.size > 0
                     ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
                     : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
                 }`}

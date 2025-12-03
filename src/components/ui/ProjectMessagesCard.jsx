@@ -802,7 +802,9 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                             const fileName = isActivityFeed 
                               ? (att.originalName || att.title || att.fileName || 'Attachment')
                               : (att.title || att.fileName || att.originalName || 'Attachment');
-                            const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString();
+                            const fileExt = (att.extension || att.fileType || fileName.split('.').pop() || '').toString().toLowerCase();
+                            const isImage = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'].includes(fileExt);
+
                             return (
                                 <div
                                     key={idx}
@@ -811,12 +813,22 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                     {/* Document icon and name */}
                                     <div className="flex items-center gap-2 flex-1 min-w-0">
                                         {isActivityFeed ? (
-                                            // Activity Feed format: grey PDF box
-                                            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-gray-600 border border-gray-200">
-                                                <span className="text-[10px] font-semibold uppercase">
-                                                    {fileExt ? fileExt.slice(0, 4) : 'DOC'}
-                                                </span>
-                                            </div>
+                                            // Activity Feed format
+                                            isImage && (att.url || att.fileUrl || att.signedUrl) ? (
+                                                <div className="h-8 w-8 rounded-md overflow-hidden border border-gray-200 bg-gray-100 flex-shrink-0">
+                                                    <img 
+                                                        src={att.url || att.fileUrl || att.signedUrl} 
+                                                        alt={fileName}
+                                                        className="h-full w-full object-cover"
+                                                    />
+                                                </div>
+                                            ) : (
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 text-gray-600 border border-gray-200 flex-shrink-0">
+                                                    <span className="text-[10px] font-semibold uppercase">
+                                                        {fileExt ? fileExt.slice(0, 4) : 'DOC'}
+                                                    </span>
+                                                </div>
+                                            )
                                         ) : (
                                             // Messages/Tasks/Reminders format: blue document icon
                                             <div className="w-6 h-6 bg-blue-100 rounded flex items-center justify-center flex-shrink-0">
@@ -845,6 +857,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                                 .find(url => url && url.trim() && url !== '/' && url.length > 1);
                                             
                                             // Map attachment to proper document structure
+                                            // CRITICAL FIX: Only use assetId if it exists. Do NOT fallback to 'id' blindly
+                                            // because 'id' might be the attachment record ID, not the asset ID.
                                             const documentData = {
                                                 ...att,
                                                 ...(validUrl ? { url: validUrl, fileUrl: validUrl } : {}),
@@ -852,8 +866,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                                 title: att.title || att.originalName || att.fileName || att.name || 'Document',
                                                 fileSize: att.fileSize || att.size,
                                                 mimeType: att.mimeType || att.contentType,
-                                                id: att.assetId || att.id,
-                                                assetId: att.assetId || att.id
+                                                // Only pass assetId if we are sure it's an asset ID
+                                                assetId: att.assetId,
+                                                // If we don't have an assetId, don't pass 'id' as assetId unless we're sure
+                                                id: att.assetId || (att.type === 'ASSET' ? att.id : undefined)
                                             };
                                             console.log('🔵 View button clicked, opening modal with:', documentData);
                                             setSelectedDocument(documentData);

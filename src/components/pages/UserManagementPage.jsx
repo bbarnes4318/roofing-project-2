@@ -513,17 +513,7 @@ const UserManagementPage = ({ colorMode }) => {
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="flex items-center">
-                    <input
-                      type="checkbox"
-                      checked={editForm.isActive}
-                      onChange={(e) => setEditForm({...editForm, isActive: e.target.checked})}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-gray-700">Active User</span>
-                  </label>
-                </div>
+
                 <div className="flex justify-end space-x-3 pt-4">
                   <button
                     type="button"

@@ -976,6 +976,40 @@ const apiUrl = window.location.hostname === 'localhost'
             console.log('🔍 APP: Navigation setup complete, returning early');
             return;
         }
+
+        // If view is 'Profile' or 'Project Profile', navigate to Projects page with the project selected
+        if (view === 'Profile' || view === 'Project Profile') {
+            console.log('🔍 APP: Navigating to Project Profile for:', project?.name);
+            setActivePage('Projects');
+            
+            // Normalize project id
+            const incomingId = project?.id || project?._id || project?.projectId || project?.project_id;
+            const fullProject = projects.find(p => String(p.id) === String(incomingId));
+            const projectToSelect = fullProject ? {
+                ...fullProject,
+                ...project,
+                id: fullProject.id,
+                _id: fullProject._id
+            } : {
+                ...project,
+                id: incomingId || `temp-${Date.now()}`,
+                name: project?.name || project?.projectName || 'Selected Project'
+            };
+
+            setNavigationState(prev => ({
+                ...prev,
+                selectedProject: projectToSelect,
+                projectInitialView: 'Profile',
+                projectSourceSection: sourceSection || 'Dashboard',
+                previousPage: activePage,
+                dashboardState: {
+                    ...(prev.dashboardState || {}),
+                    selectedPhase: phase || (prev.dashboardState && prev.dashboardState.selectedPhase) || null
+                }
+            }));
+            setSidebarOpen(false);
+            return;
+        }
         
         // Normalize project id to avoid null selection due to id shape/type
         const incomingId = project?.id || project?._id || project?.projectId || project?.project_id;
