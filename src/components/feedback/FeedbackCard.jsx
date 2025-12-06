@@ -107,7 +107,8 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, onDelete, colorM
     
     setIsVoting(true);
     try {
-      await onVote(feedback.id, feedback.hasVoted);
+      // Pass 'upvote' action - backend expects 'upvote' or 'downvote' string
+      await onVote(feedback.id, 'upvote');
     } finally {
       setIsVoting(false);
     }

@@ -87,6 +87,7 @@ model User {
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
   followUpSettings         FollowUpSettings?
   followUpTracking         FollowUpTracking[]
+  feedbackFollows          FeedbackFollower[]        @relation("UserFeedbackFollows")
 
   @@map("users")
 }
@@ -1050,6 +1051,7 @@ model Feedback {
   assignee               User?             @relation("FeedbackAssignee", fields: [assigneeId], references: [id])
   author                 User              @relation("FeedbackAuthor", fields: [authorId], references: [id])
   votes                  Vote[]
+  followers              FeedbackFollower[]
 
   @@index([type])
   @@index([status])
@@ -1096,6 +1098,20 @@ model Vote {
   @@index([feedbackId])
   @@index([userId])
   @@map("votes")
+}
+
+model FeedbackFollower {
+  id         String   @id @default(cuid())
+  createdAt  DateTime @default(now())
+  userId     String   @map("user_id")
+  feedbackId String   @map("feedback_id")
+  user       User     @relation("UserFeedbackFollows", fields: [userId], references: [id], onDelete: Cascade)
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, feedbackId])
+  @@index([feedbackId])
+  @@index([userId])
+  @@map("feedback_followers")
 }
 
 model Badge {

@@ -291,11 +291,11 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             // Numbered list: 1., 1) or 1 - patterns
             // Only treat as numbered list if it's a small number (1-99) followed by punctuation and space
             // This prevents treating things like "1.5" or "100.25" as list items
-            if (/^([1-9]|[1-9][0-9])[\.)]\s+/.test(trimmed) || /^([1-9]|[1-9][0-9])\s+-\s+/.test(trimmed)) {
+            if (/^([1-9]|[1-9][0-9])[.)]\s+/.test(trimmed) || /^([1-9]|[1-9][0-9])\s+-\s+/.test(trimmed)) {
                 if (inUl) { out.push('</ul>'); inUl = false; }
                 if (!inOl) { out.push('<ol class="list-decimal ml-5 mb-1 space-y-1">'); inOl = true; }
                 const text = trimmed
-                    .replace(/^([1-9]|[1-9][0-9])[\.)]\s+/, '')
+                    .replace(/^([1-9]|[1-9][0-9])[.)]\s+/, '')
                     .replace(/^([1-9]|[1-9][0-9])\s+-\s+/, '');
                 out.push(`<li>${replaceLinks(escapeHtml(text))}</li>`);
                 pendingAutoList = false;
@@ -359,7 +359,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             .replace(/\/{3,}/g, ' ')
             .replace(/\]\s*\//g, ' ')
             // collapse stray brackets that aren't part of links
-            .replace(/(^|\s)[\[\]](?=\s|$)/g, ' ')
+            .replace(/(^|\s)[[\]](?=\s|$)/g, ' ')
             // normalize excessive whitespace
             .replace(/\s{2,}/g, ' ')
             .trim();
@@ -942,7 +942,20 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                         });
 
                                 // Add to conversation tracking - determine speaker based on message.role
-                                const speaker = message.role === 'assistant' ? 'Bubbles' : currentUserDisplayName || 'You';
+                                // VAPI sends 'role' field: 'assistant' or 'user' - log for debugging
+                                console.log('[Vapi] Speaker detection - message.role:', message.role);
+                                let speaker;
+                                if (message.role === 'assistant' || message.role === 'bot') {
+                                    speaker = 'Bubbles';
+                                } else if (message.role === 'user') {
+                                    speaker = currentUserDisplayName || 'You';
+                                } else {
+                                    // Fallback when role is undefined - default to user
+                                    speaker = currentUserDisplayName || 'You';
+                                    console.log('[Vapi] Role undefined, defaulting to user');
+                                }
+                                console.log('[Vapi] Final speaker:', speaker);
+                                
                                 setVoiceConversation(prev => {
                                     const updated = [...prev, {
                                         speaker: speaker,
@@ -1732,7 +1745,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
       if (selectedFileFormats.includes('json')) {
         downloadBlob('transcript_' + date + '.json', 'application/json', JSON.stringify(transcriptSummary, null, 2));
       }
-    if (selectedFileFormats.includes('txt') || selectedFileFormats.includes('pdf') || selectedFileFormats.includes('docx')) {
+      
+      // Build text content for transcript
+      const buildTranscriptText = () => {
         const lines = [];
         lines.push('Voice Call Transcript & Summary');
         lines.push('Date: ' + (transcriptSummary?.metadata?.callDate || ''));
@@ -1742,12 +1757,60 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
         lines.push(String(transcriptSummary?.executiveSummary || ''));
         lines.push('');
         lines.push('Full Transcript:');
-                (transcriptSummary?.fullTranscript || []).forEach(ex => {
-                    const t = new Date(ex.timestamp).toLocaleTimeString();
-                    const speakerLabel = normalizeSpeakerDisplay(ex.speaker);
-                    lines.push('[' + t + '] ' + speakerLabel + ': ' + ex.message);
-                });
-        downloadBlob('transcript_' + date + '.txt', 'text/plain', lines.join('\n'));
+        (transcriptSummary?.fullTranscript || []).forEach(ex => {
+            const t = new Date(ex.timestamp).toLocaleTimeString();
+            const speakerLabel = normalizeSpeakerDisplay(ex.speaker);
+            lines.push('[' + t + '] ' + speakerLabel + ': ' + ex.message);
+        });
+        return lines.join('\n');
+      };
+      
+      // Handle TXT format
+      if (selectedFileFormats.includes('txt')) {
+        downloadBlob('transcript_' + date + '.txt', 'text/plain', buildTranscriptText());
+      }
+      
+      // Handle PDF format - try server-side generation, fallback to text with .pdf extension
+      if (selectedFileFormats.includes('pdf')) {
+        // Try server-side PDF generation
+        fetch('/api/transcripts/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('authToken') || ''}`
+          },
+          body: JSON.stringify({
+            summary: transcriptSummary,
+            formats: ['pdf'],
+            projectId: selectedProject?.id,
+            sessionId: `voice_${Date.now()}`
+          })
+        })
+        .then(response => response.ok ? response.json() : null)
+        .then(result => {
+          if (result?.success && result?.data?.downloadLinks?.pdf) {
+            // Server generated PDF - trigger download
+            const link = document.createElement('a');
+            link.href = result.data.downloadLinks.pdf;
+            link.download = `transcript_${date}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+          } else {
+            // Fallback - download as text file with .pdf extension (not ideal but better than nothing)
+            console.warn('PDF generation not available, downloading as text');
+            downloadBlob('transcript_' + date + '.pdf', 'application/pdf', buildTranscriptText());
+          }
+        })
+        .catch(err => {
+          console.error('PDF generation failed:', err);
+          downloadBlob('transcript_' + date + '.pdf', 'application/pdf', buildTranscriptText());
+        });
+      }
+      
+      // Handle DOCX format similarly if needed
+      if (selectedFileFormats.includes('docx')) {
+        downloadBlob('transcript_' + date + '.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', buildTranscriptText());
       }
     };
     

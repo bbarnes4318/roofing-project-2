@@ -2,8 +2,51 @@ const express = require('express');
 const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
+const EmailService = require('../services/EmailService');
 
 const router = express.Router();
+
+// Email recipients for Feedback Hub notifications
+const FEEDBACK_NOTIFICATION_EMAILS = [
+  'jimbosky35@gmail.com',
+  'khall@dbmgconsulting.com'
+];
+
+// Helper function to send email notifications for Feedback Hub activity
+async function sendFeedbackNotification(action, feedback, user) {
+  try {
+    await EmailService.initialize();
+    if (!EmailService.isAvailable()) {
+      console.log('📧 Email service not available, skipping notification');
+      return;
+    }
+
+    const subject = `Feedback Hub: ${action}`;
+    const html = EmailService.createEmailTemplate({
+      title: 'Feedback Hub Activity',
+      content: `
+        <p><strong>Action:</strong> ${action}</p>
+        <p><strong>Title:</strong> ${feedback.title || 'N/A'}</p>
+        <p><strong>Type:</strong> ${feedback.type || 'N/A'}</p>
+        <p><strong>By:</strong> ${user?.firstName || 'Unknown'} ${user?.lastName || 'User'}</p>
+        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+      `
+    });
+
+    for (const email of FEEDBACK_NOTIFICATION_EMAILS) {
+      await EmailService.sendEmail({
+        to: email,
+        subject,
+        html,
+        text: `Feedback Hub: ${action} - ${feedback.title} by ${user?.firstName || 'Unknown'} ${user?.lastName || 'User'}`
+      });
+    }
+    console.log(`📧 Feedback notification sent for: ${action}`);
+  } catch (error) {
+    console.error('📧 Failed to send feedback notification:', error.message);
+    // Don't throw - email failure shouldn't break the main operation
+  }
+}
 
 // Debug database connection
 console.log('🔍 FEEDBACK ROUTE DEBUG:');
@@ -42,8 +85,8 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
       // Filter for current user's feedback
       where.authorId = req.user.id;
     } else if (type === 'FOLLOWING') {
-      // Filter for feedback with at least one developer comment
-      where.comments = { some: { isDeveloper: true } };
+      // Filter for feedback that the current user is following
+      where.followers = { some: { userId: req.user.id } };
     } else {
       where.type = type.toUpperCase();
     }
@@ -681,6 +724,126 @@ router.patch('/:id/status', authenticateToken, asyncHandler(async (req, res) => 
   res.json({
     success: true,
     data: updatedFeedback
+  });
+}));
+
+// POST /api/feedback/:id/follow - Follow a feedback item
+router.post('/:id/follow', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  // Check if feedback exists
+  const feedback = await prisma.feedback.findUnique({
+    where: { id },
+    select: { id: true, title: true, type: true }
+  });
+
+  if (!feedback) {
+    return res.status(404).json({
+      success: false,
+      message: 'Feedback not found'
+    });
+  }
+
+  // Check if already following
+  const existingFollow = await prisma.feedbackFollower.findUnique({
+    where: {
+      userId_feedbackId: {
+        userId,
+        feedbackId: id
+      }
+    }
+  });
+
+  if (existingFollow) {
+    return res.json({
+      success: true,
+      message: 'Already following this feedback',
+      isFollowing: true
+    });
+  }
+
+  // Create follow
+  await prisma.feedbackFollower.create({
+    data: {
+      userId,
+      feedbackId: id
+    }
+  });
+
+  // Get user info for notification
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { firstName: true, lastName: true }
+  });
+
+  // Send email notification
+  await sendFeedbackNotification('New Follower', feedback, user);
+
+  res.status(201).json({
+    success: true,
+    message: 'Now following this feedback',
+    isFollowing: true
+  });
+}));
+
+// DELETE /api/feedback/:id/follow - Unfollow a feedback item
+router.delete('/:id/follow', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  // Check if following
+  const existingFollow = await prisma.feedbackFollower.findUnique({
+    where: {
+      userId_feedbackId: {
+        userId,
+        feedbackId: id
+      }
+    }
+  });
+
+  if (!existingFollow) {
+    return res.json({
+      success: true,
+      message: 'Not following this feedback',
+      isFollowing: false
+    });
+  }
+
+  // Delete follow
+  await prisma.feedbackFollower.delete({
+    where: {
+      userId_feedbackId: {
+        userId,
+        feedbackId: id
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    message: 'Unfollowed this feedback',
+    isFollowing: false
+  });
+}));
+
+// GET /api/feedback/:id/follow - Check if following
+router.get('/:id/follow', authenticateToken, asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  const existingFollow = await prisma.feedbackFollower.findUnique({
+    where: {
+      userId_feedbackId: {
+        userId,
+        feedbackId: id
+      }
+    }
+  });
+
+  res.json({
+    success: true,
+    isFollowing: !!existingFollow
   });
 }));
 
