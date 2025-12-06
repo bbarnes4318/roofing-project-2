@@ -479,6 +479,21 @@ You are "Bubbles," an expert AI assistant for Kenstruction, a premier roofing an
 - Avoid complex lists - use short sentences
 - For questions requiring data, use the available tools
 
+## CRITICAL: MANDATORY TOOL USAGE FOR DATA QUESTIONS
+**You MUST use the available tools to answer ANY questions about projects, tasks, messages, emails, customers, or any application data.**
+
+RULES YOU MUST FOLLOW:
+1. When asked "how many projects" → ALWAYS call \`get_all_projects\` first
+2. When asked about a specific project → call \`get_all_projects\` with search parameter
+3. When asked about tasks or workload → call \`get_all_tasks\`
+4. When asked about emails → call \`get_all_emails\`
+5. When asked about messages → call \`get_all_messages\`
+6. When asked about reminders/calendar → call \`get_all_reminders\`
+7. **NEVER make up project names, numbers, customer names, or any data**
+8. **NEVER say "I don't have access" - you DO have access through these tools**
+9. If a tool returns empty results, say "I didn't find any matching records"
+10. If a tool returns data, summarize it concisely for voice
+
 ## COMPREHENSIVE DATA ACCESS
 You have COMPLETE ACCESS to ALL application data through tools:
 - Use \`get_all_projects\` to find projects by name, number, status, phase
@@ -508,15 +523,11 @@ ${userWorkload ? `
 - Upcoming Reminders: ${userWorkload.reminders.upcoming}
 ` : ''}
 
-## AVAILABLE TOOLS
-${JSON.stringify(tools || [], null, 2)}
-
-**CRITICAL:** When answering questions about data NOT in the current context, use the appropriate tool to fetch the information. Don't say "I don't have access to that" - you DO have access through these tools!
-
 ## RESPONSE FORMAT
 - Keep responses under 100 words for voice
 - Use natural, conversational language
-- If you need to call a tool, do so and then summarize the results concisely`;
+- If you need to call a tool, do so and then summarize the results concisely
+- After calling a tool, report the ACTUAL data returned - never invent data`;
 
   return prompt;
 }
@@ -654,6 +665,12 @@ function extractRecipientNamesFromVoice(message) {
 router.post('/vapi/assistant-query', authVapi, async (req, res) => {
   try {
     const raw = req.body || {};
+    
+    // Log incoming request for debugging
+    console.log('[Vapi] ===== INCOMING REQUEST =====');
+    console.log('[Vapi] Request body keys:', Object.keys(raw));
+    console.log('[Vapi] Raw body:', JSON.stringify(raw, null, 2).slice(0, 1000));
+    
     // Accept multiple possible field names coming from Vapi UI schema builder
     let projectId = raw.projectId ?? raw.projectid ?? raw.project_id ?? raw.project ?? req.query.projectId ?? req.query.projectid ?? null;
     let query = raw.query ?? raw.input ?? raw.text ?? raw.message ?? raw.turn?.input ?? raw.turn?.text ?? req.query.query ?? req.query.q ?? '';
@@ -663,7 +680,8 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     if (!projectId) {
       projectId = vars.projectId ?? vars.project_id ?? vars.projectid ?? null;
     }
-    try { console.log('[Vapi] payload vars', { projectId, hasVars: !!vars, keys: Object.keys(vars || {}) }); } catch(_) {}
+    
+    console.log('[Vapi] Parsed params:', { projectId, query: String(query).slice(0, 100), userId: raw.userId, userName: raw.userName, hasVars: !!vars, varKeys: Object.keys(vars || {}) });
 
     // Normalize contextFileIds to array
     if (!Array.isArray(contextFileIds)) {
@@ -993,13 +1011,38 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     let currentWorkflowData = null;
     
     try {
-      // Try to get user from request (VAPI may pass userId)
+      // Try to get user from request (VAPI may pass userId via variableValues)
       const userId = raw.userId || raw.user_id || vars.userId || vars.user_id || null;
+      console.log('[Vapi] Looking up user with ID:', userId);
+      
       if (userId) {
         user = await prisma.user.findUnique({ 
           where: { id: String(userId) },
           select: { id: true, firstName: true, lastName: true, email: true, role: true }
         });
+      }
+      
+      // CRITICAL: If no user found, default to first admin/owner for data access
+      // This ensures tools always have user context for database queries
+      if (!user) {
+        console.log('[Vapi] No user from request, looking up fallback user...');
+        user = await prisma.user.findFirst({
+          where: { 
+            OR: [
+              { role: 'ADMIN' },
+              { role: 'OWNER' },
+              { role: 'PROJECT_MANAGER' }
+            ]
+          },
+          select: { id: true, firstName: true, lastName: true, email: true, role: true }
+        });
+        if (user) {
+          console.log('[Vapi] Using fallback user for context:', user.email, 'role:', user.role);
+        } else {
+          console.warn('[Vapi] WARNING: No fallback user found - tools may not work correctly');
+        }
+      } else {
+        console.log('[Vapi] User found:', user.email);
       }
       
       // Get project context if projectId is provided
@@ -1085,7 +1128,7 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
 
     // Handle function calls if present
     if (functionCalls && functionCalls.length > 0 && executeToolCall) {
-      console.log('🔧 VAPI: AI requested tool calls:', functionCalls.length);
+      console.log('🔧 VAPI: AI requested tool calls:', functionCalls.length, 'user:', user?.email || 'none');
       
       const toolResults = [];
       for (let i = 0; i < functionCalls.length; i++) {
@@ -1106,19 +1149,21 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
             parsedArgs = {};
           }
           
+          console.log(`🔧 VAPI: Executing tool "${toolName}" with args:`, JSON.stringify(parsedArgs));
+          
           const result = await executeToolCall(toolName, parsedArgs, {
             user: user || { id: raw.userId || null },
             projectContext,
             currentWorkflowData
           });
           
+          console.log(`✅ VAPI: Tool "${toolName}" returned:`, result.success ? `${result.count || 'N/A'} items` : `error: ${result.error}`);
+          
           toolResults.push({
             role: 'tool',
             tool_call_id: toolCall.id,
             content: JSON.stringify(result)
           });
-          
-          console.log(`✅ VAPI: Tool ${toolName} executed successfully`);
         } catch (toolError) {
           console.error(`❌ VAPI: Tool execution error:`, toolError);
           toolResults.push({

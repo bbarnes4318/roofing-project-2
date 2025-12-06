@@ -1114,14 +1114,30 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
             setIsVoiceConnecting(true);
             setVoiceError('');
             
-            // Prepare assistant overrides for project context
+            // Get user info from localStorage for authenticated context
+            let userId = null;
+            try {
+                const userInfo = localStorage.getItem('user') || localStorage.getItem('currentUser');
+                if (userInfo) {
+                    const user = JSON.parse(userInfo);
+                    userId = user.id || user.userId || null;
+                }
+            } catch (_) {}
+            
+            // Prepare assistant overrides for project and user context
             const assistantOverrides = {};
             if (selectedProject?.id) {
                 assistantOverrides.variableValues = {
                     projectId: selectedProject.id,
-                    projectName: selectedProject.projectName || selectedProject.name || 'Current Project'
+                    projectName: selectedProject.projectName || selectedProject.name || 'Current Project',
+                    userId: userId
                 };
-                console.log('[Vapi] Adding project context:', assistantOverrides);
+                console.log('[Vapi] Adding project and user context:', assistantOverrides);
+            } else if (userId) {
+                assistantOverrides.variableValues = {
+                    userId: userId
+                };
+                console.log('[Vapi] Adding user context:', assistantOverrides);
             }
             
             console.log('[Vapi] Starting call with assistant ID:', VAPI_ASSISTANT_ID);
