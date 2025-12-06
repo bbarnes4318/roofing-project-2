@@ -941,32 +941,40 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                                     return capped;
                         });
 
-                                // Add to conversation tracking - determine speaker based on message.role
-                                // VAPI sends 'role' field: 'assistant' or 'user' - log for debugging
-                                console.log('[Vapi] Speaker detection - message.role:', message.role);
-                                let speaker;
-                                if (message.role === 'assistant' || message.role === 'bot') {
-                                    speaker = 'Bubbles';
-                                } else if (message.role === 'user') {
-                                    speaker = currentUserDisplayName || 'You';
-                                } else {
-                                    // Fallback when role is undefined - default to user
-                                    speaker = currentUserDisplayName || 'You';
-                                    console.log('[Vapi] Role undefined, defaulting to user');
-                                }
-                                console.log('[Vapi] Final speaker:', speaker);
+                                // NOTE: transcript events are primarily for real-time user speech display
+                                // The voiceConversation is populated by the more reliable 
+                                // 'user-message' and 'assistant-message' events below
+                                // which have proper speaker attribution
                                 
-                                setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: speaker,
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    console.log('[Vapi] Updated conversation:', updated);
-                                    voiceConversationRef.current = updated;
-                                    return updated;
-                                });
+                                // Only add to voiceConversation if it's a FINAL transcript with role
+                                if (message.transcriptType === 'final' && message.role) {
+                                    let speaker;
+                                    if (message.role === 'assistant' || message.role === 'bot') {
+                                        speaker = 'Bubbles';
+                                    } else {
+                                        speaker = currentUserDisplayName || 'You';
+                                    }
+                                    console.log('[Vapi] Final transcript, speaker:', speaker, 'role:', message.role);
+                                    
+                                    setVoiceConversation(prev => {
+                                        // Dedupe: don't add if last message is similar
+                                        const lastMsg = prev[prev.length - 1];
+                                        if (lastMsg && Math.abs(lastMsg.message.length - text.length) < 10 && 
+                                            (lastMsg.message.includes(text.slice(0, 20)) || text.includes(lastMsg.message.slice(0, 20)))) {
+                                            return prev;
+                                        }
+                                        
+                                        const updated = [...prev, {
+                                            speaker: speaker,
+                                            message: text,
+                                            timestamp: new Date(),
+                                            confidence: 'high'
+                                        }];
+                                        console.log('[Vapi] Updated conversation:', updated);
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    });
+                                }
                             }
                         }
                         
@@ -2678,63 +2686,83 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                 </span>
                             </div>
                         )}
-           {showTranscript && (liveTranscriptText || voiceTranscript.length > 0) && (
+           {showTranscript && (voiceConversation.length > 0 || liveTranscriptText) && (
   <div className="w-full">
-    <div className="rounded-xl px-4 py-3 border bg-white border-blue-200 text-black">
-      <div className="flex items-center gap-2 mb-2">
-        <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
-        <span className="text-sm font-medium">Live Transcription</span>
+    <div className="rounded-xl px-4 py-3 border bg-white border-blue-200 text-black shadow-sm">
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
+          <span className="text-sm font-semibold text-gray-800">Live Transcription</span>
+        </div>
+        <span className="text-xs text-gray-500">{voiceConversation.length} messages</span>
       </div>
       <div
         ref={liveTranscriptScrollRef}
-        className="text-sm leading-relaxed bg-white/50 px-3 py-2 rounded font-sans overflow-y-auto overflow-x-hidden h-44 md:h-56"
-        style={{
-          wordBreak: 'normal',
-          overflowWrap: 'break-word',
-          whiteSpace: 'normal',
-          textAlign: 'left',
-          maxWidth: '100%',
-          width: '100%'
-        }}
+        className="space-y-2 overflow-y-auto overflow-x-hidden h-48 md:h-64 pr-2"
+        style={{ scrollbarWidth: 'thin' }}
         role="log"
         aria-live="polite"
         aria-atomic="false"
         aria-relevant="additions text"
       >
-        {(() => {
-  // Render as continuous text instead of separate lines
-  const rawLines = Array.isArray(voiceTranscript) ? voiceTranscript : [];
-  const normalize = (s) => cleanMojibake(String(s || '')).trim();
-
-  // Remove consecutive duplicates after normalization
-  const normalized = [];
-  for (let i = 0; i < rawLines.length; i++) {
-    const txt = normalize(rawLines[i]);
-    if (!txt) continue;
-    if (normalized.length === 0 || normalized[normalized.length - 1] !== txt) {
-      normalized.push(txt);
-    }
-  }
-
-  // Keep only the last N lines for performance
-  const safeLines = normalized.slice(-200);
-
-  const live = normalize(liveTranscriptText || '');
-  const lastFinal = safeLines.length > 0 ? safeLines[safeLines.length - 1] : '';
-  const showLive = !!live && live !== lastFinal;
-
-  // Combine all finalized text into one continuous string
-  const finalizedText = safeLines.join(' ');
-  
-  return (
-    <div className="whitespace-pre-wrap break-words">
-      {finalizedText}
-      {showLive && (
-        <span className="opacity-80"> {live}</span>
-      )}
-    </div>
-  );
-})()}
+        {voiceConversation.map((entry, idx) => {
+          const isBubbles = entry.speaker === 'Bubbles' || entry.speaker === 'assistant' || entry.speaker === 'Assistant';
+          const displayName = isBubbles ? 'Bubbles' : (entry.speaker || currentUserDisplayName || 'You');
+          const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+          
+          return (
+            <div key={idx} className={`flex flex-col ${isBubbles ? 'items-start' : 'items-end'}`}>
+              <div className={`max-w-[85%] rounded-lg px-3 py-2 ${
+                isBubbles 
+                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200' 
+                  : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'
+              }`}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`text-xs font-semibold ${isBubbles ? 'text-blue-700' : 'text-gray-700'}`}>
+                    {displayName}
+                  </span>
+                  {timeStr && (
+                    <span className="text-xs text-gray-400">{timeStr}</span>
+                  )}
+                </div>
+                <p className="text-sm text-gray-800 leading-relaxed break-words">
+                  {cleanMojibake(entry.message || '')}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+        
+        {/* Show live partial transcript if different from last finalized */}
+        {liveTranscriptText && (() => {
+          const live = cleanMojibake(liveTranscriptText || '').trim();
+          const lastEntry = voiceConversation[voiceConversation.length - 1];
+          const lastMsg = lastEntry ? cleanMojibake(lastEntry.message || '').trim() : '';
+          const showLive = live && live !== lastMsg && !lastMsg.includes(live);
+          
+          if (!showLive) return null;
+          
+          return (
+            <div className="flex flex-col items-end">
+              <div className="max-w-[85%] rounded-lg px-3 py-2 bg-gray-50 border border-gray-200 border-dashed opacity-70">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs font-semibold text-gray-500">
+                    {currentUserDisplayName || 'You'} (speaking...)
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 leading-relaxed break-words italic">
+                  {live}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
+        
+        {voiceConversation.length === 0 && !liveTranscriptText && (
+          <div className="text-center text-gray-400 text-sm py-4">
+            Waiting for speech...
+          </div>
+        )}
       </div>
     </div>
   </div>
@@ -2976,7 +3004,12 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             {/* Full Transcript */}
                             <div className="bg-gray-50 rounded-lg p-4 relative">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-lg font-semibold text-gray-900">Full Conversation Transcript</h3>
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="text-lg font-semibold text-gray-900">Full Conversation Transcript</h3>
+                                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded-full">
+                                            {(transcriptSummary?.fullTranscript || []).length} messages
+                                        </span>
+                                    </div>
                                     <button
                                         onClick={closeTranscriptModal}
                                         className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded hover:bg-gray-200"
@@ -2987,25 +3020,49 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         </svg>
                                     </button>
                                 </div>
-                                <div className="space-y-3 max-h-60 overflow-y-auto">
-                                    {(transcriptSummary?.fullTranscript || []).map((exchange, index) => (
-                                        <div key={index} className="bg-white p-3 rounded border border-gray-200">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-sm font-semibold text-gray-700">
-                                                    {normalizeSpeakerDisplay(exchange.speaker)}
-                                                </span>
-                                                <span className="text-xs text-gray-500">
-                                                    {new Date(exchange.timestamp).toLocaleTimeString()}
-                                                </span>
-                                                {exchange.confidence !== 'high' && (
-                                                    <span className="text-xs px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
-                                                        {exchange.confidence} confidence
-                                                    </span>
-                                                )}
+                                <div className="space-y-3 max-h-72 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
+                                    {(transcriptSummary?.fullTranscript || []).map((exchange, index) => {
+                                        const speakerName = normalizeSpeakerDisplay(exchange.speaker);
+                                        const isBubbles = speakerName === 'Bubbles' || speakerName === 'Assistant';
+                                        const timeStr = exchange.timestamp ? new Date(exchange.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+                                        
+                                        return (
+                                            <div key={index} className={`flex flex-col ${isBubbles ? 'items-start' : 'items-end'}`}>
+                                                <div className={`max-w-[85%] rounded-xl px-4 py-3 shadow-sm ${
+                                                    isBubbles 
+                                                        ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200' 
+                                                        : 'bg-gradient-to-br from-gray-50 to-white border border-gray-200'
+                                                }`}>
+                                                    <div className="flex items-center gap-2 mb-1.5">
+                                                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                                                            isBubbles 
+                                                                ? 'bg-blue-500 text-white' 
+                                                                : 'bg-gray-500 text-white'
+                                                        }`}>
+                                                            {isBubbles ? 'B' : (speakerName.charAt(0).toUpperCase() || 'U')}
+                                                        </div>
+                                                        <span className={`text-sm font-semibold ${isBubbles ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                            {speakerName}
+                                                        </span>
+                                                        <span className="text-xs text-gray-400">
+                                                            {timeStr}
+                                                        </span>
+                                                        {exchange.confidence && exchange.confidence !== 'high' && (
+                                                            <span className="text-xs px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full">
+                                                                {exchange.confidence}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-sm text-gray-800 leading-relaxed">{cleanMojibake(exchange.message)}</p>
+                                                </div>
                                             </div>
-                                            <p className="text-sm text-gray-800">{cleanMojibake(exchange.message)}</p>
+                                        );
+                                    })}
+                                    {(transcriptSummary?.fullTranscript || []).length === 0 && (
+                                        <div className="text-center text-gray-400 text-sm py-8">
+                                            No transcript data available
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         </div>
