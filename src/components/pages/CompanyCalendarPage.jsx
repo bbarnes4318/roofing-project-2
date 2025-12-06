@@ -2,12 +2,48 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon, PlusCircleIcon } from '../common/Icons';
 import { authService, usersService } from '../../services/api';
 
-// Simple ChevronRightIcon component
 const ChevronRightIcon = ({ className = "w-5 h-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
     </svg>
 );
+
+// Error Boundary to catch rendering errors and display graceful fallback
+class CalendarErrorBoundary extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error, errorInfo) {
+        console.error('Calendar Error Boundary caught an error:', error, errorInfo);
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-8 text-center">
+                    <div className="text-red-500 text-xl font-bold mb-4">Something went wrong</div>
+                    <p className="text-gray-600 mb-4">There was an error loading the calendar.</p>
+                    <button 
+                        onClick={() => this.setState({ hasError: false, error: null })}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                    >
+                        Try Again
+                    </button>
+                    <pre className="mt-4 p-4 bg-gray-100 rounded text-left text-xs overflow-auto max-h-40">
+                        {this.state.error?.toString()}
+                    </pre>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
 
 const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProjectSelect }) => {
     const [currentDate, setCurrentDate] = useState(new Date());
@@ -32,6 +68,29 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         projectId: '',
         priority: 'medium'
     });
+
+    // User Calendar Visibility State
+    const [userCalendarVisibility, setUserCalendarVisibility] = useState({});
+    const [showUserPanel, setShowUserPanel] = useState(false);
+    
+    // Work Scheduler State
+    const [showWorkScheduler, setShowWorkScheduler] = useState(false);
+    
+    // Color Coding - 20 Preset Colors
+    const colorPresets = [
+        '#3B82F6', '#2563EB', '#1D4ED8', '#7C3AED', '#8B5CF6', // Blues & Purples
+        '#10B981', '#059669', '#047857', '#14B8A6', '#06B6D4', // Greens & Teals
+        '#F59E0B', '#D97706', '#B45309', '#EF4444', '#DC2626', // Oranges & Reds
+        '#EC4899', '#DB2777', '#6366F1', '#4B5563', '#6B7280'  // Pinks & Grays
+    ];
+    const [userColors, setUserColors] = useState({});
+    const [showColorPicker, setShowColorPicker] = useState(null); // userId when open
+    
+    // Search & Recent Events State  
+    const [searchQuery, setSearchQuery] = useState('');
+    const [dateRangeFilter, setDateRangeFilter] = useState('all');
+    const [showRecentEvents, setShowRecentEvents] = useState(false);
+    const [recentEvents, setRecentEvents] = useState([]);
 
     // Helper: identify alert-type events that should NOT appear on Company Calendar
     const isAlertEvent = (evt) => {
@@ -133,6 +192,54 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         return days;
     };
 
+    // Get days in current week for Week view
+    const getDaysInWeek = (date) => {
+        const currentDay = date.getDay(); // 0 = Sunday
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - currentDay);
+        
+        const days = [];
+        for (let i = 0; i < 7; i++) {
+            const weekDate = new Date(startOfWeek);
+            weekDate.setDate(startOfWeek.getDate() + i);
+            days.push({
+                date: weekDate,
+                isCurrentMonth: weekDate.getMonth() === date.getMonth(),
+                events: getEventsForDate(weekDate)
+            });
+        }
+        return days;
+    };
+
+    // Get hour slots for Day view (6 AM to 9 PM)
+    const getHoursForDay = (date) => {
+        const hours = [];
+        for (let hour = 6; hour <= 21; hour++) {
+            const timeStr = hour < 12 
+                ? `${hour}:00 AM` 
+                : hour === 12 
+                    ? `12:00 PM` 
+                    : `${hour - 12}:00 PM`;
+            
+            // Filter events for this hour
+            const dayEvents = getEventsForDate(date);
+            const hourEvents = dayEvents.filter(event => {
+                if (!event.time) return false;
+                const eventHour = parseInt(event.time.split(':')[0]);
+                const isPM = event.time.toLowerCase().includes('pm');
+                const hour24 = isPM && eventHour !== 12 ? eventHour + 12 : eventHour;
+                return hour24 === hour;
+            });
+            
+            hours.push({
+                hour,
+                timeStr,
+                events: hourEvents
+            });
+        }
+        return hours;
+    };
+
     const getEventsForDate = (date) => {
         const events = [];
         const dateString = date.toDateString();
@@ -160,7 +267,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         }
         
         // Project work events (materials delivery and labor start only)
-        projects.forEach(project => {
+        (projects || []).forEach(project => {
             if (project.materialsDeliveryStart && new Date(project.materialsDeliveryStart).toDateString() === dateString) {
                 events.push({
                     id: `delivery-${project.id}`,
@@ -539,9 +646,189 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             <PlusCircleIcon className="w-3 h-3" />
                             Add Event
                         </button>
+                        
+                        {/* User Calendars Toggle */}
+                        <button
+                            onClick={() => setShowUserPanel(!showUserPanel)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                showUserPanel
+                                    ? (colorMode ? 'bg-purple-600 text-white' : 'bg-purple-600 text-white')
+                                    : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                            }`}
+                        >
+                            👥 Team
+                        </button>
+                        
+                        {/* Work Scheduler Toggle */}
+                        <button
+                            onClick={() => setShowWorkScheduler(!showWorkScheduler)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                showWorkScheduler
+                                    ? (colorMode ? 'bg-amber-600 text-white' : 'bg-amber-600 text-white')
+                                    : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                            }`}
+                        >
+                            🔧 Work
+                        </button>
+                        
+                        {/* Recent Events Toggle */}
+                        <button
+                            onClick={() => setShowRecentEvents(!showRecentEvents)}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                showRecentEvents
+                                    ? (colorMode ? 'bg-green-600 text-white' : 'bg-green-600 text-white')
+                                    : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                            }`}
+                        >
+                            📋 Recent
+                        </button>
                     </div>
                 </div>
+                
+                {/* Search Bar */}
+                <div className="flex items-center gap-2 mt-3">
+                    <div className="flex-1 relative">
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search events by title..."
+                            className={`w-full px-4 py-2 pl-8 rounded-lg text-sm border ${
+                                colorMode 
+                                    ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400' 
+                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
+                            } focus:outline-none focus:ring-2 focus:ring-blue-500`}
+                        />
+                        <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                    </div>
+                    <select
+                        value={dateRangeFilter}
+                        onChange={(e) => setDateRangeFilter(e.target.value)}
+                        className={`px-3 py-2 rounded-lg text-xs border ${
+                            colorMode 
+                                ? 'bg-[#374151] border-gray-600 text-white' 
+                                : 'bg-white border-gray-300 text-gray-900'
+                        }`}
+                    >
+                        <option value="all">All Time</option>
+                        <option value="3m">Last 3 Months</option>
+                        <option value="6m">Last 6 Months</option>
+                        <option value="1y">Last 1 Year</option>
+                        <option value="2y">Last 2 Years</option>
+                        <option value="5y">Last 5 Years</option>
+                    </select>
+                </div>
             </div>
+
+            {/* User Calendar Panel */}
+            {showUserPanel && (
+                <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-purple-500/30' : 'bg-white border border-purple-200'}`}>
+                    <h3 className={`text-sm font-bold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                        👥 Team Calendars
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                        {(teamMembers || []).map(user => (
+                            <div key={user.id} className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setUserCalendarVisibility(prev => ({
+                                        ...prev,
+                                        [user.id]: !prev[user.id]
+                                    }))}
+                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                                        userCalendarVisibility[user.id] !== false
+                                            ? (colorMode ? 'bg-purple-600 text-white' : 'bg-purple-100 text-purple-800 border border-purple-300')
+                                            : (colorMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-500')
+                                    }`}
+                                >
+                                    <span 
+                                        className="w-3 h-3 rounded-full" 
+                                        style={{ backgroundColor: userColors[user.id] || colorPresets[teamMembers.indexOf(user) % colorPresets.length] }}
+                                    />
+                                    {user?.firstName} {user?.lastName?.charAt(0)}.
+                                </button>
+                                {/* Color Picker Button */}
+                                <button
+                                    onClick={() => setShowColorPicker(showColorPicker === user.id ? null : user.id)}
+                                    className={`w-5 h-5 rounded-full border-2 ${colorMode ? 'border-gray-600' : 'border-gray-300'}`}
+                                    style={{ backgroundColor: userColors[user.id] || colorPresets[teamMembers.indexOf(user) % colorPresets.length] }}
+                                    title="Change color"
+                                />
+                            </div>
+                        ))}
+                    </div>
+                    {/* Color Picker Dropdown */}
+                    {showColorPicker && (
+                        <div className={`mt-3 p-3 rounded-lg ${colorMode ? 'bg-[#0f172a]' : 'bg-gray-50'}`}>
+                            <div className={`text-xs font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                Select a color:
+                            </div>
+                            <div className="flex flex-wrap gap-1">
+                                {colorPresets.map((color, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            setUserColors(prev => ({ ...prev, [showColorPicker]: color }));
+                                            setShowColorPicker(null);
+                                        }}
+                                        className="w-6 h-6 rounded-full hover:scale-110 transition-transform border-2 border-white shadow"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                ))}
+                            </div>
+                            {/* Custom Color Input */}
+                            <div className="flex items-center gap-2 mt-2">
+                                <input
+                                    type="color"
+                                    onChange={(e) => {
+                                        setUserColors(prev => ({ ...prev, [showColorPicker]: e.target.value }));
+                                        setShowColorPicker(null);
+                                    }}
+                                    className="w-8 h-8 rounded cursor-pointer"
+                                />
+                                <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Custom color</span>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Recent Events Panel */}
+            {showRecentEvents && (
+                <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-green-500/30' : 'bg-white border border-green-200'}`}>
+                    <h3 className={`text-sm font-bold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                        📋 Last 15 Events
+                    </h3>
+                    <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                        {(calendarEvents || []).slice(0, 15).map((event, idx) => (
+                            <div 
+                                key={event._id || idx}
+                                onClick={() => handleEventClick(event)}
+                                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-all ${
+                                    colorMode ? 'hover:bg-[#374151]' : 'hover:bg-gray-100'
+                                }`}
+                            >
+                                <div className={`w-3 h-3 rounded-full ${getEventColor(event.type)}`} />
+                                <div className="flex-1 min-w-0">
+                                    <div className={`text-xs font-medium truncate ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                        {event.title || 'Untitled Event'}
+                                    </div>
+                                    <div className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {event.date} • {event.time}
+                                    </div>
+                                </div>
+                                <span className={`text-[10px] px-2 py-0.5 rounded ${colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-100 text-gray-600'}`}>
+                                    {event.type}
+                                </span>
+                            </div>
+                        ))}
+                        {(!calendarEvents || calendarEvents.length === 0) && (
+                            <div className={`text-center text-xs py-4 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                No recent events
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Filter Tabs */}
             <div className={`mb-3 p-3 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/20' : 'bg-white border border-gray-200'}`}>
@@ -603,68 +890,182 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 </button>
             </div>
 
-            {/* Calendar Grid */}
-            <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
-                {/* Day Headers */}
-                <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
-                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                        <div key={day} className={`p-2 text-center text-xs font-bold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                            {day}
-                        </div>
-                    ))}
-                </div>
-                
-                {/* Calendar Days */}
-                <div className="grid grid-cols-7">
-                    {calendarDays.map((day, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handleDateClick(day.date)}
-                            className={`min-h-[60px] p-1 border-r border-b cursor-pointer transition-all duration-200 ${
-                                colorMode 
-                                    ? 'border-[#3b82f6]/20 hover:bg-[#374151]/50' 
-                                    : 'border-gray-200 hover:bg-blue-50/50'
-                            } ${!day.isCurrentMonth ? (colorMode ? 'bg-[#1e293b]/30' : 'bg-gray-50') : ''}`}
-                        >
-                            {/* Date Number */}
-                            <div className={`text-xs font-bold mb-1 ${
-                                isToday(day.date) 
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
-                                    : isSelected(day.date)
-                                        ? `${colorMode ? 'text-blue-400' : 'text-blue-600'} font-bold`
-                                        : day.isCurrentMonth 
-                                            ? (colorMode ? 'text-white' : 'text-gray-900')
-                                            : (colorMode ? 'text-gray-500' : 'text-gray-400')
-                            }`}>
-                                {day.date.getDate()}
+            {/* Calendar Grid - Month View */}
+            {viewMode === 'month' && (
+                <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
+                    {/* Day Headers */}
+                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                            <div key={day} className={`p-2 text-center text-xs font-bold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                {day}
                             </div>
-                            
-                            {/* Events */}
-                            <div className="space-y-0.5">
-                                {getFilteredEvents(day.events).slice(0, 1).map(event => (
-                                    <div
-                                        key={event.id}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleEventClick(event);
-                                        }}
-                                        className={`text-xs p-0.5 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm`}
-                                        title={`${event.time} - ${event.title}`}
-                                    >
-                                        <div className="truncate font-medium text-xs">{event.title}</div>
-                                        <div className="text-xs opacity-90">{event.time}</div>
-                                    </div>
-                                ))}
-                                {getFilteredEvents(day.events).length > 1 && (
-                                    <div className={`text-xs px-1 py-0.5 rounded shadow-sm ${colorMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
-                                        +{getFilteredEvents(day.events).length - 1} more
-                                    </div>
-                                )}
+                        ))}
+                    </div>
+                    
+                    {/* Calendar Days */}
+                    <div className="grid grid-cols-7">
+                        {calendarDays.map((day, index) => (
+                            <div
+                                key={index}
+                                onClick={() => handleDateClick(day.date)}
+                                className={`min-h-[60px] p-1 border-r border-b cursor-pointer transition-all duration-200 ${
+                                    colorMode 
+                                        ? 'border-[#3b82f6]/20 hover:bg-[#374151]/50' 
+                                        : 'border-gray-200 hover:bg-blue-50/50'
+                                } ${!day.isCurrentMonth ? (colorMode ? 'bg-[#1e293b]/30' : 'bg-gray-50') : ''}`}
+                            >
+                                {/* Date Number */}
+                                <div className={`text-xs font-bold mb-1 ${
+                                    isToday(day.date) 
+                                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
+                                        : isSelected(day.date)
+                                            ? `${colorMode ? 'text-blue-400' : 'text-blue-600'} font-bold`
+                                            : day.isCurrentMonth 
+                                                ? (colorMode ? 'text-white' : 'text-gray-900')
+                                                : (colorMode ? 'text-gray-500' : 'text-gray-400')
+                                }`}>
+                                    {day.date.getDate()}
+                                </div>
+                                
+                                {/* Events */}
+                                <div className="space-y-0.5">
+                                    {getFilteredEvents(day.events).slice(0, 1).map(event => (
+                                        <div
+                                            key={event.id}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleEventClick(event);
+                                            }}
+                                            className={`text-xs p-0.5 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm`}
+                                            title={`${event.time} - ${event.title}`}
+                                        >
+                                            <div className="truncate font-medium text-xs">{event.title}</div>
+                                            <div className="text-xs opacity-90">{event.time}</div>
+                                        </div>
+                                    ))}
+                                    {getFilteredEvents(day.events).length > 1 && (
+                                        <div className={`text-xs px-1 py-0.5 rounded shadow-sm ${colorMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
+                                            +{getFilteredEvents(day.events).length - 1} more
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
+                    </div>
                 </div>
-            </div>
+            )}
+
+            {/* Calendar Grid - Week View */}
+            {viewMode === 'week' && (
+                <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
+                    {/* Day Headers with Dates */}
+                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                        {getDaysInWeek(selectedDate).map((day, index) => (
+                            <div 
+                                key={index} 
+                                className={`p-2 text-center cursor-pointer transition-all ${
+                                    isSelected(day.date) ? (colorMode ? 'bg-[#3b82f6]/30' : 'bg-blue-100') : ''
+                                }`}
+                                onClick={() => handleDateClick(day.date)}
+                            >
+                                <div className={`text-xs font-bold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}
+                                </div>
+                                <div className={`text-sm font-bold ${
+                                    isToday(day.date) 
+                                        ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto' 
+                                        : colorMode ? 'text-white' : 'text-gray-900'
+                                }`}>
+                                    {day.date.getDate()}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Week Events Grid */}
+                    <div className="grid grid-cols-7">
+                        {getDaysInWeek(selectedDate).map((day, dayIndex) => (
+                            <div 
+                                key={dayIndex} 
+                                className={`min-h-[300px] p-2 border-r ${colorMode ? 'border-[#3b82f6]/20' : 'border-gray-200'}`}
+                            >
+                                <div className="space-y-1">
+                                    {getFilteredEvents(day.events).map(event => (
+                                        <div
+                                            key={event.id}
+                                            onClick={() => handleEventClick(event)}
+                                            className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm`}
+                                        >
+                                            <div className="font-bold text-[10px] opacity-80">{event.time}</div>
+                                            <div className="font-medium truncate">{event.title}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Calendar Grid - Day View */}
+            {viewMode === 'day' && (
+                <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
+                    {/* Day Header */}
+                    <div className={`p-4 text-center ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                        <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
+                        </div>
+                        <div className="flex justify-center gap-2 mt-2">
+                            <button 
+                                onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() - 1)))}
+                                className={`px-3 py-1 rounded text-xs ${colorMode ? 'bg-[#374151] text-white hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                            >
+                                ← Previous Day
+                            </button>
+                            <button 
+                                onClick={() => setSelectedDate(new Date())}
+                                className="px-3 py-1 rounded text-xs bg-blue-600 text-white hover:bg-blue-700"
+                            >
+                                Today
+                            </button>
+                            <button 
+                                onClick={() => setSelectedDate(new Date(selectedDate.setDate(selectedDate.getDate() + 1)))}
+                                className={`px-3 py-1 rounded text-xs ${colorMode ? 'bg-[#374151] text-white hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}
+                            >
+                                Next Day →
+                            </button>
+                        </div>
+                    </div>
+                    
+                    {/* Hourly Schedule */}
+                    <div className="max-h-[600px] overflow-y-auto">
+                        {getHoursForDay(selectedDate).map((hourSlot, index) => (
+                            <div 
+                                key={index} 
+                                className={`flex border-b ${colorMode ? 'border-[#3b82f6]/20' : 'border-gray-200'}`}
+                            >
+                                {/* Time Label */}
+                                <div className={`w-20 p-2 text-xs font-medium ${colorMode ? 'text-gray-400 bg-[#0f172a]' : 'text-gray-500 bg-gray-50'}`}>
+                                    {hourSlot.timeStr}
+                                </div>
+                                {/* Events for this hour */}
+                                <div className="flex-1 min-h-[50px] p-1">
+                                    {hourSlot.events.map(event => (
+                                        <div
+                                            key={event.id}
+                                            onClick={() => handleEventClick(event)}
+                                            className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm mb-1`}
+                                        >
+                                            <div className="font-medium">{event.title}</div>
+                                            <div className="opacity-80 text-[10px]">{event.description || 'No description'}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Event Modal */}
             {showEventModal && selectedEvent && (
@@ -787,8 +1188,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                             : 'bg-white border-gray-300'
                                     }`}>
                                         <div className="flex flex-wrap gap-2 mb-2">
-                                            {selectedAssignees.map(userId => {
-                                                const user = teamMembers.find(u => u.id === userId);
+                                            {(selectedAssignees || []).map(userId => {
+                                                const user = (teamMembers || []).find(u => u.id === userId);
                                                 return (
                                                     <span key={userId} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
                                                         {user ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
@@ -813,9 +1214,9 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                             className={`w-full bg-transparent focus:outline-none ${colorMode ? 'text-white' : 'text-gray-900'}`}
                                         >
                                             <option value="">Select a user...</option>
-                                            {teamMembers.filter(u => !selectedAssignees.includes(u.id)).map(user => (
+                                            {(teamMembers || []).filter(u => !(selectedAssignees || []).includes(u.id)).map(user => (
                                                 <option key={user.id} value={user.id}>
-                                                    {user.firstName} {user.lastName}
+                                                    {user?.firstName} {user?.lastName}
                                                 </option>
                                             ))}
                                         </select>
@@ -975,4 +1376,11 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     );
 };
 
-export default CompanyCalendarPage; 
+// Wrap in error boundary for better error handling
+const CompanyCalendarPageWithErrorBoundary = (props) => (
+    <CalendarErrorBoundary>
+        <CompanyCalendarPage {...props} />
+    </CalendarErrorBoundary>
+);
+
+export default CompanyCalendarPageWithErrorBoundary; 
