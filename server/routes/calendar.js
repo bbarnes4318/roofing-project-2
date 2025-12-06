@@ -224,8 +224,9 @@ router.post('/', asyncHandler(async (req, res) => {
 
   // Verify project exists if provided
   if (projectId) {
+    const projectIdStr = String(projectId);
     const project = await prisma.project.findUnique({
-      where: { id: projectId }
+      where: { id: projectIdStr }
     });
 
     if (!project) {
@@ -276,7 +277,7 @@ router.post('/', asyncHandler(async (req, res) => {
       status: status ? status.toUpperCase() : 'CONFIRMED',
       isRecurring: isRecurring || false,
       recurrenceRule,
-      projectId,
+      projectId: projectId ? String(projectId) : undefined,
       organizerId,
       attendees: attendees ? {
         create: attendees.map(attendee => ({
