@@ -210,9 +210,19 @@ router.post('/', asyncHandler(async (req, res) => {
     followUpTiming
   } = req.body;
 
+  // Use organizerId from request body, or fall back to authenticated user
+  const effectiveOrganizerId = organizerId || req.user?.id;
+  
+  if (!effectiveOrganizerId) {
+    return res.status(400).json({
+      success: false,
+      message: 'Organizer ID is required. Please ensure you are logged in.'
+    });
+  }
+
   // Verify organizer exists
   const organizer = await prisma.user.findUnique({
-    where: { id: organizerId }
+    where: { id: effectiveOrganizerId }
   });
 
   if (!organizer) {
@@ -278,7 +288,7 @@ router.post('/', asyncHandler(async (req, res) => {
       isRecurring: isRecurring || false,
       recurrenceRule,
       projectId: projectId ? String(projectId) : undefined,
-      organizerId,
+      organizerId: effectiveOrganizerId,
       attendees: attendees ? {
         create: attendees.map(attendee => ({
           userId: attendee.userId,
@@ -327,7 +337,7 @@ router.post('/', asyncHandler(async (req, res) => {
       const FollowUpService = require('../services/followUpService');
       
       // Get the assigned user (first attendee or organizer)
-      const assignedUserId = attendees && attendees.length > 0 ? attendees[0].userId : organizerId;
+      const assignedUserId = attendees && attendees.length > 0 ? attendees[0].userId : effectiveOrganizerId;
       
       // Check if user has follow-up settings enabled
       const userSettings = await prisma.followUpSettings.findUnique({

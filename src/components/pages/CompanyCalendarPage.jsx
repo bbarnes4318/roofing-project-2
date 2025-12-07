@@ -132,8 +132,17 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             });
             if (response.ok) {
                 const data = await response.json();
-                // Ensure we always have an array, even if API returns different structure
-                const events = Array.isArray(data) ? data : (data.data || data.events || []);
+                // Handle API response structure: { success: true, data: { events: [...], count: N } }
+                let events = [];
+                if (Array.isArray(data)) {
+                    events = data;
+                } else if (data.data?.events && Array.isArray(data.data.events)) {
+                    events = data.data.events;
+                } else if (data.data && Array.isArray(data.data)) {
+                    events = data.data;
+                } else if (data.events && Array.isArray(data.events)) {
+                    events = data.events;
+                }
                 // Proactively remove alert-type records from the source list as well
                 setCalendarEvents(events.filter(e => !isAlertEvent(e)));
             }
