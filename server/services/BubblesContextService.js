@@ -192,7 +192,7 @@ class BubblesContextService {
       if (filters.category) where.category = filters.category;
       if (filters.overdue) {
         where.dueDate = { lt: new Date() };
-        where.status = { not: 'COMPLETED' };
+        where.status = { not: 'DONE' };
       }
       if (filters.upcoming) {
         const nextWeek = new Date();
@@ -609,9 +609,9 @@ class BubblesContextService {
       nextWeek.setDate(nextWeek.getDate() + 7);
 
       const [tasks, overdueTasks, upcomingTasks, alerts, reminders, projectsManaged, projectsAsTeamMember] = await Promise.all([
-        prisma.task.count({ where: { assignedToId: userId, status: { not: 'COMPLETED' } } }),
-        prisma.task.count({ where: { assignedToId: userId, dueDate: { lt: now }, status: { not: 'COMPLETED' } } }),
-        prisma.task.count({ where: { assignedToId: userId, dueDate: { gte: now, lte: nextWeek }, status: { not: 'COMPLETED' } } }),
+        prisma.task.count({ where: { assignedToId: userId, status: { not: 'DONE' } } }),
+        prisma.task.count({ where: { assignedToId: userId, dueDate: { lt: now }, status: { not: 'DONE' } } }),
+        prisma.task.count({ where: { assignedToId: userId, dueDate: { gte: now, lte: nextWeek }, status: { not: 'DONE' } } }),
         prisma.workflowAlert.count({ where: { assignedToId: userId, status: 'ACTIVE' } }),
         prisma.calendarEvent.count({ where: { organizerId: userId, startTime: { gte: now } } }),
         prisma.project.count({ where: { projectManagerId: userId, archived: false } }),
