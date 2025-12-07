@@ -615,18 +615,26 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     let contextFileIds = [];
     
     // Check if this is a Vapi tool-call request with nested message structure
+    let isVapiToolCall = false;
+    let vapiToolCallId = null;
+    
     if (raw.message && raw.message.toolCalls && Array.isArray(raw.message.toolCalls)) {
       console.log('[Vapi] Detected Vapi tool-calls message format');
+      isVapiToolCall = true;
       const toolCall = raw.message.toolCalls[0];
-      if (toolCall && toolCall.function && toolCall.function.arguments) {
-        const args = toolCall.function.arguments;
-        query = args.query || '';
-        projectId = args.projectId || args.projectid || args.project_id || null;
-        userId = args.userId || args.user_id || null;
-        userName = args.userName || args.user_name || null;
-        returnActions = args.returnActions === true || args.returnActions === 'true';
-        contextFileIds = args.contextFileIds || [];
-        console.log('[Vapi] Extracted from toolCall:', { query: String(query).slice(0, 100), projectId, userId, returnActions });
+      if (toolCall) {
+        vapiToolCallId = toolCall.id || null;
+        console.log('[Vapi] Tool call ID:', vapiToolCallId);
+        if (toolCall.function && toolCall.function.arguments) {
+          const args = toolCall.function.arguments;
+          query = args.query || '';
+          projectId = args.projectId || args.projectid || args.project_id || null;
+          userId = args.userId || args.user_id || null;
+          userName = args.userName || args.user_name || null;
+          returnActions = args.returnActions === true || args.returnActions === 'true';
+          contextFileIds = args.contextFileIds || [];
+          console.log('[Vapi] Extracted from toolCall:', { query: String(query).slice(0, 100), projectId, userId, returnActions });
+        }
       }
     } else {
       // Fallback: Accept multiple possible field names coming from Vapi UI schema builder
@@ -651,7 +659,7 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
       userId = vars.userId ?? vars.user_id ?? null;
     }
     
-    console.log('[Vapi] Final parsed params:', { projectId, query: String(query).slice(0, 100), userId, userName, hasVars: !!vars, varKeys: Object.keys(vars || {}) });
+    console.log('[Vapi] Final parsed params:', { projectId, query: String(query).slice(0, 100), userId, userName, isVapiToolCall, vapiToolCallId, hasVars: !!vars, varKeys: Object.keys(vars || {}) });
 
     // Normalize contextFileIds to array
     if (!Array.isArray(contextFileIds)) {
@@ -1166,6 +1174,19 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
         text = followUpChat?.choices?.[0]?.message?.content || text || 'OK';
         console.log('✅ VAPI: Follow-up response generated with tool results');
       }
+    }
+
+    // CRITICAL: When this is a Vapi tool call, respond in Vapi's expected format
+    if (isVapiToolCall && vapiToolCallId) {
+      console.log('[Vapi] Returning tool call result format with toolCallId:', vapiToolCallId);
+      return res.json({
+        results: [
+          {
+            toolCallId: vapiToolCallId,
+            result: text || 'I processed your request but have no specific information to share.'
+          }
+        ]
+      });
     }
 
     if (returnActions) {
