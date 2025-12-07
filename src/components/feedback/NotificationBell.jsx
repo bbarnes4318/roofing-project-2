@@ -74,7 +74,7 @@ const NotificationBell = ({ notifications, colorMode }) => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className={`absolute right-0 top-full mt-2 w-80 ${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50`}
+            className={`absolute left-0 top-full mt-2 w-80 ${colorMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-200'} border rounded-xl shadow-xl z-50`}
           >
             {/* Header */}
             <div className={`flex items-center justify-between p-4 border-b ${colorMode ? 'border-slate-700' : 'border-gray-200'}`}>
