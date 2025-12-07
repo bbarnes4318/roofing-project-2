@@ -9,6 +9,7 @@ import { getCurrentUser, isUserVerified } from './lib/supabaseClient';
 import DashboardPage from './components/pages/DashboardPage';
 import ProjectProfilePage from './components/pages/ProjectProfilePage';
 import ProjectDetailPage from './components/pages/ProjectDetailPage';
+import ProjectChecklistPage from './components/pages/ProjectChecklistPage';
 import ArchivedProjectsPage from './components/pages/ArchivedProjectsPage';
 import TasksAndAlertsPage from './components/pages/TasksAndAlertsPage';
 import AIAssistantPage from './components/pages/AIAssistantPage';
@@ -1912,7 +1913,25 @@ const apiUrl = window.location.hostname === 'localhost'
                             console.log('🔍 MAIN_RENDER: activePage:', activePage);
                             
                             if (navigationState.selectedProject) {
-                                console.log('🔍 MAIN_RENDER: Rendering ProjectDetailPage');
+                                // Render ProjectChecklistPage for Workflow view, ProjectDetailPage for Profile view
+                                if (navigationState.projectInitialView === 'Project Workflow') {
+                                    console.log('🔍 MAIN_RENDER: Rendering ProjectChecklistPage (Workflow view)');
+                                    return (
+                                        <ProjectChecklistPage 
+                                            project={navigationState.selectedProject}
+                                            onUpdate={handleProjectUpdate}
+                                            onPhaseCompletionChange={(phase, completed) => console.log('Phase completion:', phase, completed)}
+                                            targetLineItemId={navigationState.targetLineItemId}
+                                            targetSectionId={navigationState.targetSectionId}
+                                            selectionNonce={navigationState.selectionNonce}
+                                            onBack={handleBackToProjects}
+                                            colorMode={colorMode}
+                                            projectSourceSection={navigationState.projectSourceSection}
+                                            onProjectSelect={handleProjectSelect}
+                                        />
+                                    );
+                                }
+                                console.log('🔍 MAIN_RENDER: Rendering ProjectDetailPage (Profile view)');
                                 return (
                                     <ProjectDetailPage 
                                         project={navigationState.selectedProject} 

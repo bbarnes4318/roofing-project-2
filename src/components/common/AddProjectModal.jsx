@@ -198,6 +198,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 }
               }
 
+
               setProjectManagers(projectManagerUsers);
 
               // Extract subcontractors from role assignments
@@ -211,13 +212,38 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 }
               }
               setSubcontractors(subcontractorUsers);
+              
+              // Also include any users with PROJECT_MANAGER, MANAGER, ADMIN, or OWNER role
+              const roleBasedManagers = teamMembers.filter(u => {
+                const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
+                return ['PROJECT_MANAGER', 'MANAGER', 'ADMIN', 'OWNER'].includes(userRole);
+              });
+              
+              // Merge role-based managers with explicitly assigned ones, avoiding duplicates
+              roleBasedManagers.forEach(manager => {
+                if (!projectManagerUsers.find(pm => pm.id === manager.id)) {
+                  projectManagerUsers.push(manager);
+                }
+              });
+              
+              setProjectManagers(projectManagerUsers);
             }
           }
         } catch (roleError) {
           console.error('Error fetching role assignments:', roleError);
-          // Don't fallback - only show users assigned to roles
-          setProjectManagers([]);
-          setSubcontractors([]);
+          // Fallback: Filter teamMembers by their role property
+          const roleBasedManagers = teamMembers.filter(u => {
+            const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
+            return ['PROJECT_MANAGER', 'MANAGER', 'ADMIN', 'OWNER'].includes(userRole);
+          });
+          setProjectManagers(roleBasedManagers);
+          
+          // For subcontractors, filter by SUBCONTRACTOR role
+          const roleBasedSubcontractors = teamMembers.filter(u => {
+            const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
+            return userRole === 'SUBCONTRACTOR';
+          });
+          setSubcontractors(roleBasedSubcontractors);
         }
       } catch (error) {
         console.error('Error fetching users:', error);

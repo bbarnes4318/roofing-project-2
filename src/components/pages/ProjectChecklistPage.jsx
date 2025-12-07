@@ -123,7 +123,7 @@ const loadCheckboxState = (projectId) => {
 
 // Workflow data will be loaded from database API
 
-const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce }) => {
+const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce, onBack, colorMode, projectSourceSection, onProjectSelect }) => {
   const projectId = project?._id || project?.id;
   const normalizeRoleForServer = () => 'PROJECT_MANAGER';
   
@@ -1092,6 +1092,21 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   
   return (
     <div className="max-w-4xl mx-auto p-0 space-y-0">
+      
+      {/* Back Button */}
+      {onBack && (
+        <div className="mb-4">
+          <button
+            onClick={onBack}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Back to {projectSourceSection === 'Project Workflow Line Items' ? 'Dashboard' : (projectSourceSection || 'Dashboard')}
+          </button>
+        </div>
+      )}
       
       {/* Workflow Tabs */}
       {workflowTabs.length > 1 && (

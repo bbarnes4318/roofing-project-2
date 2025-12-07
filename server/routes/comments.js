@@ -2,8 +2,51 @@ const express = require('express');
 const { prisma } = require('../config/prisma');
 const { authenticateToken } = require('../middleware/auth');
 const asyncHandler = require('../middleware/asyncHandler');
+const EmailService = require('../services/EmailService');
 
 const router = express.Router();
+
+// Email recipients for Feedback Hub notifications
+// Use ADMIN_EMAILS environment variable (comma-separated) or fallback to test emails
+const FEEDBACK_NOTIFICATION_EMAILS = process.env.ADMIN_EMAILS
+  ? process.env.ADMIN_EMAILS.split(',').map(email => email.trim()).filter(email => email)
+  : ['jimbosky35@gmail.com', 'khall@dbmgconsulting.com'];
+
+// Helper function to send email notifications for new comments
+async function sendCommentNotification(feedback, comment, user) {
+  try {
+    await EmailService.initialize();
+    if (!EmailService.isAvailable()) {
+      console.log('📧 Email service not available, skipping comment notification');
+      return;
+    }
+
+    const subject = `Feedback Hub: New Comment Added`;
+    const html = EmailService.createEmailTemplate({
+      title: 'New Comment on Feedback',
+      content: `
+        <p><strong>Feedback:</strong> ${feedback.title || 'N/A'}</p>
+        <p><strong>Comment By:</strong> ${user?.firstName || 'Unknown'} ${user?.lastName || 'User'}</p>
+        <p><strong>Comment:</strong></p>
+        <blockquote style="border-left: 3px solid #ccc; padding-left: 10px; margin: 10px 0;">${comment.body}</blockquote>
+        <p><strong>Time:</strong> ${new Date().toLocaleString()}</p>
+      `
+    });
+
+    for (const email of FEEDBACK_NOTIFICATION_EMAILS) {
+      await EmailService.sendEmail({
+        to: email,
+        subject,
+        html,
+        text: `New comment on "${feedback.title}" by ${user?.firstName || 'Unknown'} ${user?.lastName || 'User'}`
+      });
+    }
+    console.log(`📧 Comment notification sent for feedback: ${feedback.title}`);
+  } catch (error) {
+    console.error('📧 Failed to send comment notification:', error.message);
+    // Don't throw - email failure shouldn't break the main operation
+  }
+}
 
 // GET /api/feedback/:feedbackId/comments - Get comments for feedback
 router.get('/:feedbackId/comments', asyncHandler(async (req, res) => {
@@ -164,6 +207,9 @@ router.post('/:feedbackId/comments', authenticateToken, asyncHandler(async (req,
       lastActivityDate: new Date()
     }
   });
+
+  // Send email notification for new comment
+  await sendCommentNotification(feedback, comment, comment.author);
 
   const transformedComment = {
     id: comment.id,

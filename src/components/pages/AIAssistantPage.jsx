@@ -11,6 +11,7 @@ import { CheatSheetModal } from '../common/CheatSheet';
 import assetsService from '../../services/assetsService';
 import PermissionGate from '../ui/PermissionGate';
 import { PERMISSIONS } from '../../utils/permissions';
+import { jsPDF } from 'jspdf';
 // Vapi will be loaded dynamically
 
 const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) => {
@@ -406,14 +407,22 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             const raw = String(speaker || '').trim();
             const lower = raw.toLowerCase();
 
-            // Known assistant identifiers -> Bubbles
+            // If empty or undefined, assume it's the user
             if (!raw) return currentUserDisplayName || 'You';
-            if (['assistant', 'ai', 'aiaassistant', 'bubbles', 'bubble'].includes(lower) || lower.includes('assistant') || lower.includes('bubbles')) {
-                return 'Bubbles';
+            
+            // Known assistant/AI/bot identifiers -> Bubbles AI
+            const aiIdentifiers = ['assistant', 'ai', 'aiaassistant', 'bubbles', 'bubble', 'bot', 'agent', 'vapi', 'system'];
+            if (aiIdentifiers.includes(lower)) {
+                return 'Bubbles AI';
+            }
+            
+            // Partial match for AI identifiers (e.g., "ai_assistant", "vapi-bot", "assistant-1")
+            if (lower.includes('assistant') || lower.includes('bubbles') || lower.includes('bot') || lower.includes('ai') || lower.includes('agent') || lower.includes('vapi')) {
+                return 'Bubbles AI';
             }
 
             // Known user identifiers -> show actual user name when available
-            if (['user', 'you', 'client', 'customer'].includes(lower)) {
+            if (['user', 'you', 'client', 'customer', 'human', 'caller'].includes(lower)) {
                 return currentUserDisplayName || 'You';
             }
 
@@ -428,6 +437,7 @@ const AIAssistantPage = ({ projects = [], colorMode = false, onProjectSelect }) 
             return currentUserDisplayName || 'You';
         }
     };
+
 
     // Restore last selected project from sessionStorage when projects load
     useEffect(() => {
@@ -724,7 +734,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                         const transcriptStrings = Array.isArray(voiceTranscriptRef.current) ? voiceTranscriptRef.current : [];
 // If no conversation was captured, create one from the transcript
                         let conversationToUse = Array.isArray(voiceConversationRef.current) ? voiceConversationRef.current : [];
-                        if (voiceConversation.length === 0 && transcriptStrings.length > 0) {
+                        if (conversationToUse.length === 0 && transcriptStrings.length > 0) {
                             console.log('[Vapi] Using voiceTranscript as fallback');
                             conversationToUse = transcriptStrings.map((text, index) => ({
                                 speaker: currentUserDisplayName || 'You',
@@ -1764,6 +1774,96 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
       URL.revokeObjectURL(url);
     };
     
+    // Generate PDF using jsPDF library
+    const generateClientPDF = () => {
+      try {
+        const doc = new jsPDF();
+        const date = new Date().toISOString().split('T')[0];
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const margin = 20;
+        const maxWidth = pageWidth - (margin * 2);
+        let yPos = margin;
+        
+        // Helper function to add text with word wrap
+        const addWrappedText = (text, fontSize = 10, isBold = false) => {
+          doc.setFontSize(fontSize);
+          doc.setFont('helvetica', isBold ? 'bold' : 'normal');
+          const lines = doc.splitTextToSize(String(text || ''), maxWidth);
+          
+          lines.forEach(line => {
+            if (yPos > pageHeight - margin) {
+              doc.addPage();
+              yPos = margin;
+            }
+            doc.text(line, margin, yPos);
+            yPos += fontSize * 0.5;
+          });
+          yPos += 5;
+        };
+        
+        // Title
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('Voice Call Transcript & Summary', margin, yPos);
+        yPos += 15;
+        
+        // Metadata
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Date: ${transcriptSummary?.metadata?.callDate || date}`, margin, yPos);
+        yPos += 6;
+        doc.text(`Duration: ${transcriptSummary?.metadata?.duration || 'Unknown'}`, margin, yPos);
+        yPos += 6;
+        if (transcriptSummary?.metadata?.project?.name) {
+          doc.text(`Project: ${transcriptSummary.metadata.project.name}`, margin, yPos);
+          yPos += 6;
+        }
+        yPos += 10;
+        
+        // Executive Summary
+        if (transcriptSummary?.executiveSummary) {
+          addWrappedText('Executive Summary', 14, true);
+          addWrappedText(transcriptSummary.executiveSummary, 10, false);
+          yPos += 5;
+        }
+        
+        // Full Transcript
+        addWrappedText('Full Transcript', 14, true);
+        
+        if (transcriptSummary?.fullTranscript && transcriptSummary.fullTranscript.length > 0) {
+          transcriptSummary.fullTranscript.forEach(exchange => {
+            const timestamp = new Date(exchange.timestamp).toLocaleTimeString();
+            const speaker = normalizeSpeakerDisplay(exchange.speaker);
+            const line = `[${timestamp}] ${speaker}: ${exchange.message}`;
+            addWrappedText(line, 9, false);
+          });
+        } else {
+          addWrappedText('No transcript available.', 10, false);
+        }
+        
+        // Action Items if present
+        if (transcriptSummary?.actionItems && transcriptSummary.actionItems.length > 0) {
+          yPos += 10;
+          addWrappedText('Action Items', 14, true);
+          transcriptSummary.actionItems.forEach((item, index) => {
+            addWrappedText(`${index + 1}. ${item.action || item}`, 10, false);
+          });
+        }
+        
+        // Save the PDF
+        doc.save(`transcript_${date}.pdf`);
+        console.log('Client-side PDF generated successfully');
+      } catch (error) {
+        console.error('Error generating client PDF:', error);
+        // Ultimate fallback: download as TXT with proper extension
+        const textContent = transcriptSummary?.fullTranscript?.map(ex => 
+          `[${new Date(ex.timestamp).toLocaleTimeString()}] ${normalizeSpeakerDisplay(ex.speaker)}: ${ex.message}`
+        ).join('\n') || 'Transcript generation failed';
+        downloadBlob('transcript_' + new Date().toISOString().split('T')[0] + '.txt', 'text/plain', textContent);
+      }
+    };
+    
     const generateClientDownloads = () => {
       const date = new Date().toISOString().split('T')[0];
       if (selectedFileFormats.includes('json')) {
@@ -1821,14 +1921,14 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             link.click();
             document.body.removeChild(link);
           } else {
-            // Fallback - download as text file with .pdf extension (not ideal but better than nothing)
-            console.warn('PDF generation not available, downloading as text');
-            downloadBlob('transcript_' + date + '.pdf', 'application/pdf', buildTranscriptText());
+            // Fallback - generate PDF client-side using jsPDF
+            console.warn('PDF generation not available from server, generating client-side PDF');
+            generateClientPDF();
           }
         })
         .catch(err => {
           console.error('PDF generation failed:', err);
-          downloadBlob('transcript_' + date + '.pdf', 'application/pdf', buildTranscriptText());
+          generateClientPDF();
         });
       }
       
@@ -2703,8 +2803,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             </div>
                         )}
            {showTranscript && (voiceConversation.length > 0 || liveTranscriptText) && (
-  <div className="w-full">
-    <div className="rounded-xl px-4 py-3 border bg-white border-blue-200 text-black shadow-sm">
+  <div className="w-full flex justify-center">
+    <div className="w-full max-w-3xl rounded-xl px-4 py-3 border bg-white border-blue-200 text-black shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
@@ -2714,7 +2814,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
       </div>
       <div
         ref={liveTranscriptScrollRef}
-        className="space-y-2 overflow-y-auto overflow-x-hidden h-48 md:h-64 pr-2"
+        className="space-y-2 overflow-y-auto overflow-x-hidden h-48 md:h-64 px-2"
         style={{ scrollbarWidth: 'thin' }}
         role="log"
         aria-live="polite"
@@ -2722,13 +2822,13 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
         aria-relevant="additions text"
       >
         {voiceConversation.map((entry, idx) => {
-          const isBubbles = entry.speaker === 'Bubbles' || entry.speaker === 'assistant' || entry.speaker === 'Assistant';
+          const isBubbles = entry.speaker === 'Bubbles' || entry.speaker === 'Bubbles AI' || entry.speaker === 'assistant' || entry.speaker === 'Assistant';
           const displayName = isBubbles ? 'Bubbles' : (entry.speaker || currentUserDisplayName || 'You');
           const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
           
           return (
-            <div key={idx} className={`flex flex-col ${isBubbles ? 'items-start' : 'items-end'}`}>
-              <div className={`max-w-[85%] rounded-lg px-3 py-2 ${
+            <div key={idx} className={`flex ${isBubbles ? 'justify-start' : 'justify-end'}`}>
+              <div className={`max-w-[70%] rounded-lg px-3 py-2 ${
                 isBubbles 
                   ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200' 
                   : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'
@@ -2759,8 +2859,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
           if (!showLive) return null;
           
           return (
-            <div className="flex flex-col items-end">
-              <div className="max-w-[85%] rounded-lg px-3 py-2 bg-gray-50 border border-gray-200 border-dashed opacity-70">
+            <div className="flex justify-end">
+              <div className="max-w-[70%] rounded-lg px-3 py-2 bg-gray-50 border border-gray-200 border-dashed opacity-70">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs font-semibold text-gray-500">
                     {currentUserDisplayName || 'You'} (speaking...)
@@ -3039,7 +3139,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                 <div className="space-y-3 max-h-72 overflow-y-auto pr-2" style={{ scrollbarWidth: 'thin' }}>
                                     {(transcriptSummary?.fullTranscript || []).map((exchange, index) => {
                                         const speakerName = normalizeSpeakerDisplay(exchange.speaker);
-                                        const isBubbles = speakerName === 'Bubbles' || speakerName === 'Assistant';
+                                        const isBubbles = speakerName === 'Bubbles' || speakerName === 'Bubbles AI' || speakerName === 'Assistant';
                                         const timeStr = exchange.timestamp ? new Date(exchange.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
                                         
                                         return (

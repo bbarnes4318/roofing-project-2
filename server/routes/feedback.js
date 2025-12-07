@@ -7,10 +7,10 @@ const EmailService = require('../services/EmailService');
 const router = express.Router();
 
 // Email recipients for Feedback Hub notifications
-const FEEDBACK_NOTIFICATION_EMAILS = [
-  'jimbosky35@gmail.com',
-  'khall@dbmgconsulting.com'
-];
+// Use ADMIN_EMAILS environment variable (comma-separated) or fallback to test emails
+const FEEDBACK_NOTIFICATION_EMAILS = process.env.ADMIN_EMAILS
+  ? process.env.ADMIN_EMAILS.split(',').map(email => email.trim()).filter(email => email)
+  : ['jimbosky35@gmail.com', 'khall@dbmgconsulting.com'];
 
 // Helper function to send email notifications for Feedback Hub activity
 async function sendFeedbackNotification(action, feedback, user) {
@@ -439,6 +439,9 @@ router.post('/', authenticateToken, asyncHandler(async (req, res) => {
       lastActivityDate: new Date()
     }
   });
+
+  // Send email notification for new feedback
+  await sendFeedbackNotification('New Feedback Posted', feedback, userExists);
 
   const transformedFeedback = {
     id: feedback.id,

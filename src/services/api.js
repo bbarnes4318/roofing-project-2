@@ -1288,6 +1288,10 @@ export const feedbackService = {
   addComment: (feedbackId, commentData) => api.post(`/feedback/${feedbackId}/comments`, commentData),
   getComments: (feedbackId) => api.get(`/feedback/${feedbackId}/comments`),
   deleteComment: (feedbackId, commentId) => api.delete(`/feedback/${feedbackId}/comments/${commentId}`),
+  // Follow functionality
+  follow: (feedbackId) => api.post(`/feedback/${feedbackId}/follow`),
+  unfollow: (feedbackId) => api.delete(`/feedback/${feedbackId}/follow`),
+  checkFollowStatus: (feedbackId) => api.get(`/feedback/${feedbackId}/follow`),
   uploadFile: (file, type = 'attachment') => {
     const formData = new FormData();
     formData.append('file', file);

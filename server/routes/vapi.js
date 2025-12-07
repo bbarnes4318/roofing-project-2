@@ -551,76 +551,9 @@ function buildRagMessages({ chunks, userQuery, systemPrompt }) {
   return [system, ...contextBlocks, instruction];
 }
 
-// ===== Helpers ported from bubbles for voice message creation =====
-function nextBusinessDaysFromNow(days = 2) {
-  const d = new Date();
-  let added = 0;
-  while (added < days) {
-    d.setDate(d.getDate() + 1);
-    const day = d.getDay();
-    if (day !== 0 && day !== 6) added++;
-  }
-  d.setHours(17, 0, 0, 0);
-  return d;
-}
 
-function parseDueDateFromText(text) {
-  try {
-    const lower = String(text || '').toLowerCase();
-    const now = new Date();
-    if (/(due\s*)?today\b/.test(lower)) { const d = new Date(); d.setHours(17,0,0,0); return d; }
-    if (/(due\s*)?tomorrow\b/.test(lower)) { const d = new Date(); d.setDate(d.getDate()+1); d.setHours(17,0,0,0); return d; }
-    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-    for (let i=0;i<7;i++) {
-      if (lower.includes(days[i])) {
-        const target = new Date(now);
-        const diff = (i - now.getDay() + 7) % 7 || 7;
-        target.setDate(now.getDate() + diff);
-        target.setHours(17,0,0,0);
-        return target;
-      }
-    }
-    const byMatch = lower.match(/by\s+(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
-    if (byMatch) {
-      const m = parseInt(byMatch[1],10);
-      const d = parseInt(byMatch[2],10);
-      const y = byMatch[3] ? parseInt(byMatch[3],10) : now.getFullYear();
-      const dt = new Date(y, m-1, d, 17, 0, 0, 0);
-      return dt;
-    }
-  } catch (_) {}
-  return nextBusinessDaysFromNow(2);
-}
+// ===== Helpers already defined at top of file (nextBusinessDaysFromNow, parseDueDateFromText, parseReminderDateTimeFromText) =====
 
-function parseReminderDateTimeFromText(text) {
-  try {
-    const lower = String(text || '').toLowerCase();
-    const now = new Date();
-    const timeMatch = lower.match(/(?:at|@)\s*(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/);
-    let base = new Date(now);
-    if (/tomorrow/.test(lower)) base.setDate(base.getDate()+1);
-    const days = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
-    for (let i=0;i<7;i++) {
-      if (lower.includes(days[i])) {
-        const diff = (i - now.getDay() + 7) % 7 || 7;
-        base.setDate(now.getDate() + diff);
-        break;
-      }
-    }
-    if (timeMatch) {
-      let h = parseInt(timeMatch[1],10);
-      const min = timeMatch[2] ? parseInt(timeMatch[2],10) : 0;
-      const ampm = timeMatch[3] || '';
-      if (ampm === 'pm' && h < 12) h += 12;
-      if (ampm === 'am' && h === 12) h = 0;
-      base.setHours(h, min, 0, 0);
-      if (base <= now) base.setDate(base.getDate()+1);
-      return base;
-    }
-    const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
-  } catch (_) {}
-  const d = nextBusinessDaysFromNow(1); d.setHours(9,0,0,0); return d;
-}
 
 function extractProjectNumberFromText(text) {
   if (!text) return null;

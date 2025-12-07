@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   ThumbsUp, 
   MessageCircle, 
@@ -14,13 +14,34 @@ import {
   AlertCircle,
   Play,
   Pause,
-  Trash2
+  Trash2,
+  Bell,
+  BellOff
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { toast } from 'react-hot-toast';
 
-const FeedbackCard = ({ feedback, currentUser, onVote, onClick, onDelete, colorMode }) => {
+const FeedbackCard = ({ feedback, currentUser, onVote, onFollow, onClick, onDelete, colorMode }) => {
   const [isVoting, setIsVoting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Optimistic UI state for votes
+  const [localVoteCount, setLocalVoteCount] = useState(feedback.voteCount || 0);
+  const [localHasVoted, setLocalHasVoted] = useState(feedback.hasVoted || false);
+  
+  // Follow state
+  const [isFollowing, setIsFollowing] = useState(feedback.isFollowing || false);
+  const [isFollowLoading, setIsFollowLoading] = useState(false);
+
+  // Sync with prop changes (after query refetch)
+  useEffect(() => {
+    setLocalVoteCount(feedback.voteCount || 0);
+    setLocalHasVoted(feedback.hasVoted || false);
+  }, [feedback.voteCount, feedback.hasVoted]);
+
+  useEffect(() => {
+    setIsFollowing(feedback.isFollowing || false);
+  }, [feedback.isFollowing]);
 
   const getTypeIcon = (type) => {
     switch (type) {
@@ -105,12 +126,50 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, onDelete, colorM
     e.stopPropagation();
     if (isVoting) return;
     
+    // Optimistic update
+    const previousVoteCount = localVoteCount;
+    const previousHasVoted = localHasVoted;
+    
+    if (localHasVoted) {
+      // Toggle off - remove vote
+      setLocalVoteCount(prev => prev - 1);
+      setLocalHasVoted(false);
+    } else {
+      // Toggle on - add vote
+      setLocalVoteCount(prev => prev + 1);
+      setLocalHasVoted(true);
+    }
+    
     setIsVoting(true);
     try {
       // Pass 'upvote' action - backend expects 'upvote' or 'downvote' string
       await onVote(feedback.id, 'upvote');
+    } catch (error) {
+      // Revert on failure
+      setLocalVoteCount(previousVoteCount);
+      setLocalHasVoted(previousHasVoted);
+      toast.error('Failed to update vote. Please try again.');
     } finally {
       setIsVoting(false);
+    }
+  };
+
+  const handleFollow = async (e) => {
+    e.stopPropagation();
+    if (isFollowLoading || !onFollow) return;
+    
+    const wasFollowing = isFollowing;
+    setIsFollowing(!wasFollowing);
+    setIsFollowLoading(true);
+    
+    try {
+      await onFollow(feedback.id, !wasFollowing);
+      toast.success(wasFollowing ? 'Unfollowed feedback' : 'Now following this feedback');
+    } catch (error) {
+      setIsFollowing(wasFollowing);
+      toast.error('Failed to update follow status. Please try again.');
+    } finally {
+      setIsFollowLoading(false);
     }
   };
 
@@ -259,16 +318,39 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onClick, onDelete, colorM
             onClick={handleVote}
             disabled={isVoting}
             className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
-              feedback.hasVoted
+              localHasVoted
                 ? 'bg-blue-100 text-blue-700'
                 : colorMode
                 ? 'bg-slate-700 text-gray-300 hover:bg-slate-600'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
-            <ThumbsUp className={`h-4 w-4 ${feedback.hasVoted ? 'text-blue-600' : ''}`} />
-            <span className="text-sm font-medium">{feedback.voteCount || 0}</span>
+            <ThumbsUp className={`h-4 w-4 ${localHasVoted ? 'text-blue-600 fill-current' : ''}`} />
+            <span className="text-sm font-medium">{localVoteCount}</span>
           </button>
+
+          {/* Follow Button */}
+          {onFollow && (
+            <button
+              onClick={handleFollow}
+              disabled={isFollowLoading}
+              className={`flex items-center space-x-1 px-3 py-2 rounded-lg transition-colors ${
+                isFollowing
+                  ? 'bg-green-100 text-green-700'
+                  : colorMode
+                  ? 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+              title={isFollowing ? 'Unfollow this feedback' : 'Follow this feedback'}
+            >
+              {isFollowing ? (
+                <Bell className="h-4 w-4 text-green-600 fill-current" />
+              ) : (
+                <BellOff className="h-4 w-4" />
+              )}
+              <span className="text-sm font-medium">{isFollowing ? 'Following' : 'Follow'}</span>
+            </button>
+          )}
 
           {/* Comments */}
           <div className="flex items-center space-x-1 text-sm text-gray-500">

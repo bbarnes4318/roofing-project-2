@@ -115,6 +115,22 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
     }
   });
 
+  // Handle follow/unfollow
+  const followMutation = useMutation({
+    mutationFn: async ({ feedbackId, shouldFollow }) => {
+      if (shouldFollow) {
+        const response = await feedbackService.follow(feedbackId);
+        return response.data;
+      } else {
+        const response = await feedbackService.unfollow(feedbackId);
+        return response.data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(['feedback']);
+    }
+  });
+
   const handleDeleteFeedback = async (feedbackId) => {
     await deleteFeedbackMutation.mutateAsync(feedbackId);
   };
@@ -126,6 +142,10 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
 
   const handleVote = (feedbackId, action) => {
     voteMutation.mutate({ feedbackId, action });
+  };
+
+  const handleFollow = async (feedbackId, shouldFollow) => {
+    await followMutation.mutateAsync({ feedbackId, shouldFollow });
   };
 
   const handleStatusChange = (feedbackId, updates) => {
@@ -239,6 +259,7 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
                     onClick={() => handleFeedbackClick(feedback)}
                     onDelete={handleDeleteFeedback}
                     onVote={handleVote}
+                    onFollow={handleFollow}
                     currentUser={currentUser}
                     colorMode={colorMode}
                   />
