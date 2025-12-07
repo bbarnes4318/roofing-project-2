@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../../services/api';
 
 const AddTeamMemberPage = ({ colorMode }) => {
   const [email, setEmail] = useState('');
+  const [submittedEmail, setSubmittedEmail] = useState(''); // Preserve email for success display
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -74,9 +75,11 @@ const AddTeamMemberPage = ({ colorMode }) => {
 
       if (result.success) {
         console.log('✅ ADD-TEAM-MEMBER: User created successfully:', result.data.user);
+        setSubmittedEmail(email.trim()); // Save email before clearing
         setSuccess(true);
         setEmailStatus(result.data?.emailSent || false);
-        setSetupLink(result.data?.setupLink || '');
+        // Always get setupLink from backend - show as fallback even if email sent
+        setSetupLink(result.data?.setupLink || result.data?.user?.setupLink || '');
         setEmail('');
       } else {
         throw new Error(result.message || 'Failed to send invite');
@@ -95,6 +98,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     setEmailStatus(null);
     setSetupLink('');
     setEmail('');
+    setSubmittedEmail('');
   };
 
   if (success) {
@@ -107,29 +111,41 @@ const AddTeamMemberPage = ({ colorMode }) => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Invite Sent Successfully!</h3>
+            <h3 className={`text-lg font-medium mb-2 ${colorMode ? 'text-white' : 'text-gray-900'}`}>Team Member Added!</h3>
             {emailStatus ? (
               <div>
-                <p className="text-sm text-gray-600 mb-4">
-                  ✅ Invitation email has been sent to <strong>{email}</strong>
+                <p className={`text-sm mb-4 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  ✅ Invitation email has been sent to <strong>{submittedEmail}</strong>
                 </p>
-                <p className="text-xs text-gray-500 mb-4">
+                <p className={`text-xs mb-4 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   The team member can log in using Google OAuth with their email address.
                 </p>
               </div>
             ) : (
               <div>
-                <p className="text-sm text-yellow-600 mb-4">
-                  ⚠️ User created, but the invitation email failed to send.
+                <p className={`text-sm mb-4 ${colorMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                  ⚠️ User created for <strong>{submittedEmail}</strong>, but the invitation email failed to send.
                 </p>
-                <div className="bg-gray-100 p-3 rounded-md mb-4">
-                  <p className="text-xs text-gray-600">Manual setup link: <code className="break-all">{setupLink}</code></p>
-                </div>
+              </div>
+            )}
+            
+            {/* Always show setup link as fallback */}
+            {setupLink && (
+              <div className={`p-3 rounded-md mb-4 ${colorMode ? 'bg-slate-700' : 'bg-gray-100'}`}>
+                <p className={`text-xs font-medium mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Manual Setup Link (share this if email isn't received):
+                </p>
+                <code className={`text-xs break-all block p-2 rounded ${colorMode ? 'bg-slate-800 text-blue-400' : 'bg-white text-blue-600 border'}`}>
+                  {setupLink}
+                </code>
                 <button
-                  onClick={() => navigator.clipboard.writeText(setupLink)}
-                  className="text-blue-600 hover:text-blue-800 text-sm underline"
+                  onClick={() => {
+                    navigator.clipboard.writeText(setupLink);
+                    alert('Link copied to clipboard!');
+                  }}
+                  className="mt-2 text-blue-600 hover:text-blue-800 text-sm underline"
                 >
-                  Copy Setup Link
+                  📋 Copy Setup Link
                 </button>
               </div>
             )}

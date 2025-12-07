@@ -626,7 +626,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
         },
         emailSent,
         emailError: emailError || null,
-        setupLink: emailSent ? null : setupLink
+        setupLink: setupLink // Always provide setupLink as fallback
       },
       message: responseMessage
     };
