@@ -146,20 +146,38 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     }, [calendarView]);
 
     // Fetch team members
+    // Fetch team members
     useEffect(() => {
         const fetchTeam = async () => {
             try {
                 const response = await usersService.getTeamMembers();
+                console.log('Calendar: fetchTeam response:', response);
+                
                 // Safely extract team members array - handle various response formats
                 let members = [];
-                if (response && response.success && Array.isArray(response.data)) {
-                    members = response.data;
-                } else if (Array.isArray(response)) {
-                    // Some APIs return array directly
-                    members = response;
-                } else if (response && Array.isArray(response.users)) {
-                    members = response.users;
+                
+                // Check if response has data property which has teamMembers array (Standard API format)
+                if (response && response.data && Array.isArray(response.data.teamMembers)) {
+                    console.log('Calendar: Found members in response.data.teamMembers');
+                    members = response.data.teamMembers;
                 }
+                // Check if response has teamMembers array directly
+                else if (response && Array.isArray(response.teamMembers)) {
+                    console.log('Calendar: Found members in response.teamMembers');
+                    members = response.teamMembers;
+                }
+                // Check if response.data is the array itself
+                else if (response && Array.isArray(response.data)) {
+                    console.log('Calendar: Found members in response.data');
+                    members = response.data;
+                } 
+                // Check if response itself is the array
+                else if (Array.isArray(response)) {
+                    console.log('Calendar: Found members in response array');
+                    members = response;
+                }
+                
+                console.log(`Calendar: Setting ${members.length} team members`);
                 setTeamMembers(members);
             } catch (error) {
                 console.error('Failed to fetch team members:', error);
