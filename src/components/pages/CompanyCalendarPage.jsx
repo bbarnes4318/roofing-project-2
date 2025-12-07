@@ -150,11 +150,20 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         const fetchTeam = async () => {
             try {
                 const response = await usersService.getTeamMembers();
-                if (response.success) {
-                    setTeamMembers(response.data);
+                // Safely extract team members array - handle various response formats
+                let members = [];
+                if (response && response.success && Array.isArray(response.data)) {
+                    members = response.data;
+                } else if (Array.isArray(response)) {
+                    // Some APIs return array directly
+                    members = response;
+                } else if (response && Array.isArray(response.users)) {
+                    members = response.users;
                 }
+                setTeamMembers(members);
             } catch (error) {
                 console.error('Failed to fetch team members:', error);
+                setTeamMembers([]); // Ensure we always have an array on error
             }
         };
         fetchTeam();
