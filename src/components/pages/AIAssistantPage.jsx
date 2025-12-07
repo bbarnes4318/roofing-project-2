@@ -2862,79 +2862,61 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         )}
            {showTranscript && (voiceConversation.length > 0 || liveTranscriptText) && (
   <div className="w-full flex justify-center">
-    <div className="w-full max-w-3xl rounded-xl px-4 py-3 border bg-white border-blue-200 text-black shadow-sm">
-      <div className="flex items-center justify-between mb-3">
+    <div className="w-full max-w-3xl rounded-xl px-5 py-4 border bg-white border-gray-200 shadow-md">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-[var(--color-primary-blueprint-blue)] rounded-full animate-pulse"></div>
-          <span className="text-sm font-semibold text-gray-800">Live Transcription</span>
+          <div className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></div>
+          <span className="text-sm font-bold text-gray-900 uppercase tracking-wide">Live Transcript</span>
         </div>
-        <span className="text-xs text-gray-500">{voiceConversation.length} messages</span>
+        <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded">{voiceConversation.length} exchanges</span>
       </div>
       <div
         ref={liveTranscriptScrollRef}
-        className="space-y-2 overflow-y-auto overflow-x-hidden h-48 md:h-64 px-2"
+        className="overflow-y-auto overflow-x-hidden h-56 md:h-72 space-y-4"
         style={{ scrollbarWidth: 'thin' }}
         role="log"
         aria-live="polite"
-        aria-atomic="false"
-        aria-relevant="additions text"
       >
+        {/* Professional transcript entries */}
         {voiceConversation.map((entry, idx) => {
           const isBubbles = entry.speaker === 'Bubbles' || entry.speaker === 'Bubbles AI' || entry.speaker === 'assistant' || entry.speaker === 'Assistant';
-          const displayName = isBubbles ? 'Bubbles' : (entry.speaker || currentUserDisplayName || 'You');
-          const timeStr = entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : '';
+          const displayName = isBubbles ? 'Bubbles AI' : (entry.speaker || currentUserDisplayName || 'You');
           
           return (
-            <div key={idx} className={`flex ${isBubbles ? 'justify-start' : 'justify-end'}`}>
-              <div className={`max-w-[70%] rounded-lg px-3 py-2 ${
-                isBubbles 
-                  ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200' 
-                  : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200'
-              }`}>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`text-xs font-semibold ${isBubbles ? 'text-blue-700' : 'text-gray-700'}`}>
-                    {displayName}
-                  </span>
-                  {timeStr && (
-                    <span className="text-xs text-gray-400">{timeStr}</span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-800 leading-relaxed break-words">
-                  {cleanMojibake(entry.message || '')}
-                </p>
+            <div key={idx} className="flex gap-3">
+              <div className={`flex-shrink-0 w-20 text-right ${isBubbles ? 'text-blue-600' : 'text-gray-700'}`}>
+                <span className="text-xs font-bold uppercase tracking-wide">{displayName}</span>
+              </div>
+              <div className="flex-1 text-sm text-gray-800 leading-relaxed">
+                {cleanMojibake(entry.message || '')}
               </div>
             </div>
           );
         })}
         
-        {/* Show live partial transcript if different from last finalized */}
+        {/* Live typing indicator */}
         {liveTranscriptText && (() => {
           const live = cleanMojibake(liveTranscriptText || '').trim();
           const lastEntry = voiceConversation[voiceConversation.length - 1];
           const lastMsg = lastEntry ? cleanMojibake(lastEntry.message || '').trim() : '';
-          const showLive = live && live !== lastMsg && !lastMsg.includes(live);
-          
-          if (!showLive) return null;
+          if (!live || live === lastMsg || lastMsg.includes(live)) return null;
           
           return (
-            <div className="flex justify-end">
-              <div className="max-w-[70%] rounded-lg px-3 py-2 bg-gray-50 border border-gray-200 border-dashed opacity-70">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-gray-500">
-                    {currentUserDisplayName || 'You'} (speaking...)
-                  </span>
-                </div>
-                <p className="text-sm text-gray-600 leading-relaxed break-words italic">
-                  {live}
-                </p>
+            <div className="flex gap-3 opacity-70">
+              <div className="flex-shrink-0 w-20 text-right text-gray-500">
+                <span className="text-xs font-bold uppercase tracking-wide">{currentUserDisplayName || 'You'}</span>
+              </div>
+              <div className="flex-1 text-sm text-gray-600 leading-relaxed italic">
+                {live}<span className="animate-pulse">...</span>
               </div>
             </div>
           );
         })()}
         
+        {/* Empty state */}
         {voiceConversation.length === 0 && !liveTranscriptText && (
-          <div className="text-center text-gray-400 text-sm py-4">
-            Waiting for speech...
+          <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            <span>Listening...</span>
           </div>
         )}
       </div>
