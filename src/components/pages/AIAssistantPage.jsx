@@ -992,15 +992,35 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                         if (message.type === 'user-message' && message.message) {
                             const text = String(message.message).trim();
                             if (text) {
+                                const speakerName = currentUserDisplayName || 'You';
                                 setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: currentUserDisplayName || 'You',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
+                                    // Merge with last entry if from same speaker (within 5 seconds)
+                                    const lastEntry = prev[prev.length - 1];
+                                    const isSameSpeaker = lastEntry && 
+                                        (lastEntry.speaker === speakerName || lastEntry.speaker === 'You');
+                                    const isRecent = lastEntry && 
+                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                    
+                                    if (isSameSpeaker && isRecent) {
+                                        // Append to existing entry
+                                        const updated = [...prev.slice(0, -1), {
+                                            ...lastEntry,
+                                            message: (lastEntry.message + ' ' + text).trim(),
+                                            timestamp: new Date()
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    } else {
+                                        // Create new entry
+                                        const updated = [...prev, {
+                                            speaker: speakerName,
+                                            message: text,
+                                            timestamp: new Date(),
+                                            confidence: 'high'
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    }
                                 });
                             }
                         }
@@ -1010,14 +1030,33 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                             const text = String(message.message).trim();
                             if (text) {
                                 setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: 'Bubbles',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
+                                    // Merge with last entry if from Bubbles (within 5 seconds)
+                                    const lastEntry = prev[prev.length - 1];
+                                    const isSameSpeaker = lastEntry && 
+                                        (lastEntry.speaker === 'Bubbles' || lastEntry.speaker === 'Bubbles AI');
+                                    const isRecent = lastEntry && 
+                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                    
+                                    if (isSameSpeaker && isRecent) {
+                                        // Append to existing entry
+                                        const updated = [...prev.slice(0, -1), {
+                                            ...lastEntry,
+                                            message: (lastEntry.message + ' ' + text).trim(),
+                                            timestamp: new Date()
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    } else {
+                                        // Create new entry
+                                        const updated = [...prev, {
+                                            speaker: 'Bubbles',
+                                            message: text,
+                                            timestamp: new Date(),
+                                            confidence: 'high'
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    }
                                 });
                             }
                         }
@@ -1034,14 +1073,33 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                             const text = String(message.speech).trim();
                             if (text) {
                                 setVoiceConversation(prev => {
-                                    const updated = [...prev, {
-                                        speaker: 'Bubbles',
-                                        message: text,
-                                        timestamp: new Date(),
-                                        confidence: 'high'
-                                    }];
-                                    voiceConversationRef.current = updated;
-                                    return updated;
+                                    // Merge with last entry if from Bubbles (within 5 seconds)
+                                    const lastEntry = prev[prev.length - 1];
+                                    const isSameSpeaker = lastEntry && 
+                                        (lastEntry.speaker === 'Bubbles' || lastEntry.speaker === 'Bubbles AI');
+                                    const isRecent = lastEntry && 
+                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                    
+                                    if (isSameSpeaker && isRecent) {
+                                        // Append to existing entry
+                                        const updated = [...prev.slice(0, -1), {
+                                            ...lastEntry,
+                                            message: (lastEntry.message + ' ' + text).trim(),
+                                            timestamp: new Date()
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    } else {
+                                        // Create new entry
+                                        const updated = [...prev, {
+                                            speaker: 'Bubbles',
+                                            message: text,
+                                            timestamp: new Date(),
+                                            confidence: 'high'
+                                        }];
+                                        voiceConversationRef.current = updated;
+                                        return updated;
+                                    }
                                 });
                             }
                         }
