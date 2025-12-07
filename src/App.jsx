@@ -485,7 +485,7 @@ const apiUrl = window.location.hostname === 'localhost'
             try {
                 setProjectsLoading(true);
                 setProjectsError(null);
-                const response = await projectsService.getAll();
+                const response = await projectsService.getAll({ limit: 200 });
                 if (cancelled) return;
                 if (response.success && response.data) {
                     const apiProjects = response.data.projects || response.data;
@@ -1969,11 +1969,35 @@ const apiUrl = window.location.hostname === 'localhost'
             onProjectCreated={(project) => {
                 console.log('Project created:', project);
                 setShowAddProjectModal(false);
-                // Refresh projects if needed
-                if (projectsService && projectsService.getProjects) {
-                    projectsService.getProjects().then(response => {
-                        if (response.data && response.data.success) {
-                            setProjects(response.data.data);
+                
+                // Add the new project to the list immediately to avoid waiting for fetch
+                const normalizedNewProject = {
+                    ...project,
+                    id: project.id || project._id,
+                    name: project.name || project.projectName,
+                    client: project.client || project.customer ? {
+                        name: project.customer?.primaryName || project.client?.name || 'Unknown Client',
+                        email: project.customer?.primaryEmail || project.client?.email || '',
+                        phone: project.customer?.primaryPhone || project.client?.phone || ''
+                    } : { name: 'Unknown Client', email: '', phone: '' },
+                    projectManager: project.projectManager || { firstName: 'Sarah', lastName: 'Johnson', email: 'sarah.johnson@company.com', phone: '5559876543' }
+                };
+                
+                setProjects(prev => [normalizedNewProject, ...prev]);
+
+                // Background refresh to ensure consistency
+                if (projectsService && projectsService.getAll) {
+                    projectsService.getAll({ limit: 200 }).then(response => {
+                        if (response.success && response.data) {
+                            const apiProjects = response.data.projects || response.data;
+                            const normalizedProjects = (apiProjects || []).map(p => ({
+                                ...p,
+                                id: p.id || p._id,
+                                name: p.name || p.projectName,
+                                client: p.client || { name: 'Unknown Client', email: '', phone: '' },
+                                projectManager: p.projectManager || { firstName: 'Sarah', lastName: 'Johnson', email: 'sarah.johnson@company.com', phone: '5559876543' }
+                            }));
+                            setProjects(normalizedProjects);
                         }
                     }).catch(error => {
                         console.error('Error refreshing projects:', error);

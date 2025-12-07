@@ -145,7 +145,7 @@ const EnhancedProjectDropdown = ({
       const name = (p.customerName || p.customer?.name || p.clientName || p.projectName || p.name || '').toLowerCase();
       return num.includes(q.replace('#','')) || name.includes(q);
     })
-    .slice(0, 50);
+    .slice(0, 200);
 
   return (
     <div className="relative w-full" style={{ zIndex: 200, position: 'sticky', top: 0 }}>
