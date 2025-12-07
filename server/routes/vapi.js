@@ -602,19 +602,56 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
     // Log incoming request for debugging
     console.log('[Vapi] ===== INCOMING REQUEST =====');
     console.log('[Vapi] Request body keys:', Object.keys(raw));
-    console.log('[Vapi] Raw body:', JSON.stringify(raw, null, 2).slice(0, 1000));
+    console.log('[Vapi] Raw body:', JSON.stringify(raw, null, 2).slice(0, 2000));
     
-    // Accept multiple possible field names coming from Vapi UI schema builder
-    let projectId = raw.projectId ?? raw.projectid ?? raw.project_id ?? raw.project ?? req.query.projectId ?? req.query.projectid ?? null;
-    let query = raw.query ?? raw.input ?? raw.text ?? raw.message ?? raw.turn?.input ?? raw.turn?.text ?? req.query.query ?? req.query.q ?? '';
-    let contextFileIds = raw.contextFileIds ?? raw.context_file_ids ?? raw.fileIds ?? raw.file_ids ?? [];
+    // CRITICAL: Handle Vapi's nested message structure
+    // Vapi sends: { "message": { "type": "tool-calls", "toolCalls": [...] } }
+    // We need to extract the query from toolCalls[].function.arguments.query
+    let query = '';
+    let projectId = null;
+    let userId = null;
+    let userName = null;
+    let returnActions = false;
+    let contextFileIds = [];
+    
+    // Check if this is a Vapi tool-call request with nested message structure
+    if (raw.message && raw.message.toolCalls && Array.isArray(raw.message.toolCalls)) {
+      console.log('[Vapi] Detected Vapi tool-calls message format');
+      const toolCall = raw.message.toolCalls[0];
+      if (toolCall && toolCall.function && toolCall.function.arguments) {
+        const args = toolCall.function.arguments;
+        query = args.query || '';
+        projectId = args.projectId || args.projectid || args.project_id || null;
+        userId = args.userId || args.user_id || null;
+        userName = args.userName || args.user_name || null;
+        returnActions = args.returnActions === true || args.returnActions === 'true';
+        contextFileIds = args.contextFileIds || [];
+        console.log('[Vapi] Extracted from toolCall:', { query: String(query).slice(0, 100), projectId, userId, returnActions });
+      }
+    } else {
+      // Fallback: Accept multiple possible field names coming from Vapi UI schema builder
+      projectId = raw.projectId ?? raw.projectid ?? raw.project_id ?? raw.project ?? req.query.projectId ?? req.query.projectid ?? null;
+      query = raw.query ?? raw.input ?? raw.text ?? req.query.query ?? req.query.q ?? '';
+      // If query is still an object (from raw.message being an object), extract string
+      if (typeof query === 'object' && query !== null) {
+        query = query.query || query.text || query.input || '';
+      }
+      contextFileIds = raw.contextFileIds ?? raw.context_file_ids ?? raw.fileIds ?? raw.file_ids ?? [];
+      userId = raw.userId || raw.user_id || null;
+      userName = raw.userName || raw.user_name || null;
+      returnActions = raw.returnActions === true || (req.header('X-Return-Actions') === '1');
+    }
+    
     // Also allow Vapi variable values to carry context
     const vars = raw.variableValues ?? raw.variables ?? raw.vars ?? raw.turn?.variables ?? {};
     if (!projectId) {
       projectId = vars.projectId ?? vars.project_id ?? vars.projectid ?? null;
     }
+    if (!userId) {
+      userId = vars.userId ?? vars.user_id ?? null;
+    }
     
-    console.log('[Vapi] Parsed params:', { projectId, query: String(query).slice(0, 100), userId: raw.userId, userName: raw.userName, hasVars: !!vars, varKeys: Object.keys(vars || {}) });
+    console.log('[Vapi] Final parsed params:', { projectId, query: String(query).slice(0, 100), userId, userName, hasVars: !!vars, varKeys: Object.keys(vars || {}) });
 
     // Normalize contextFileIds to array
     if (!Array.isArray(contextFileIds)) {
@@ -638,8 +675,7 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
       return res.status(400).json({ success: false, message: 'query is required' });
     }
 
-    // Optional: allow returning Vapi actions if requested
-    const returnActions = (req.header('X-Return-Actions') === '1') || (raw.returnActions === true);
+    // returnActions is already set above from tool call parsing or fallback
 
     // Voice doc attach intent: handle before RAG/LLM
     const lower = String(query).toLowerCase();
@@ -955,15 +991,16 @@ router.post('/vapi/assistant-query', authVapi, async (req, res) => {
         });
       }
       
-      // CRITICAL: If no user found, default to first admin/owner for data access
+      // CRITICAL: If no user found, default to first admin/manager for data access
       // This ensures tools always have user context for database queries
+      // Note: UserRole enum values are: ADMIN, MANAGER, PROJECT_MANAGER, FOREMAN, WORKER, CLIENT
       if (!user) {
         console.log('[Vapi] No user from request, looking up fallback user...');
         user = await prisma.user.findFirst({
           where: { 
             OR: [
               { role: 'ADMIN' },
-              { role: 'OWNER' },
+              { role: 'MANAGER' },
               { role: 'PROJECT_MANAGER' }
             ]
           },
