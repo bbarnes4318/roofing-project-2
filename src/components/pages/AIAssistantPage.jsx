@@ -999,7 +999,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                                     const isSameSpeaker = lastEntry && 
                                         (lastEntry.speaker === speakerName || lastEntry.speaker === 'You');
                                     const isRecent = lastEntry && 
-                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                        (new Date() - new Date(lastEntry.timestamp)) < 15000;
                                     
                                     if (isSameSpeaker && isRecent) {
                                         // Append to existing entry
@@ -1035,7 +1035,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                                     const isSameSpeaker = lastEntry && 
                                         (lastEntry.speaker === 'Bubbles' || lastEntry.speaker === 'Bubbles AI');
                                     const isRecent = lastEntry && 
-                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                        (new Date() - new Date(lastEntry.timestamp)) < 15000;
                                     
                                     if (isSameSpeaker && isRecent) {
                                         // Append to existing entry
@@ -1078,7 +1078,7 @@ console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â´ [CALL-END] Event triggered - DEB
                                     const isSameSpeaker = lastEntry && 
                                         (lastEntry.speaker === 'Bubbles' || lastEntry.speaker === 'Bubbles AI');
                                     const isRecent = lastEntry && 
-                                        (new Date() - new Date(lastEntry.timestamp)) < 5000;
+                                        (new Date() - new Date(lastEntry.timestamp)) < 15000;
                                     
                                     if (isSameSpeaker && isRecent) {
                                         // Append to existing entry
