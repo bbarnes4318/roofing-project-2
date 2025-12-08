@@ -26,8 +26,9 @@ import {
   PlusIcon,
   XCircleIcon
 } from '../common/Icons';
+import { ResponsiveBackButton } from '../common/BackButton';
 
-const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
+const ProjectProfileTab = ({ project, colorMode, onProjectSelect, onBack }) => {
   const [isMapModalOpen, setIsMapModalOpen] = useState(false);
   const [activeSection] = useState('overview');
   // Match Projects by Phase progress behavior (keyed expansion + visibility management)
@@ -2179,6 +2180,15 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+      <div className="mb-4">
+        {onBack && (
+            <ResponsiveBackButton
+                onClick={onBack}
+                colorMode={colorMode}
+                className="mb-2"
+            />
+        )}
+      </div>
       <HeaderSection />
       <WorkflowNavigation />
 

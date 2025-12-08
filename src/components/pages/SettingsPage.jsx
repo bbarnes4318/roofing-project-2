@@ -612,7 +612,9 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
           const usersData = await usersResponse.json();
           console.log(`✅ Received ${usersData.data?.teamMembers?.length || 0} users from API`);
           if (isMounted && usersData.success && usersData.data?.teamMembers) {
-            setAvailableUsers(usersData.data.teamMembers);
+            // Filter to show only active users in the assignments list
+            const activeUsers = usersData.data.teamMembers.filter(u => u.isActive !== false && u.status !== 'Inactive');
+            setAvailableUsers(activeUsers);
           } else {
             console.warn('⚠️ API returned success but no data');
           }

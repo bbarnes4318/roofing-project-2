@@ -150,6 +150,13 @@ const authenticateToken = async (req, res, next) => {
       const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
       const decoded = jwt.verify(token, secret);
       
+      if (!decoded || !decoded.id) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid token structure.'
+        });
+      }
+
       // Get user from database using old method
       user = await prisma.user.findUnique({
         where: { id: decoded.id },
