@@ -2667,11 +2667,14 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
 
           {/* Ultra Compact Tab Content */}
           <div className="p-4">
-            <form onSubmit={handleSave}>
-              {renderTabContent()}
-
-              {/* Note: Most settings auto-save. Save button primarily for Profile and Security changes */}
-              {(activeTab === 'profile' || activeTab === 'security') && (
+            {/* 
+              IMPORTANT: Don't wrap ALL content in a form because some tabs (like add-team-member)
+              have their own forms inside. Form nesting causes submit conflicts.
+              Only wrap profile/security tabs in form.
+            */}
+            {(activeTab === 'profile' || activeTab === 'security') ? (
+              <form onSubmit={handleSave}>
+                {renderTabContent()}
                 <div className="flex justify-end pt-3 border-t border-gray-200 mt-4">
                   <button
                     type="submit"
@@ -2699,8 +2702,11 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
                     </span>
                   </button>
                 </div>
-              )}
-            </form>
+              </form>
+            ) : (
+              // Render other tabs WITHOUT a form wrapper - they handle their own forms if needed
+              renderTabContent()
+            )}
 
             {success && (
               <div className={`fixed top-4 right-4 p-4 rounded-lg shadow-lg z-[99999] border-2 ${colorMode ? 'bg-green-800 border-green-600 text-white' : 'bg-green-100 border-green-300 text-green-800'}`}>

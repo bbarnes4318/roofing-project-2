@@ -8,6 +8,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
   const [emailStatus, setEmailStatus] = useState(null);
+  const [emailError, setEmailError] = useState(''); // Track email send error reason
   const [setupLink, setSetupLink] = useState('');
 
   const validateForm = () => {
@@ -75,17 +76,27 @@ const AddTeamMemberPage = ({ colorMode }) => {
 
       if (result.success) {
         console.log('✅ ADD-TEAM-MEMBER: User created successfully:', result.data.user);
+        console.log('✅ ADD-TEAM-MEMBER: Email sent status:', result.data?.emailSent);
+        console.log('✅ ADD-TEAM-MEMBER: Email error (if any):', result.data?.emailError);
+        console.log('✅ ADD-TEAM-MEMBER: Setup link:', result.data?.setupLink);
         setSubmittedEmail(email.trim()); // Save email before clearing
         setSuccess(true);
         setEmailStatus(result.data?.emailSent || false);
+        setEmailError(result.data?.emailError || ''); // Store email error reason
         // Always get setupLink from backend - show as fallback even if email sent
         setSetupLink(result.data?.setupLink || result.data?.user?.setupLink || '');
         setEmail('');
+        
+        // Log email error if any (helps with debugging)
+        if (result.data?.emailError) {
+          console.warn('⚠️ ADD-TEAM-MEMBER: Email failed to send:', result.data.emailError);
+        }
       } else {
         throw new Error(result.message || 'Failed to send invite');
       }
     } catch (err) {
       console.error('❌ ADD-TEAM-MEMBER: Error details:', err);
+      console.error('❌ ADD-TEAM-MEMBER: Full error object:', JSON.stringify(err, null, 2));
       setError(err.message || 'Failed to send invite');
     } finally {
       setIsSubmitting(false);
@@ -96,6 +107,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
     setSuccess(false);
     setError('');
     setEmailStatus(null);
+    setEmailError('');
     setSetupLink('');
     setEmail('');
     setSubmittedEmail('');
@@ -123,9 +135,14 @@ const AddTeamMemberPage = ({ colorMode }) => {
               </div>
             ) : (
               <div>
-                <p className={`text-sm mb-4 ${colorMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                <p className={`text-sm mb-2 ${colorMode ? 'text-yellow-400' : 'text-yellow-600'}`}>
                   ⚠️ User created for <strong>{submittedEmail}</strong>, but the invitation email failed to send.
                 </p>
+                {emailError && (
+                  <p className={`text-xs mb-4 ${colorMode ? 'text-red-300' : 'text-red-500'}`}>
+                    Reason: {emailError}
+                  </p>
+                )}
               </div>
             )}
             
