@@ -25,13 +25,12 @@ const GoogleOAuthCallback = ({ onLoginSuccess }) => {
         try {
           const user = JSON.parse(decodeURIComponent(userParam));
           
-          // Store authentication data FIRST
+          // Store authentication data in localStorage (single source of truth)
           localStorage.setItem('authToken', token);
-          sessionStorage.setItem('authToken', token);
           localStorage.setItem('user', JSON.stringify(user));
           
           console.log('✅ Google OAuth successful:', user);
-          console.log('✅ Token stored:', token.substring(0, 20) + '...');
+          console.log('✅ Token stored in localStorage:', token.substring(0, 20) + '...');
           console.log('✅ User stored:', user.email);
           
           // Mark as processed to prevent re-processing

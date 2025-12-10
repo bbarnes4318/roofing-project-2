@@ -9,7 +9,8 @@ class PermissionService {
    * Get authentication headers
    */
   getAuthHeaders() {
-    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+    // Use localStorage as single source of truth for auth token
+    const token = localStorage.getItem('authToken');
     console.log('🔍 PERMISSION SERVICE: Token found:', token ? 'Yes' : 'No');
     return {
       'Content-Type': 'application/json',

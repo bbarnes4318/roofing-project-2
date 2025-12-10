@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 // Create Auth Context
 const AuthContext = createContext();
@@ -9,17 +9,15 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Check for existing authentication on mount
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
+  const checkAuthStatus = useCallback(async () => {
     try {
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+      // Use localStorage as single source of truth for auth token
+      const token = localStorage.getItem('authToken');
       
       if (!token) {
         setIsLoading(false);
+        setUser(null);
+        setIsAuthenticated(false);
         return;
       }
 
@@ -35,9 +33,9 @@ export const AuthProvider = ({ children }) => {
         setUser(userData.user);
         setIsAuthenticated(true);
       } else {
-        // Token is invalid, clear it
+        // Token is invalid, clear it from localStorage
         localStorage.removeItem('authToken');
-        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         setUser(null);
         setIsAuthenticated(false);
       }
@@ -48,16 +46,36 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, []);
 
-  // Google OAuth login is handled via redirect, so no login function needed here
-
-  const logout = () => {
+  const logout = useCallback(() => {
+    // Clear localStorage (single source of truth)
     localStorage.removeItem('authToken');
-    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    // Also clear sessionStorage for any legacy data
+    sessionStorage.removeItem('authToken');
+    sessionStorage.removeItem('user');
     setUser(null);
     setIsAuthenticated(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    // Check for existing authentication on mount
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  // Listen for session expiration events from API interceptor
+  useEffect(() => {
+    const handleSessionExpired = (event) => {
+      console.warn('🔐 Session expired event received:', event.detail?.message);
+      logout();
+    };
+
+    window.addEventListener('auth:sessionExpired', handleSessionExpired);
+    return () => {
+      window.removeEventListener('auth:sessionExpired', handleSessionExpired);
+    };
+  }, [logout]);
 
   const updateUser = (userData) => {
     setUser(prev => ({ ...prev, ...userData }));
@@ -89,3 +107,4 @@ export const useAuth = () => {
 };
 
 export default useAuth;
+

@@ -166,7 +166,7 @@ export default function App() {
             }
             
             // IMMEDIATE FIX: Clear all temp/demo tokens to force re-auth with consistent IDs
-            const existingToken = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            const existingToken = localStorage.getItem('authToken');
             const storedUser = localStorage.getItem('user');
             
             if (existingToken && (existingToken.startsWith('demo-') || existingToken.startsWith('temp-token-'))) {
@@ -182,8 +182,6 @@ export default function App() {
                             console.log('🔄 CLEARING INCONSISTENT AUTH DATA - Will re-authenticate...');
                             localStorage.removeItem('authToken');
                             localStorage.removeItem('user');
-                            sessionStorage.removeItem('authToken');
-                            sessionStorage.removeItem('user');
                             // Force re-authentication by continuing below
                         } else {
                             // IDs match, proceed with existing auth
@@ -196,14 +194,12 @@ export default function App() {
                         // Clear corrupted data
                         localStorage.removeItem('authToken');
                         localStorage.removeItem('user');
-                        sessionStorage.removeItem('authToken');
-                        sessionStorage.removeItem('user');
                     }
                 }
             }
             
-            // Re-check token after potential cleanup
-            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Re-check token after potential cleanup (localStorage is single source of truth)
+            const token = localStorage.getItem('authToken');
             console.log('🔍 AUTH: Checking for token. Found:', !!token);
             if (token) {
                 console.log('🔍 AUTH: Token found, verifying...');
@@ -247,10 +243,9 @@ export default function App() {
                                 return;
                             }
                         } else {
-                            // Token is invalid, clear it
-                            console.log('🔍 AUTH: Token verification failed - clearing tokens. Status:', response.status);
+                            // Token is invalid, clear it from localStorage
+                            console.log('🔍 AUTH: Token verification failed - clearing token. Status:', response.status);
                             localStorage.removeItem('authToken');
-                            sessionStorage.removeItem('authToken');
                         }
                     } catch (verifyError) {
                         if (verifyError.name === 'AbortError') {
@@ -260,7 +255,6 @@ export default function App() {
                         }
                         // Don't use fallback auth - just clear and show login
                         localStorage.removeItem('authToken');
-                        sessionStorage.removeItem('authToken');
                         setIsAuthenticated(false);
                         setCurrentUser(null);
                         return;
@@ -268,7 +262,6 @@ export default function App() {
                 } catch (error) {
                     console.error('Token verification failed:', error);
                     localStorage.removeItem('authToken');
-                    sessionStorage.removeItem('authToken');
                     setIsAuthenticated(false);
                     setCurrentUser(null);
                     return;
@@ -368,8 +361,7 @@ const apiUrl = window.location.hostname === 'localhost'
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.token && data.user) {
-                    // Store the traditional JWT token
-                    sessionStorage.setItem('authToken', data.token);
+                    // Store the traditional JWT token in localStorage (single source of truth)
                     localStorage.setItem('authToken', data.token);
                     
                     // Store user data from server response (not Supabase metadata)
@@ -414,8 +406,7 @@ const apiUrl = window.location.hostname === 'localhost'
             theme: 'LIGHT'
         };
         
-        // Store the temporary data
-        sessionStorage.setItem('authToken', tempToken);
+        // Store the temporary data in localStorage (single source of truth)
         localStorage.setItem('authToken', tempToken);
         localStorage.setItem('user', JSON.stringify(fallbackUser));
         
@@ -449,8 +440,7 @@ const apiUrl = window.location.hostname === 'localhost'
             theme: 'LIGHT'
         };
         
-        // Store the demo data
-        sessionStorage.setItem('authToken', demoToken);
+        // Store the demo data in localStorage (single source of truth)
         localStorage.setItem('authToken', demoToken);
         localStorage.setItem('user', JSON.stringify(demoUser));
         
@@ -467,15 +457,27 @@ const apiUrl = window.location.hostname === 'localhost'
         const { supabase } = await import('./lib/supabaseClient');
         await supabase.auth.signOut();
         
-        // Clear all auth data
+        // Clear auth data from localStorage (single source of truth)
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
-        sessionStorage.removeItem('authToken');
-        sessionStorage.removeItem('user');
         
         setIsAuthenticated(false);
         setCurrentUser(null);
     };
+
+    // Listen for session expired events from API interceptor
+    useEffect(() => {
+        const handleSessionExpired = (event) => {
+            console.warn('🔐 App: Session expired event received:', event.detail?.message);
+            setIsAuthenticated(false);
+            setCurrentUser(null);
+        };
+
+        window.addEventListener('auth:sessionExpired', handleSessionExpired);
+        return () => {
+            window.removeEventListener('auth:sessionExpired', handleSessionExpired);
+        };
+    }, []);
 
     // Fetch projects from API - must be declared before conditional returns
     useEffect(() => {
@@ -748,7 +750,8 @@ const apiUrl = window.location.hostname === 'localhost'
     // Check for token in localStorage when not authenticated (handles OAuth callback race condition)
     useEffect(() => {
         if (!isAuthenticated && !isLoading) {
-            const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+            // Use localStorage as single source of truth
+            const token = localStorage.getItem('authToken');
             const storedUser = localStorage.getItem('user');
             
             if (token && storedUser && !token.startsWith('demo-') && !token.startsWith('temp-token-')) {
@@ -771,15 +774,13 @@ const apiUrl = window.location.hostname === 'localhost'
                                 setIsAuthenticated(true);
                             }
                         } else {
-                            // Token is invalid, clear it
+                            // Token is invalid, clear it from localStorage
                             localStorage.removeItem('authToken');
-                            sessionStorage.removeItem('authToken');
                             localStorage.removeItem('user');
                         }
                     } catch (error) {
                         console.error('Token verification failed in auth check:', error);
                         localStorage.removeItem('authToken');
-                        sessionStorage.removeItem('authToken');
                     } finally {
                         setIsLoading(false);
                     }

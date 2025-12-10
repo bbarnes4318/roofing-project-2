@@ -58,6 +58,9 @@ const api = axios.create({
   },
 });
 
+// Track if we're currently handling a 401 to prevent redirect loops
+let isHandling401 = false;
+
 // Request interceptor to add auth token and implement caching
 api.interceptors.request.use(
   (config) => {
@@ -76,8 +79,9 @@ api.interceptors.request.use(
       }
     }
     
-    // Use original JWT token system - Supabase only handles login gate
-    const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+    // Use localStorage as the single source of truth for auth token
+    // This ensures consistency across page navigations and browser restarts
+    const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -151,7 +155,41 @@ api.interceptors.response.use(
       message: error.message
     });
     
-    // 401s are handled by login screen transitions in app
+    // Handle 401 Unauthorized errors - clear auth and redirect to login
+    // This prevents the confusing "Error loading projects: 401" messages
+    if (error.response?.status === 401 && !isHandling401) {
+      isHandling401 = true;
+      console.warn('🔐 Session expired or invalid token - redirecting to login...');
+      
+      // Clear all auth tokens
+      try {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        sessionStorage.removeItem('authToken');
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+      } catch (_) {}
+      
+      // Clear the request cache to prevent stale data after re-login
+      requestCache.clear();
+      
+      // Dispatch a custom event that App.jsx can listen to for logout
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('auth:sessionExpired', { 
+          detail: { message: 'Your session has expired. Please log in again.' }
+        }));
+      }
+      
+      // Reset flag after a short delay to allow the event to be processed
+      setTimeout(() => {
+        isHandling401 = false;
+      }, 2000);
+      
+      // Return a cleaner error message
+      error.message = 'Session expired. Please log in again.';
+      return Promise.reject(error);
+    }
     
     // Add more specific error messages for common issues
     // Normalize network/timeout errors across environments
@@ -193,12 +231,9 @@ export const authService = {
   },
 
   // Check if user is authenticated
+  // Use localStorage as single source of truth for consistency
   isAuthenticated: () => {
-    const token =
-      sessionStorage.getItem('authToken') ||
-      localStorage.getItem('authToken') ||
-      sessionStorage.getItem('token') ||
-      localStorage.getItem('token');
+    const token = localStorage.getItem('authToken');
     return Boolean(token);
   },
 
