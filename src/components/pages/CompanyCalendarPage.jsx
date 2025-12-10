@@ -58,6 +58,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const [showAddEventModal, setShowAddEventModal] = useState(false);
     const [calendarEvents, setCalendarEvents] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastUpdated, setLastUpdated] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [newEvent, setNewEvent] = useState({
         title: '',
@@ -121,10 +123,17 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     }, []);
 
     // Fetch calendar events from database
-    const fetchCalendarEvents = async () => {
+    const fetchCalendarEvents = async (isBackgroundRefresh = false) => {
         try {
-            setLoading(true);
-            const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+            // Use isRefreshing for background updates, loading for initial load
+            if (isBackgroundRefresh) {
+                setIsRefreshing(true);
+            } else {
+                setLoading(true);
+            }
+            
+            // Use localStorage as single source of truth for auth token
+            const token = localStorage.getItem('authToken');
             const response = await fetch(`/api/calendar-events?view=${calendarView}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -145,18 +154,49 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 }
                 // Proactively remove alert-type records from the source list as well
                 setCalendarEvents(events.filter(e => !isAlertEvent(e)));
+                setLastUpdated(new Date());
             }
         } catch (error) {
             console.error('Error fetching calendar events:', error);
             setCalendarEvents([]); // Ensure we always have an array
         } finally {
             setLoading(false);
+            setIsRefreshing(false);
         }
     };
 
-    // Fetch events on component mount
+    // Fetch events on component mount and set up real-time updates
     useEffect(() => {
-        fetchCalendarEvents();
+        fetchCalendarEvents(); // Initial load with full loading state
+        
+        // Set up polling interval for real-time updates (every 30 seconds)
+        const pollInterval = setInterval(() => {
+            fetchCalendarEvents(true); // Background refresh - no full loading spinner
+        }, 30000);
+        
+        // Listen for custom event when a new calendar event is added
+        const handleCalendarUpdate = () => {
+            console.log('📅 Calendar update event received - refreshing...');
+            fetchCalendarEvents(true); // Background refresh
+        };
+        window.addEventListener('calendar:eventAdded', handleCalendarUpdate);
+        window.addEventListener('calendar:eventUpdated', handleCalendarUpdate);
+        window.addEventListener('calendar:eventDeleted', handleCalendarUpdate);
+        
+        // Also refresh when window regains focus (user comes back to tab)
+        const handleFocus = () => {
+            fetchCalendarEvents(true); // Background refresh
+        };
+        window.addEventListener('focus', handleFocus);
+        
+        // Cleanup
+        return () => {
+            clearInterval(pollInterval);
+            window.removeEventListener('calendar:eventAdded', handleCalendarUpdate);
+            window.removeEventListener('calendar:eventUpdated', handleCalendarUpdate);
+            window.removeEventListener('calendar:eventDeleted', handleCalendarUpdate);
+            window.removeEventListener('focus', handleFocus);
+        };
     }, [calendarView]);
 
     // Fetch team members
@@ -289,16 +329,41 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         // Database calendar events - ensure calendarEvents is always an array
         if (Array.isArray(calendarEvents)) {
             calendarEvents.forEach(event => {
-                if (event.date === dateOnly) {
+                // Backend returns startTime as ISO datetime, extract the date part
+                // Handle both old format (event.date) and new format (event.startTime)
+                let eventDate = null;
+                let eventTime = null;
+                
+                if (event.startTime) {
+                    // New format from backend: startTime is ISO datetime
+                    const startTimeDate = new Date(event.startTime);
+                    eventDate = startTimeDate.toISOString().split('T')[0];
+                    // Format time as "9:00 AM" style
+                    eventTime = startTimeDate.toLocaleTimeString('en-US', { 
+                        hour: 'numeric', 
+                        minute: '2-digit', 
+                        hour12: true 
+                    });
+                } else if (event.date) {
+                    // Old format: date is already YYYY-MM-DD string
+                    eventDate = event.date;
+                    eventTime = event.time;
+                }
+                
+                if (eventDate === dateOnly) {
                     const candidate = {
-                        id: event._id || `db-event-${event.title}`,
+                        id: event.id || event._id || `db-event-${event.title}-${Date.now()}`,
                         title: event.title,
-                        type: event.type,
-                        time: event.time,
-                        priority: event.priority,
-                        color: event.color || getEventColor(event.type),
+                        type: event.eventType?.toLowerCase() || event.type || 'meeting',
+                        time: eventTime || event.time,
+                        priority: event.priority || 'medium',
+                        color: event.color || getEventColor(event.eventType?.toLowerCase() || event.type),
                         description: event.description,
-                        projectId: event.projectId
+                        projectId: event.projectId,
+                        attendees: event.attendees,
+                        organizer: event.organizer,
+                        startTime: event.startTime,
+                        endTime: event.endTime
                     };
                     if (!isAlertEvent(candidate)) {
                         events.push(candidate);
@@ -603,7 +668,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             };
 
             // Make API call to save event
-            const token = sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
+            // Use localStorage as single source of truth for auth token
+            const token = localStorage.getItem('authToken');
             const response = await fetch('/api/calendar-events', {
                 method: 'POST',
                 headers: {
@@ -614,20 +680,27 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             });
 
             if (!response.ok) {
-                throw new Error('Failed to create event');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to create event');
             }
 
             const savedEvent = await response.json();
+            console.log('✅ Calendar event created:', savedEvent);
             
-            alert(`Event "${newEvent.title}" created successfully!`);
+            // Dispatch custom event for real-time updates across the app
+            window.dispatchEvent(new CustomEvent('calendar:eventAdded', {
+                detail: { event: savedEvent.data?.event }
+            }));
+            
+            // Close modal and reset form
             closeAddEventModal();
             
-            // Refresh the calendar events
+            // Immediate refresh for instant feedback
             await fetchCalendarEvents();
             
         } catch (error) {
             console.error('Error creating event:', error);
-            alert('Failed to create event. Please try again.');
+            alert(`Failed to create event: ${error.message}`);
         }
     };
 
@@ -689,6 +762,28 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             <PlusCircleIcon className="w-3 h-3" />
                             Add Event
                         </button>
+                        
+                        {/* Refresh Button with Status Indicator */}
+                        <button
+                            onClick={() => fetchCalendarEvents()}
+                            disabled={isRefreshing || loading}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                                colorMode 
+                                    ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' 
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            } ${(isRefreshing || loading) ? 'opacity-70' : ''}`}
+                            title={lastUpdated ? `Last updated: ${lastUpdated.toLocaleTimeString()}` : 'Refresh calendar'}
+                        >
+                            <span className={`${isRefreshing ? 'animate-spin' : ''}`}>🔄</span>
+                            {isRefreshing ? 'Syncing...' : 'Refresh'}
+                        </button>
+                        
+                        {/* Real-time indicator */}
+                        {lastUpdated && (
+                            <span className={`text-[10px] ${colorMode ? 'text-gray-400' : 'text-gray-500'} hidden sm:inline`}>
+                                Updated {lastUpdated.toLocaleTimeString()}
+                            </span>
+                        )}
                         
                         {/* User Calendars Toggle */}
                         <button
