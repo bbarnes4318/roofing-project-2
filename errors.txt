@@ -1,161 +1,453 @@
-🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1913 🔍 MAIN_RENDER: activePage: Company Calendar
-App.jsx:1956 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:1390 🔍 RENDER: renderPage called with activePage: Company Calendar
-App.jsx:1391 🔍 RENDER: navigationState.selectedProject: null
-CompanyCalendarPage.jsx:159 Calendar: fetchTeam response: Object
-CompanyCalendarPage.jsx:166 Calendar: Found members in response.data.teamMembers
-CompanyCalendarPage.jsx:185 Calendar: Setting 3 team members
-CompanyCalendarPage.jsx:141 Error fetching calendar events: TypeError: r.filter is not a function
-    at re (CompanyCalendarPage.jsx:138:42)
-re @ CompanyCalendarPage.jsx:141Understand this error
-/api/calendar-events:1  Failed to load resource: the server responded with a status of 400 ()Understand this error
-CompanyCalendarPage.jsx:620 Error creating event: Error: Failed to create event
-    at onClick (CompanyCalendarPage.jsx:608:23)
-onClick @ CompanyCalendarPage.jsx:620Understand this error
+c	@	useAuth.js:27
+(anonymous)	@	useAuth.js:14
+hl	@	react-dom.production.min.js:243
+Ic	@	react-dom.production.min.js:285
+(anonymous)	@	react-dom.production.min.js:281
+j	@	scheduler.production.min.js:13
+_	@	scheduler.production.min.js:14
+Request initiator chain
+https://goldfish-app-4yuma.ondigitalocean.app/?email=nedged81%40gmail.com
+https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js
+https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me
 
-Dec 07 20:35:23  10.244.26.130 - - [07/Dec/2025:20:35:23 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:23  10.244.30.34 - - [07/Dec/2025:20:35:23 +0000] "GET /api/follow-up/settings HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:23  🔍 ROLES API: Fetching role assignments
-Dec 07 20:35:23  ✅ ROLES API: Found 16 role assignments
-Dec 07 20:35:23  10.244.30.34 - - [07/Dec/2025:20:35:23 +0000] "GET /api/roles HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:26  10.244.9.146 - - [07/Dec/2025:20:35:26 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 07 20:35:32  GET /api/users/team-members - requested by userId=unknown - found 3 teamMembers
-Dec 07 20:35:32  Sample teamMembers: [
-Dec 07 20:35:32    {
-Dec 07 20:35:32      id: 'cmfld60ef0000bi0d8ky8hlot',
-Dec 07 20:35:32      firstName: 'James',
-Dec 07 20:35:32      lastName: 'Kelly',
-Dec 07 20:35:32      email: 'jimbosky35@gmail.com',
-Dec 07 20:35:32      role: 'WORKER'
-Dec 07 20:35:32    },
-Dec 07 20:35:32    {
-Dec 07 20:35:32      id: 'cmh56k4zi0000500dy5mykbud',
-Dec 07 20:35:32      firstName: 'khall',
-Dec 07 20:35:32      lastName: '',
-Dec 07 20:35:32      email: 'khall@dbmgconsulting.com',
-Dec 07 20:35:32      role: 'WORKER'
-Dec 07 20:35:32    },
-Dec 07 20:35:32    {
-Dec 07 20:35:32      id: 'cmflr2qss0000dk0dgmp132rn',
-Dec 07 20:35:32      firstName: 'Steve',
-Dec 07 20:35:32      lastName: 'Flores',
-Dec 07 20:35:32      email: 'steveflores@upfrontrnr.com',
-Dec 07 20:35:32      role: 'WORKER'
-Dec 07 20:35:32    }
-Dec 07 20:35:32  ]
-Dec 07 20:35:32  10.244.26.130 - - [07/Dec/2025:20:35:32 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:32  📅 CALENDAR: GET /api/calendar-events - Request received
-Dec 07 20:35:32  10.244.30.34 - - [07/Dec/2025:20:35:32 +0000] "GET /api/calendar-events?view=team HTTP/1.1" 200 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:36  10.244.9.146 - - [07/Dec/2025:20:35:36 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Dec 07 20:35:46  10.244.9.146 - - [07/Dec/2025:20:35:46 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
-Dec 07 20:35:47  📅 CALENDAR: POST /api/calendar-events - Request received
-Dec 07 20:35:47  prisma:error 
-Dec 07 20:35:47  Invalid `prisma.user.findUnique()` invocation:
-Dec 07 20:35:47  
-Dec 07 20:35:47  {
-Dec 07 20:35:47    where: {
-Dec 07 20:35:47      id: undefined,
-Dec 07 20:35:47  ?   email?: String,
-Dec 07 20:35:47  ?   AND?: UserWhereInput | UserWhereInput[],
-Dec 07 20:35:47  ?   OR?: UserWhereInput[],
-Dec 07 20:35:47  ?   NOT?: UserWhereInput | UserWhereInput[],
-Dec 07 20:35:47  ?   createdAt?: DateTimeFilter | DateTime,
-Dec 07 20:35:47  ?   updatedAt?: DateTimeFilter | DateTime,
-Dec 07 20:35:47  ?   firstName?: StringFilter | String,
-Dec 07 20:35:47  ?   lastName?: StringFilter | String,
-Dec 07 20:35:47  ?   password?: StringFilter | String,
-Dec 07 20:35:47  ?   avatar?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   displayName?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   phone?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   secondaryPhone?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   preferredPhone?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   position?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   department?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   bio?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   role?: EnumUserRoleFilter | UserRole,
-Dec 07 20:35:47  ?   permissions?: EnumPermissionNullableListFilter,
-Dec 07 20:35:47  ?   isActive?: BoolFilter | Boolean,
-Dec 07 20:35:47  ?   isVerified?: BoolFilter | Boolean,
-Dec 07 20:35:47  ?   emailVerificationToken?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   emailVerificationExpires?: DateTimeNullableFilter | DateTime | Null,
-Dec 07 20:35:47  ?   passwordResetToken?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   passwordResetExpires?: DateTimeNullableFilter | DateTime | Null,
-Dec 07 20:35:47  ?   passwordChangedAt?: DateTimeNullableFilter | DateTime | Null,
-Dec 07 20:35:47  ?   loginAttempts?: IntFilter | Int,
-Dec 07 20:35:47  ?   lockUntil?: DateTimeNullableFilter | DateTime | Null,
-Dec 07 20:35:47  ?   lastLogin?: DateTimeNullableFilter | DateTime | Null,
-Dec 07 20:35:47  ?   lastLoginIP?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   twoFactorSecret?: StringNullableFilter | String | Null,
-Dec 07 20:35:47  ?   twoFactorEnabled?: BoolFilter | Boolean,
-Dec 07 20:35:47  ?   theme?: EnumThemeFilter | Theme,
-Dec 07 20:35:47  ?   notificationPreferences?: JsonNullableFilter,
-Dec 07 20:35:47  ?   language?: StringFilter | String,
-Dec 07 20:35:47  ?   timezone?: StringFilter | String,
-Dec 07 20:35:47  ?   skills?: StringNullableListFilter,
-Dec 07 20:35:47  ?   certifications?: JsonNullableFilter,
-Dec 07 20:35:47  ?   experience?: IntNullableFilter | Int | Null,
-Dec 07 20:35:47  ?   emergencyContact?: JsonNullableFilter,
-Dec 07 20:35:47  ?   address?: JsonNullableFilter,
-Dec 07 20:35:47  ?   eventAttendees?: CalendarEventAttendeeListRelationFilter,
-Dec 07 20:35:47  ?   calendarEventComments?: CalendarEventCommentListRelationFilter,
-Dec 07 20:35:47  ?   calendarEvents?: CalendarEventListRelationFilter,
-Dec 07 20:35:47  ?   comments?: CommentListRelationFilter,
-Dec 07 20:35:47  ?   companyAssets?: CompanyAssetListRelationFilter,
-Dec 07 20:35:47  ?   completedWorkflowItems?: CompletedWorkflowItemListRelationFilter,
-Dec 07 20:35:47  ?   conversationParticipants?: ConversationParticipantListRelationFilter,
-Dec 07 20:35:47  ?   downloadedDocuments?: DocumentDownloadListRelationFilter,
-Dec 07 20:35:47  ?   documentTemplates?: DocumentTemplateListRelationFilter,
-Dec 07 20:35:47  ?   uploadedDocuments?: DocumentListRelationFilter,
-Dec 07 20:35:47  ?   feedbackAssigned?: FeedbackListRelationFilter,
-Dec 07 20:35:47  ?   feedbackAuthored?: FeedbackListRelationFilter,
-Dec 07 20:35:47  ?   generatedDocuments?: GeneratedDocumentMetaListRelationFilter,
-Dec 07 20:35:47  ?   readMessages?: MessageReadListRelationFilter,
-Dec 07 20:35:47  ?   sentMessages?: MessageListRelationFilter,
-Dec 07 20:35:47  ?   notifications?: NotificationListRelationFilter,
-Dec 07 20:35:47  ?   projectMessageRecipients?: ProjectMessageRecipientListRelationFilter,
-Dec 07 20:35:47  ?   authoredMessages?: ProjectMessageListRelationFilter,
-Dec 07 20:35:47  ?   projectsAsTeamMember?: ProjectTeamMemberListRelationFilter,
-Dec 07 20:35:47  ?   createdProjects?: ProjectListRelationFilter,
-Dec 07 20:35:47  ?   projectsAsManager?: ProjectListRelationFilter,
-Dec 07 20:35:47  ?   assignedRoles?: RoleAssignmentListRelationFilter,
-Dec 07 20:35:47  ?   roleAssignments?: RoleAssignmentListRelationFilter,
-Dec 07 20:35:47  ?   resolvedSecurityEvents?: SecurityEventListRelationFilter,
-Dec 07 20:35:47  ?   securityEvents?: SecurityEventListRelationFilter,
-Dec 07 20:35:47  ?   taskComments?: TaskCommentListRelationFilter,
-Dec 07 20:35:47  ?   assignedTasks?: TaskListRelationFilter,
-Dec 07 20:35:47  ?   createdTasks?: TaskListRelationFilter,
-Dec 07 20:35:47  ?   userBadges?: UserBadgeListRelationFilter,
-Dec 07 20:35:47  ?   behaviorPattern?: UserBehaviorPatternNullableScalarRelationFilter | UserBehaviorPatternWhereInput | Null,
-Dec 07 20:35:47  ?   devices?: UserDeviceListRelationFilter,
-Dec 07 20:35:47  ?   mfaSettings?: UserMFAListRelationFilter,
-Dec 07 20:35:47  ?   userProfile?: UserProfileNullableScalarRelationFilter | UserProfileWhereInput | Null,
-Dec 07 20:35:47  ?   voiceTranscripts?: VoiceTranscriptListRelationFilter,
-Dec 07 20:35:47  ?   votes?: VoteListRelationFilter,
-Dec 07 20:35:47  ?   webauthnCredentials?: WebAuthnCredentialListRelationFilter,
-Dec 07 20:35:47  ?   assignedAlerts?: WorkflowAlertListRelationFilter,
-Dec 07 20:35:47  ?   createdAlerts?: WorkflowAlertListRelationFilter,
-Dec 07 20:35:47  ?   followUpSettings?: FollowUpSettingsNullableScalarRelationFilter | FollowUpSettingsWhereInput | Null,
-Dec 07 20:35:47  ?   followUpTracking?: FollowUpTrackingListRelationFilter,
-Dec 07 20:35:47  ?   feedbackFollows?: FeedbackFollowerListRelationFilter
-Dec 07 20:35:47    }
-Dec 07 20:35:47  }
-Dec 07 20:35:47  
-Dec 07 20:35:47  Argument `where` of type UserWhereUniqueInput needs at least one of `id` or `email` arguments. Available options are listed in green.
-Dec 07 20:35:47  🚨 SERVER ERROR: {
-Dec 07 20:35:47    "timestamp": "2025-12-07T20:35:47.618Z",
-Dec 07 20:35:47    "method": "POST",
-Dec 07 20:35:47    "url": "/api/calendar-events",
-Dec 07 20:35:47    "ip": "10.244.30.34",
-Dec 07 20:35:47    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36",
-Dec 07 20:35:47    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Dec 07 20:35:47    "error": {
-Dec 07 20:35:47      "name": "PrismaClientValidationError",
-Dec 07 20:35:47      "message": "\nInvalid `prisma.user.findUnique()` invocation:\n\n{\n  where: {\n    id: undefined,\n?   email?: String,\n?   AND?: UserWhereInput | UserWhereInput[],\n?   OR?: UserWhereInput[],\n?   NOT?: UserWhereInput | UserWhereInput[],\n?   createdAt?: DateTimeFilter | DateTime,\n?   updatedAt?: DateTimeFilter | DateTime,\n?   firstName?: StringFilter | String,\n?   lastName?: StringFilter | String,\n?   password?: StringFilter | String,\n?   avatar?: StringNullableFilter | String | Null,\n?   displayName?: StringNullableFilter | String | Null,\n?   phone?: StringNullableFilter | String | Null,\n?   secondaryPhone?: StringNullableFilter | String | Null,\n?   preferredPhone?: StringNullableFilter | String | Null,\n?   position?: StringNullableFilter | String | Null,\n?   department?: StringNullableFilter | String | Null,\n?   bio?: StringNullableFilter | String | Null,\n?   role?: EnumUserRoleFilter | UserRole,\n?   permissions?: EnumPermissionNullableListFilter,\n?   isActive?: BoolFilter | Boolean,\n?   isVerified?: BoolFilter | Boolean,\n?   emailVerificationToken?: StringNullableFilter | String | Null,\n?   emailVerificationExpires?: DateTimeNullableFilter | DateTime | Null,\n?   passwordResetToken?: StringNullableFilter | String | Null,\n?   passwordResetExpires?: DateTimeNullableFilter | DateTime | Null,\n?   passwordChangedAt?: DateTimeNullableFilter | DateTime | Null,\n?   loginAttempts?: IntFilter | Int,\n?   lockUntil?: DateTimeNullableFilter | DateTime | Null,\n?   lastLogin?: DateTimeNullableFilter | DateTime | Null,\n?   lastLoginIP?: StringNullableFilter | String | Null,\n?   twoFactorSecret?: StringNullableFilter | String | Null,\n?   twoFactorEnabled?: BoolFilter | Boolean,\n?   theme?: EnumThemeFilter | Theme,\n?   notificationPreferences?: JsonNullableFilter,\n?   language?: StringFilter | String,\n?   timezone?: StringFilter | String,\n?   skills?: StringNullableListFilter,\n?   certifications?: JsonNullableFilter,\n?   experience?: IntNullableFilter | Int | Null,\n?   emergencyContact?: JsonNullableFilter,\n?   address?: JsonNullableFilter,\n?   eventAttendees?: CalendarEventAttendeeListRelationFilter,\n?   calendarEventComments?: CalendarEventCommentListRelationFilter,\n?   calendarEvents?: CalendarEventListRelationFilter,\n?   comments?: CommentListRelationFilter,\n?   companyAssets?: CompanyAssetListRelationFilter,\n?   completedWorkflowItems?: CompletedWorkflowItemListRelationFilter,\n?   conversationParticipants?: ConversationParticipantListRelationFilter,\n?   downloadedDocuments?: DocumentDownloadListRelationFilter,\n?   documentTemplates?: DocumentTemplateListRelationFilter,\n?   uploadedDocuments?: DocumentListRelationFilter,\n?   feedbackAssigned?: FeedbackListRelationFilter,\n?   feedbackAuthored?: FeedbackListRelationFilter,\n?   generatedDocuments?: GeneratedDocumentMetaListRelationFilter,\n?   readMessages?: MessageReadListRelationFilter,\n?   sentMessages?: MessageListRelationFilter,\n?   notifications?: NotificationListRelationFilter,\n?   projectMessageRecipients?: ProjectMessageRecipientListRelationFilter,\n?   authoredMessages?: ProjectMessageListRelationFilter,\n?   projectsAsTeamMember?: ProjectTeamMemberListRelationFilter,\n?   createdProjects?: ProjectListRelationFilter,\n?   projectsAsManager?: ProjectListRelationFilter,\n?   assignedRoles?: RoleAssignmentListRelationFilter,\n?   roleAssignments?: RoleAssignmentListRelationFilter,\n?   resolvedSecurityEvents?: SecurityEventListRelationFilter,\n?   securityEvents?: SecurityEventListRelationFilter,\n?   taskComments?: TaskCommentListRelationFilter,\n?   assignedTasks?: TaskListRelationFilter,\n?   createdTasks?: TaskListRelationFilter,\n?   userBadges?: UserBadgeListRelationFilter,\n?   behaviorPattern?: UserBehaviorPatternNullableScalarRelationFilter | UserBehaviorPatternWhereInput | Null,\n?   devices?: UserDeviceListRelationFilter,\n?   mfaSettings?: UserMFAListRelationFilter,\n?   userProfile?: UserProfileNullableScalarRelationFilter | UserProfileWhereInput | Null,\n?   voiceTranscripts?: VoiceTranscriptListRelationFilter,\n?   votes?: VoteListRelationFilter,\n?   webauthnCredentials?: WebAuthnCredentialListRelationFilter,\n?   assignedAlerts?: WorkflowAlertListRelationFilter,\n?   createdAlerts?: WorkflowAlertListRelationFilter,\n?   followUpSettings?: FollowUpSettingsNullableScalarRelationFilter | FollowUpSettingsWhereInput | Null,\n?   followUpTracking?: FollowUpTrackingListRelationFilter,\n?   feedbackFollows?: FeedbackFollowerListRelationFilter\n  }\n}\n\nArgument `where` of type UserWhereUniqueInput needs at least one of `id` or `email` arguments. Available options are listed in green.",
-Dec 07 20:35:47      "statusCode": 500
-Dec 07 20:35:47    }
-Dec 07 20:35:47  }
-Dec 07 20:35:47  10.244.30.34 - - [07/Dec/2025:20:35:47 +0000] "POST /api/calendar-events HTTP/1.1" 400 87 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 07 20:35:56  10.244.9.146 - - [07/Dec/2025:20:35:56 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 07 20:35:56  10.244.27.53 - - [07/Dec/2025:20:35:56 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 07 20:36:06  10.244.9.146 - - [07/Dec/2025:20:36:06 +0000] "GET /api/health HTTP/1.1" 200 378 "-" "kube-probe/1.31"
+Request URL
+https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me
+Request Method
+GET
+Status Code
+504 Gateway Timeout
+Remote Address
+[2606:4700:7::60]:443
+Referrer Policy
+no-referrer
+alt-svc
+h3=":443"; ma=86400
+cache-control
+private
+cf-cache-status
+MISS
+cf-ray
+9aafcf145ca0340c-ATL
+content-type
+text/html
+date
+Mon, 08 Dec 2025 22:48:12 GMT
+priority
+u=1,i
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+__cf_bm=qR90Q.TTMT84EDmmBXb5EFbL4OPKqXrNhQmn3UeNZkk-1765234092-1.0.1.1-RZozQRtFYzbPDJs3PQBNGV_3.SIOxpk.9L5UhB4sIJjKKjmWyHJD45Nglw2_uhtdiF25tgarKEbaVjeJkjZQOC1IVLPWiVZyUM.IFqdOyWo; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
+vary
+Accept-Encoding
+x-do-app-origin
+edf924d8-6fc4-4919-9a80-7c0b2dfbd910
+x-do-failure-code
+UC
+x-do-failure-msg
+upstream_reset_before_response_started{connection_termination}
+x-do-orig-status
+503
+:authority
+goldfish-app-4yuma.ondigitalocean.app
+:method
+GET
+:path
+/api/auth/me
+:scheme
+https
+accept
+*/*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-US,en;q=0.9
+authorization
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
+if-none-match
+W/"262-IIv8t+eq8ODZKgCkIl8NK3e8668"
+priority
+u=1, i
+sec-ch-ua
+"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+
+
+equest URL
+https://goldfish-app-4yuma.ondigitalocean.app/api/activities
+Request Method
+GET
+Status Code
+504 Gateway Timeout
+Remote Address
+[2606:4700:7::60]:443
+Referrer Policy
+no-referrer
+alt-svc
+h3=":443"; ma=86400
+cache-control
+private
+cf-cache-status
+MISS
+cf-ray
+9aafcf13da43340c-ATL
+content-type
+text/html
+date
+Mon, 08 Dec 2025 22:48:12 GMT
+priority
+u=1,i
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+__cf_bm=SYcPmGU0AGWg1iHgOlBVRT_d3JH9zrzVeh.acCpPA5A-1765234092-1.0.1.1-XlNZi3PJJdXI5H5oKv7thet4E.zpSPJdTXIcqGqCrii0z7M5pJ28QqrE57pXOjGBzFE9_tSmeoBXNRMxjjr9dWTPnLFr7LWT_C6AcsMZe00; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
+vary
+Accept-Encoding
+x-do-app-origin
+edf924d8-6fc4-4919-9a80-7c0b2dfbd910
+x-do-failure-code
+UC
+x-do-failure-msg
+upstream_reset_before_response_started{connection_termination}
+x-do-orig-status
+503
+:authority
+goldfish-app-4yuma.ondigitalocean.app
+:method
+GET
+:path
+/api/activities
+:scheme
+https
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-US,en;q=0.9
+authorization
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
+if-none-match
+W/"ad7-MVy87CLrD9evKRTFlg7+mFgn5VI"
+priority
+u=1, i
+sec-ch-ua
+"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+
+(anonymous)	@	xhr.js:195
+xhr	@	xhr.js:15
+ft	@	dispatchRequest.js:51
+Promise.then		
+_request	@	Axios.js:163
+request	@	Axios.js:40
+(anonymous)	@	Axios.js:213
+(anonymous)	@	bind.js:5
+getAll	@	api.js:509
+(anonymous)	@	App.jsx:523
+(anonymous)	@	App.jsx:549
+hl	@	react-dom.production.min.js:243
+Ic	@	react-dom.production.min.js:285
+(anonymous)	@	react-dom.production.min.js:281
+j	@	scheduler.production.min.js:13
+_	@	scheduler.production.min.js:14
+Request initiator chain
+https://goldfish-app-4yuma.ondigitalocean.app/?email=nedged81%
+
+
+Request URL
+https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100
+Request Method
+GET
+Status Code
+504 Gateway Timeout
+Remote Address
+[2606:4700:7::60]:443
+Referrer Policy
+no-referrer
+alt-svc
+h3=":443"; ma=86400
+cache-control
+private
+cf-cache-status
+MISS
+cf-ray
+9aafcf142bbe340c-ATL
+content-type
+text/html
+date
+Mon, 08 Dec 2025 22:48:12 GMT
+priority
+u=1,i
+server
+cloudflare
+server-timing
+cfExtPri
+set-cookie
+__cf_bm=vJg7Mdqm3cq.Hy.cDRaGCH_6ydajEOBkfEOMOw09d6k-1765234092-1.0.1.1-MkwMVB2KfcO0umM0HIcRNG4ZORzHigJD13MWbzGO_Ya81TSw7sHZPlF0GC0pr5slUJR1I1lOws4qbMIbDx7vcKzfX6DbmenserjYeBW2fis; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
+vary
+Accept-Encoding
+x-do-app-origin
+edf924d8-6fc4-4919-9a80-7c0b2dfbd910
+x-do-failure-code
+UC
+x-do-failure-msg
+upstream_reset_before_response_started{connection_termination}
+x-do-orig-status
+503
+:authority
+goldfish-app-4yuma.ondigitalocean.app
+:method
+GET
+:path
+/api/projects?limit=100
+:scheme
+https
+accept
+application/json, text/plain, */*
+accept-encoding
+gzip, deflate, br, zstd
+accept-language
+en-US,en;q=0.9
+authorization
+Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
+if-none-match
+W/"c47-B0fbZ7yaY+EqcrIdboKYF8/Delw"
+priority
+u=1, i
+sec-ch-ua
+"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
+sec-ch-ua-mobile
+?0
+sec-ch-ua-platform
+"Windows"
+sec-fetch-dest
+empty
+sec-fetch-mode
+cors
+sec-fetch-site
+same-origin
+user-agent
+Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
+
+(anonymous)	@	xhr.js:195
+xhr	@	xhr.js:15
+ft	@	dispatchRequest.js:51
+Promise.then		
+_request	@	Axios.js:163
+request	@	Axios.js:40
+(anonymous)	@	Axios.js:213
+(anonymous)	@	bind.js:5
+getAll	@	api.js:274
+queryFn	@	useQueryApi.js:165
+o	@	query.ts:457
+u	@	retryer.ts:153
+start	@	retryer.ts:218
+fetch	@	query.ts:576
+os	@	queryObserver.ts:333
+onSubscribe	@	queryObserver.ts:104
+subscribe	@	subscribable.ts:11
+(anonymous)	@	useBaseQuery.ts:100
+Oo	@	react-dom.production.min.js:167
+hl	@	react-dom.production.min.js:243
+Ic	@	react-dom.production.min.js:285
+(anonymous)	@	react-dom.production.min.js:281
+j	@	scheduler.production.min.js:13
+_	@	scheduler.production.min.js:14
+
+
+GET https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me 504 (Gateway Timeout)
+c @ useAuth.js:27
+(anonymous) @ useAuth.js:14
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+api.js:274  GET https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100 504 (Gateway Timeout)
+(anonymous) @ xhr.js:195
+xhr @ xhr.js:15
+ft @ dispatchRequest.js:51
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+(anonymous) @ Axios.js:213
+(anonymous) @ bind.js:5
+getAll @ api.js:274
+queryFn @ useQueryApi.js:165
+o @ query.ts:457
+u @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:576
+os @ queryObserver.ts:333
+onSubscribe @ queryObserver.ts:104
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:100
+Oo @ react-dom.production.min.js:167
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+api.js:145 🚨 API ERROR: {url: '/projects', method: 'get', status: 504, statusText: '', data: '      <!DOCTYPE html>\n      <html>\n      <head>\n  …/p>\n      </div>\n      </body>\n      </html>\n    ', …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "message: "Request failed with status code 504"method: "get"status: 504statusText: ""url: "/projects"[[Prototype]]: Object
+(anonymous) @ api.js:145
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+(anonymous) @ Axios.js:213
+(anonymous) @ bind.js:5
+getAll @ api.js:274
+queryFn @ useQueryApi.js:165
+o @ query.ts:457
+u @ retryer.ts:153
+start @ retryer.ts:218
+fetch @ query.ts:576
+os @ queryObserver.ts:333
+onSubscribe @ queryObserver.ts:104
+subscribe @ subscribable.ts:11
+(anonymous) @ useBaseQuery.ts:100
+Oo @ react-dom.production.min.js:167
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+DashboardPage.jsx:143 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:155 🔍 DASHBOARD DEBUG: projectsData: undefined
+DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData.data: undefined
+DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.success: undefined
+DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projects array: []
+DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects length: 0
+DashboardPage.jsx:296 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:297 🔍 DASHBOARD: Projects error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
+DashboardPage.jsx:298 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:299 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:303 🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}error: Vcode: "ERR_BAD_RESPONSE"config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 20000, …}message: "Server error: The server is experiencing issues. Please try again later."name: "AxiosError"request: XMLHttpRequestonabort: ƒ ()onerror: ƒ ()onload: nullonloadend: ƒ g()onloadstart: nullonprogress: nullonreadystatechange: nullontimeout: ƒ ()readyState: 4response: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "responseText: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "responseType: ""responseURL: "https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100"responseXML: nullstatus: 504statusText: ""timeout: 20000upload: XMLHttpRequestUpload {onloadstart: null, onprogress: null, onabort: null, onerror: null, onload: null, …}withCredentials: false[[Prototype]]: XMLHttpRequestresponse: config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 20000, …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "headers: Ne {alt-svc: 'h3=":443"; ma=86400', cache-control: 'private', cf-cache-status: 'MISS', cf-ray: '9aafcf142bbe340c-ATL', content-type: 'text/html', …}request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 20000, withCredentials: false, upload: XMLHttpRequestUpload, …}status: 504statusText: ""[[Prototype]]: Objectstatus: 504stack: "AxiosError: Server error: The server is experiencing issues. Please try again later.\n    at Ee (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:328278)\n    at XMLHttpRequest.g (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:332878)\n    at wt.request (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:344007)\n    at async Object.getAll (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:269309)"[[Prototype]]: Errorloading: falseprojectsData: undefined[[Prototype]]: Object
+
+🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}loading: falseprojectsData: undefined[[Prototype]]: Object
+li @ DashboardPage.jsx:303
+ko @ react-dom.production.min.js:160
+Mi @ react-dom.production.min.js:196
+Tl @ react-dom.production.min.js:291
+Pc @ react-dom.production.min.js:279
+Ac @ react-dom.production.min.js:279
+kc @ react-dom.production.min.js:279
+mc @ react-dom.production.min.js:267
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+DashboardPage.jsx:666 🔍 DASHBOARD: About to call useFeedback hook
+DashboardPage.jsx:668 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback: []
+DashboardPage.jsx:669 🔍 DASHBOARD FEEDBACK DEBUG: feedbackLoading: true
+DashboardPage.jsx:670 🔍 DASHBOARD FEEDBACK DEBUG: feedbackError: null
+DashboardPage.jsx:671 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback type: object
+DashboardPage.jsx:672 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback length: 0
+DashboardPage.jsx:844 🔍 FEEDBACK DEBUG: Feedback items excluded from activity feed as requested
+DashboardPage.jsx:969 🔍 DASHBOARD: currentUser from hook: {id: 'cmfld60ef0000bi0d8ky8hlot', firstName: 'James', lastName: 'Kelly', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:970 🔍 DASHBOARD: assignableUsers length: 0
+DashboardPage.jsx:971 🔍 DASHBOARD: usersForUi length: 0
+DashboardPage.jsx:972 🔍 DASHBOARD: subjects from context: (44) ['Input Customer Information', 'Complete Questions to Ask Checklist', 'Input Lead Property Information', 'Assign A Project Manager', 'Schedule Initial Inspection', 'Site Inspection', 'Write Estimate', 'Insurance Process', 'Agreement Preparation', 'Agreement Signing', 'Administrative Setup', 'Pre-Job Actions', 'Prepare for Production', 'Installation', 'Quality Check', 'Multiple Trades', 'Subcontractor Work', 'Update Customer', 'Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp', 'Customer Update', 'Financial Processing', 'Project Closeout', 'General Update', 'Project Status', 'Material Delivery', 'Safety Meeting', 'Quality Inspection', 'Client Communication', 'Permit Update', 'Weather Alert', 'Equipment Issue', 'Crew Assignment', 'Budget Update', 'Schedule Change', 'Inspection Report', 'Documentation', 'Emergency Alert', 'Training Update', 'Maintenance Required', 'Vendor Communication', 'Insurance Update', 'Warranty Information']
+api.js:509  GET https://goldfish-app-4yuma.ondigitalocean.app/api/activities 504 (Gateway Timeout)
+(anonymous) @ xhr.js:195
+xhr @ xhr.js:15
+ft @ dispatchRequest.js:51
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+(anonymous) @ Axios.js:213
+(anonymous) @ bind.js:5
+getAll @ api.js:509
+(anonymous) @ App.jsx:523
+(anonymous) @ App.jsx:549
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+api.js:145 🚨 API ERROR: {url: '/activities', method: 'get', status: 504, statusText: '', data: '      <!DOCTYPE html>\n      <html>\n      <head>\n  …/p>\n      </div>\n      </body>\n      </html>\n    ', …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "message: "Request failed with status code 504"method: "get"status: 504statusText: ""url: "/activities"[[Prototype]]: Object
+(anonymous) @ api.js:145
+Promise.then
+_request @ Axios.js:163
+request @ Axios.js:40
+(anonymous) @ Axios.js:213
+(anonymous) @ bind.js:5
+getAll @ api.js:509
+(anonymous) @ App.jsx:523
+(anonymous) @ App.jsx:549
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+App.jsx:544 Error fetching activities: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
+(anonymous) @ App.jsx:544
+await in (anonymous)
+(anonymous) @ App.jsx:549
+hl @ react-dom.production.min.js:243
+Ic @ react-dom.production.min.js:285
+(anonymous) @ react-dom.production.min.js:281
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+App.jsx:1912 🔍 MAIN_RENDER: navigationState.selectedProject: null
+App.jsx:1913 🔍 MAIN_RENDER: activePage: Overview
+App.jsx:1956 🔍 MAIN_RENDER: Rendering renderPage()
+App.jsx:1390 🔍 RENDER: renderPage called with activePage: Overview
+App.jsx:1391 🔍 RENDER: navigationState.selectedProject: null
+DashboardPage.jsx:143 🔍 DASHBOARD: Component rendering...
+DashboardPage.jsx:155 🔍 DASHBOARD DEBUG: projectsData: undefined
+DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData.data: undefined
+DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.success: undefined
+DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projects array: []
+DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects length: 0
+DashboardPage.jsx:296 🔍 DASHBOARD: Projects loading state: false
+DashboardPage.jsx:297 🔍 DASHBOARD: Projects error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
+DashboardPage.jsx:298 🔍 DASHBOARD: Projects data: undefined
+DashboardPage.jsx:299 🔍 DASHBOARD: Projects array length: 0
+DashboardPage.jsx:303 🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}
+li @ DashboardPage.jsx:303
+ko @ react-dom.production.min.js:160
+Mi @ react-dom.production.min.js:196
+Tl @ react-dom.production.min.js:291
+Pc @ react-dom.production.min.js:279
+Ac @ react-dom.production.min.js:279
+kc @ react-dom.production.min.js:279
+mc @ react-dom.production.min.js:267
+j @ scheduler.production.min.js:13
+_ @ scheduler.production.min.js:14Understand this error
+DashboardPage.jsx:666 🔍 DASHBOARD: About to call useFeedback hook
+DashboardPage.jsx:668 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback: []
+DashboardPage.jsx:669 🔍 DASHBOARD FEEDBACK DEBUG: feedbackLoading: true
+DashboardPage.jsx:670 🔍 DASHBOARD FEEDBACK DEBUG: feedbackError: null
+DashboardPage.jsx:671 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback type: object
+DashboardPage.jsx:672 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback length: 0
+DashboardPage.jsx:844 🔍 FEEDBACK DEBUG: Feedback items excluded from activity feed as requested
+DashboardPage.jsx:969 🔍 DASHBOARD: currentUser from hook: {id: 'cmfld60ef0000bi0d8ky8hlot', firstName: 'James', lastName: 'Kelly', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
+DashboardPage.jsx:970 🔍 DASHBOARD: assignableUsers length: 0
+DashboardPage.jsx:971 🔍 DASHBOARD: usersForUi length: 0
+DashboardPage.jsx:972 🔍 DASHBOARD: subjects from context: (44) ['Input Customer Information', 'Complete Questions to Ask Checklist', 'Input Lead Property Information', 'Assign A Project Manager', 'Schedule Initial Inspection', 'Site Inspection', 'Write Estimate', 'Insurance Process', 'Agreement Preparation', 'Agreement Signing', 'Administrative Setup', 'Pre-Job Actions', 'Prepare for Production', 'Installation', 'Quality Check', 'Multiple Trades', 'Subcontractor Work', 'Update Customer', 'Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp', 'Customer Update', 'Financial Processing', 'Project Closeout', 'General Update', 'Project Status', 'Material Delivery', 'Safety Meeting', 'Quality Inspection', 'Client Communication', 'Permit Update', 'Weather Alert', 'Equipment Issue', 'Crew Assignment', 'Budget Update', 'Schedule Change', 'Inspection Report', 'Documentation', 'Emergency Alert', 'Training Update', 'Maintenance Required', 'Vendor Communication', 'Insurance Update', 'Warranty Information']
+

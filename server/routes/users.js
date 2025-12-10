@@ -472,7 +472,7 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Kenstruction</title>
+        <title>Welcome to Bubbles AI</title>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -486,12 +486,12 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to Kenstruction!</h1>
+            <h1>Welcome to Bubbles AI!</h1>
             <p>You've been invited to join our team</p>
           </div>
           <div class="content">
             <h2>Hello ${newUser.firstName}!</h2>
-            <p>You've been added to our Kenstruction team as a <strong>${newUser.role}</strong>. We're excited to have you on board!</p>
+            <p>You've been added to our Bubbles AI team as a <strong>${newUser.role}</strong>. We're excited to have you on board!</p>
             
             <p>To get started, please complete your profile setup by clicking the button below:</p>
             
@@ -520,7 +520,7 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
             <p>This link will expire in 7 days. If you have any questions, please contact your team administrator.</p>
           </div>
           <div class="footer">
-            <p>This is an automated message from Kenstruction. Please do not reply to this email.</p>
+            <p>This is an automated message from Bubbles AI. Please do not reply to this email.</p>
           </div>
         </div>
       </body>
@@ -528,11 +528,11 @@ router.post('/add-team-member', authenticateToken, asyncHandler(async (req, res)
     `;
 
     const emailText = `
-Welcome to Kenstruction!
+Welcome to Bubbles AI!
 
 Hello ${newUser.firstName}!
 
-You've been added to our Kenstruction team as a ${newUser.role}. We're excited to have you on board!
+You've been added to our Bubbles AI team as a ${newUser.role}. We're excited to have you on board!
 
 To get started, please complete your profile setup by visiting this link:
 ${setupLink}
@@ -553,7 +553,7 @@ ${newUser.secondaryPhone ? `- Secondary Phone: ${newUser.secondaryPhone}` : ''}
 
 This link will expire in 7 days. If you have any questions, please contact your team administrator.
 
-This is an automated message from Kenstruction. Please do not reply to this email.
+This is an automated message from Bubbles AI. Please do not reply to this email.
     `;
 
     // Check if email service is available
@@ -572,7 +572,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
         console.log('🔍 ADD-TEAM-MEMBER: Attempting to send email to:', normalizedEmail);
         await emailService.sendEmail({
           to: normalizedEmail,
-          subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+          subject: 'Welcome to Bubbles AI - Complete Your Profile Setup',
           html: emailHtml,
           text: emailText,
           tags: {
@@ -743,7 +743,7 @@ router.post('/resend-invitation', asyncHandler(async (req, res) => {
       <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Welcome to Kenstruction</title>
+        <title>Welcome to Bubbles AI</title>
         <style>
           body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
           .container { max-width: 600px; margin: 0 auto; padding: 20px; }
@@ -757,12 +757,12 @@ router.post('/resend-invitation', asyncHandler(async (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>Welcome to Kenstruction!</h1>
+            <h1>Welcome to Bubbles AI!</h1>
             <p>You've been invited to join our team</p>
           </div>
           <div class="content">
             <h2>Hello ${user.firstName}!</h2>
-            <p>You've been added to our Kenstruction team as a ${user.role}. We're excited to have you on board!</p>
+            <p>You've been added to our Bubbles AI team as a ${user.role}. We're excited to have you on board!</p>
             <p>To get started, please complete your profile setup by clicking the button below:</p>
             <a href="${setupLink}" class="button">Complete Your Profile Setup</a>
             <p>Or copy and paste this link into your browser:</p>
@@ -770,7 +770,7 @@ router.post('/resend-invitation', asyncHandler(async (req, res) => {
             <p>This link will expire in 7 days. If you have any questions, please contact your team administrator.</p>
           </div>
           <div class="footer">
-            <p>This is an automated message from Kenstruction. Please do not reply to this email.</p>
+            <p>This is an automated message from Bubbles AI. Please do not reply to this email.</p>
           </div>
         </div>
       </body>
@@ -778,18 +778,18 @@ router.post('/resend-invitation', asyncHandler(async (req, res) => {
     `;
 
     const emailText = `
-Welcome to Kenstruction!
+Welcome to Bubbles AI!
 
 Hello ${user.firstName}!
 
-You've been added to our Kenstruction team as a ${user.role}. We're excited to have you on board!
+You've been added to our Bubbles AI team as a ${user.role}. We're excited to have you on board!
 
 To get started, please complete your profile setup by visiting this link:
 ${setupLink}
 
 This link will expire in 7 days. If you have any questions, please contact your team administrator.
 
-This is an automated message from Kenstruction. Please do not reply to this email.
+This is an automated message from Bubbles AI. Please do not reply to this email.
     `;
 
     // Send the invitation email with retry
@@ -801,7 +801,7 @@ This is an automated message from Kenstruction. Please do not reply to this emai
       try {
         await emailService.sendEmail({
           to: user.email,
-          subject: 'Welcome to Kenstruction - Complete Your Profile Setup',
+          subject: 'Welcome to Bubbles AI - Complete Your Profile Setup',
           html: emailHtml,
           text: emailText,
           tags: {

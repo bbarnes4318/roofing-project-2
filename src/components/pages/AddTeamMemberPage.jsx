@@ -1,9 +1,21 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../../services/api';
 
+const ROLE_OPTIONS = [
+  { value: 'ADMIN', label: 'Admin' },
+  { value: 'MANAGER', label: 'Manager' },
+  { value: 'PROJECT_MANAGER', label: 'Project Manager' },
+  { value: 'FOREMAN', label: 'Foreman' },
+  { value: 'WORKER', label: 'Worker' },
+  { value: 'CLIENT', label: 'Client' },
+  { value: 'SUBCONTRACTOR', label: 'Subcontractor' }
+];
+
 const AddTeamMemberPage = ({ colorMode }) => {
   const [email, setEmail] = useState('');
+  const [role, setRole] = useState('WORKER'); // Default role
   const [submittedEmail, setSubmittedEmail] = useState(''); // Preserve email for success display
+  const [submittedRole, setSubmittedRole] = useState(''); // Preserve role for success display
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -18,6 +30,10 @@ const AddTeamMemberPage = ({ colorMode }) => {
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       setError('Please enter a valid email address');
+      return false;
+    }
+    if (!role) {
+      setError('Please select a role');
       return false;
     }
     return true;
@@ -56,7 +72,7 @@ const AddTeamMemberPage = ({ colorMode }) => {
           phone: null,
           secondaryPhone: null,
           preferredPhone: null,
-          role: 'WORKER'
+          role: role
         })
       });
 
@@ -80,12 +96,14 @@ const AddTeamMemberPage = ({ colorMode }) => {
         console.log('✅ ADD-TEAM-MEMBER: Email error (if any):', result.data?.emailError);
         console.log('✅ ADD-TEAM-MEMBER: Setup link:', result.data?.setupLink);
         setSubmittedEmail(email.trim()); // Save email before clearing
+        setSubmittedRole(role); // Save role before clearing
         setSuccess(true);
         setEmailStatus(result.data?.emailSent || false);
         setEmailError(result.data?.emailError || ''); // Store email error reason
         // Always get setupLink from backend - show as fallback even if email sent
         setSetupLink(result.data?.setupLink || result.data?.user?.setupLink || '');
         setEmail('');
+        setRole('WORKER'); // Reset role to default
         
         // Log email error if any (helps with debugging)
         if (result.data?.emailError) {
@@ -110,7 +128,9 @@ const AddTeamMemberPage = ({ colorMode }) => {
     setEmailError('');
     setSetupLink('');
     setEmail('');
+    setRole('WORKER');
     setSubmittedEmail('');
+    setSubmittedRole('');
   };
 
   if (success) {
@@ -217,6 +237,29 @@ const AddTeamMemberPage = ({ colorMode }) => {
               />
               <p className="mt-1 text-xs text-gray-500">
                 An invitation will be sent to this email address. They can sign in using their Google Account.
+              </p>
+            </div>
+
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+                Role *
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                required
+              >
+                {ROLE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <p className="mt-1 text-xs text-gray-500">
+                Select the role for this team member. This will be included in their welcome email.
               </p>
             </div>
 
