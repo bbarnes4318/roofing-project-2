@@ -90,9 +90,15 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     
     // Search & Recent Events State  
     const [searchQuery, setSearchQuery] = useState('');
+    const [searchDateRange, setSearchDateRange] = useState('3y'); // Default: 3 years
     const [dateRangeFilter, setDateRangeFilter] = useState('all');
     const [showRecentEvents, setShowRecentEvents] = useState(false);
     const [recentEvents, setRecentEvents] = useState([]);
+    const [searchResults, setSearchResults] = useState([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showSearchResults, setShowSearchResults] = useState(false);
+    const [recentlyAdded, setRecentlyAdded] = useState([]); // Audit trail - last 15 created events
+    const [showRecentlyAdded, setShowRecentlyAdded] = useState(false);
 
     // Helper: identify alert-type events that should NOT appear on Company Calendar
     const isAlertEvent = (evt) => {
@@ -121,6 +127,36 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         };
         fetchUser();
     }, []);
+
+    // Helper function to save calendar color to database
+    const saveCalendarColor = async (userId, color) => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/users/${userId}/calendar-color`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({ calendarColor: color })
+            });
+            
+            if (response.ok) {
+                console.log(`✅ Calendar color saved for user ${userId}: ${color}`);
+            } else {
+                console.error('Failed to save calendar color:', await response.text());
+            }
+        } catch (error) {
+            console.error('Error saving calendar color:', error);
+        }
+    };
+
+    // Handle color change - update local state and save to database
+    const handleColorChange = (userId, color) => {
+        setUserColors(prev => ({ ...prev, [userId]: color }));
+        saveCalendarColor(userId, color);
+        setShowColorPicker(null);
+    };
 
     // Fetch calendar events from database
     const fetchCalendarEvents = async (isBackgroundRefresh = false) => {
@@ -165,6 +201,70 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         }
     };
 
+    // Fetch recently added events (audit trail - sorted by creation time)
+    const fetchRecentlyAdded = async () => {
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch('/api/calendar-events/recent', {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                let events = [];
+                if (data.data?.events) {
+                    events = data.data.events;
+                } else if (Array.isArray(data.data)) {
+                    events = data.data;
+                }
+                setRecentlyAdded(events);
+                console.log('📅 Fetched', events.length, 'recently added events');
+            }
+        } catch (error) {
+            console.error('Error fetching recently added events:', error);
+        }
+    };
+
+    // Deep search events with date range filter
+    const searchEvents = async (query, dateRange = '3y') => {
+        if (!query || query.trim().length < 2) {
+            setSearchResults([]);
+            setShowSearchResults(false);
+            return;
+        }
+        
+        setIsSearching(true);
+        try {
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/calendar-events/search?query=${encodeURIComponent(query)}&dateRange=${dateRange}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                let events = [];
+                if (data.data?.events) {
+                    events = data.data.events;
+                } else if (Array.isArray(data.data)) {
+                    events = data.data;
+                }
+                setSearchResults(events);
+                setShowSearchResults(true);
+                console.log(`📅 Search found ${events.length} events for "${query}" within ${dateRange}`);
+            }
+        } catch (error) {
+            console.error('Error searching events:', error);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
     // Fetch events on component mount and set up real-time updates
     useEffect(() => {
         fetchCalendarEvents(); // Initial load with full loading state
@@ -200,7 +300,6 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     }, [calendarView]);
 
     // Fetch team members
-    // Fetch team members
     useEffect(() => {
         const fetchTeam = async () => {
             try {
@@ -233,6 +332,26 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 
                 console.log(`Calendar: Setting ${members.length} team members`);
                 setTeamMembers(members);
+                
+                // Initialize userColors from saved calendarColor values or use presets as fallback
+                const initialColors = {};
+                members.forEach((member, index) => {
+                    if (member.calendarColor) {
+                        initialColors[member.id] = member.calendarColor;
+                    } else {
+                        // Use preset color based on index if no saved color
+                        initialColors[member.id] = colorPresets[index % colorPresets.length];
+                    }
+                });
+                setUserColors(prevColors => ({ ...initialColors, ...prevColors }));
+                
+                // Initialize all team members as visible by default
+                const initialVisibility = {};
+                members.forEach(member => {
+                    initialVisibility[member.id] = true;
+                });
+                setUserCalendarVisibility(prevVis => ({ ...initialVisibility, ...prevVis }));
+                
             } catch (error) {
                 console.error('Failed to fetch team members:', error);
                 setTeamMembers([]); // Ensure we always have an array on error
@@ -351,17 +470,34 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 }
                 
                 if (eventDate === dateOnly) {
+                    // Get the organizer ID for visibility check and color
+                    const organizerId = event.organizer?.id || event.organizerId;
+                    
+                    // Filter by user visibility - if organizer is hidden, skip this event
+                    // (unless no visibility settings exist yet - show all by default)
+                    const hasVisibilitySettings = Object.keys(userCalendarVisibility).length > 0;
+                    if (hasVisibilitySettings && organizerId && userCalendarVisibility[organizerId] === false) {
+                        return; // Skip events from hidden users
+                    }
+                    
+                    // Determine event color - use organizer's calendar color if available
+                    let eventColor = event.color || getEventColor(event.eventType?.toLowerCase() || event.type);
+                    if (organizerId && userColors[organizerId]) {
+                        eventColor = userColors[organizerId];
+                    }
+                    
                     const candidate = {
                         id: event.id || event._id || `db-event-${event.title}-${Date.now()}`,
                         title: event.title,
                         type: event.eventType?.toLowerCase() || event.type || 'meeting',
                         time: eventTime || event.time,
                         priority: event.priority || 'medium',
-                        color: event.color || getEventColor(event.eventType?.toLowerCase() || event.type),
+                        color: eventColor,
                         description: event.description,
                         projectId: event.projectId,
                         attendees: event.attendees,
                         organizer: event.organizer,
+                        organizerId: organizerId,
                         startTime: event.startTime,
                         endTime: event.endTime
                     };
@@ -568,6 +704,27 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         return events.filter(event => event.type === filterType);
     };
 
+    // Helper to determine if color is hex (from user calendar color) vs Tailwind class
+    const isHexColor = (color) => color && color.startsWith('#');
+    
+    // Get event style - returns { className, style } for rendering
+    const getEventStyle = (event) => {
+        const color = event.color;
+        if (isHexColor(color)) {
+            // Hex color - use inline style
+            return {
+                className: 'text-white hover:opacity-90 shadow-sm',
+                style: { backgroundColor: color }
+            };
+        } else {
+            // Tailwind class - use className
+            return {
+                className: `${color} text-white hover:opacity-90 shadow-sm`,
+                style: {}
+            };
+        }
+    };
+
     const navigateMonth = (direction) => {
         setCurrentDate(prev => {
             const newDate = new Date(prev);
@@ -719,22 +876,6 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                     
                     {/* Controls */}
                     <div className="flex items-center gap-2">
-                        {/* View Toggle: Personal vs Team */}
-                        <div className={`flex rounded-md p-0.5 shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white border border-gray-200'}`}>
-                            {['personal', 'team'].map(view => (
-                                <button
-                                    key={view}
-                                    onClick={() => setCalendarView(view)}
-                                    className={`px-3 py-0.5 text-xs font-medium rounded transition-all duration-200 ${
-                                        calendarView === view
-                                            ? `${colorMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-[var(--color-primary-blueprint-blue)] text-white shadow-md'}`
-                                            : `${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-600 hover:text-gray-800 hover:bg-gray-100'}`
-                                    }`}
-                                >
-                                    {view.charAt(0).toUpperCase() + view.slice(1)}
-                                </button>
-                            ))}
-                        </div>
                         <div className={`flex rounded-md p-0.5 shadow-md ${colorMode ? 'bg-[#1e293b] border border-[#3b82f6]/30' : 'bg-white border border-gray-200'}`}>
                             {['month', 'week', 'day'].map(mode => (
                                 <button
@@ -785,16 +926,30 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             </span>
                         )}
                         
-                        {/* User Calendars Toggle */}
+                        {/* Personal/Team View Toggle */}
+                        <button
+                            onClick={() => setCalendarView(calendarView === 'team' ? 'personal' : 'team')}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                                calendarView === 'team'
+                                    ? (colorMode ? 'bg-purple-600 text-white' : 'bg-purple-600 text-white')
+                                    : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
+                            }`}
+                            title={calendarView === 'team' ? 'Showing Team Calendar - Click to show Personal' : 'Showing Personal Calendar - Click to show Team'}
+                        >
+                            {calendarView === 'team' ? '👥 Team' : '👤 Personal'}
+                        </button>
+                        
+                        {/* Filter Users Button - Shows Team Calendars Panel */}
                         <button
                             onClick={() => setShowUserPanel(!showUserPanel)}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                                 showUserPanel
-                                    ? (colorMode ? 'bg-purple-600 text-white' : 'bg-purple-600 text-white')
+                                    ? (colorMode ? 'bg-indigo-600 text-white' : 'bg-indigo-600 text-white')
                                     : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
                             }`}
+                            title="Toggle Team Calendars panel to filter by user and set colors"
                         >
-                            👥 Team
+                            🎨 Filter
                         </button>
                         
                         {/* Work Scheduler Toggle */}
@@ -809,61 +964,231 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             🔧 Work
                         </button>
                         
-                        {/* Recent Events Toggle */}
+                        {/* Recently Added Toggle (Audit Trail) */}
                         <button
-                            onClick={() => setShowRecentEvents(!showRecentEvents)}
+                            onClick={() => {
+                                if (!showRecentlyAdded) {
+                                    fetchRecentlyAdded(); // Fetch when opening
+                                }
+                                setShowRecentlyAdded(!showRecentlyAdded);
+                            }}
                             className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                                showRecentEvents
+                                showRecentlyAdded
                                     ? (colorMode ? 'bg-green-600 text-white' : 'bg-green-600 text-white')
                                     : (colorMode ? 'bg-[#374151] text-gray-300 hover:bg-[#4b5563]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300')
                             }`}
+                            title="Recently Added - Audit Trail (last 15 events by creation time)"
                         >
-                            📋 Recent
+                            � Added
                         </button>
                     </div>
                 </div>
                 
-                {/* Search Bar */}
+                {/* Universal Search Bar */}
                 <div className="flex items-center gap-2 mt-3">
                     <div className="flex-1 relative">
                         <input
                             type="text"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder="Search events by title..."
-                            className={`w-full px-4 py-2 pl-8 rounded-lg text-sm border ${
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter' && searchQuery.trim().length >= 2) {
+                                    searchEvents(searchQuery, searchDateRange);
+                                }
+                            }}
+                            placeholder="Search events by name or topic..."
+                            className={`w-full px-4 py-2 pl-8 pr-10 rounded-lg text-sm border ${
                                 colorMode 
                                     ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400' 
                                     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500'
                             } focus:outline-none focus:ring-2 focus:ring-blue-500`}
                         />
                         <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                        {isSearching && (
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 animate-spin">⏳</span>
+                        )}
                     </div>
                     <select
-                        value={dateRangeFilter}
-                        onChange={(e) => setDateRangeFilter(e.target.value)}
+                        value={searchDateRange}
+                        onChange={(e) => setSearchDateRange(e.target.value)}
                         className={`px-3 py-2 rounded-lg text-xs border ${
                             colorMode 
                                 ? 'bg-[#374151] border-gray-600 text-white' 
                                 : 'bg-white border-gray-300 text-gray-900'
                         }`}
+                        title="Search Date Range"
                     >
-                        <option value="all">All Time</option>
-                        <option value="3m">Last 3 Months</option>
-                        <option value="6m">Last 6 Months</option>
-                        <option value="1y">Last 1 Year</option>
-                        <option value="2y">Last 2 Years</option>
-                        <option value="5y">Last 5 Years</option>
+                        <option value="3m">3 Months</option>
+                        <option value="6m">6 Months</option>
+                        <option value="1y">1 Year</option>
+                        <option value="2y">2 Years</option>
+                        <option value="3y">3 Years (Default)</option>
+                        <option value="5y">5 Years</option>
                     </select>
+                    <button
+                        onClick={() => searchEvents(searchQuery, searchDateRange)}
+                        disabled={searchQuery.trim().length < 2 || isSearching}
+                        className={`px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                            searchQuery.trim().length >= 2 && !isSearching
+                                ? (colorMode ? 'bg-blue-600 text-white hover:bg-blue-700' : 'bg-blue-600 text-white hover:bg-blue-700')
+                                : (colorMode ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-gray-200 text-gray-400 cursor-not-allowed')
+                        }`}
+                    >
+                        Search
+                    </button>
+                    {showSearchResults && searchResults.length > 0 && (
+                        <button
+                            onClick={() => {
+                                setShowSearchResults(false);
+                                setSearchResults([]);
+                                setSearchQuery('');
+                            }}
+                            className={`px-3 py-2 rounded-lg text-xs ${colorMode ? 'bg-red-600 text-white hover:bg-red-700' : 'bg-red-100 text-red-700 hover:bg-red-200'}`}
+                        >
+                            ✕ Clear
+                        </button>
+                    )}
                 </div>
             </div>
+
+            {/* Recently Added Panel (Audit Trail) */}
+            {showRecentlyAdded && (
+                <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-green-500/30' : 'bg-white border border-green-200'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                            🕐 Recently Added (Audit Trail)
+                        </h3>
+                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Last 15 events by creation time
+                        </span>
+                    </div>
+                    <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                        {recentlyAdded.length === 0 ? (
+                            <div className={`text-center py-4 text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                No recently added events
+                            </div>
+                        ) : (
+                            recentlyAdded.map((event, idx) => (
+                                <div 
+                                    key={event.id || idx}
+                                    onClick={() => handleEventClick(event)}
+                                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                                        colorMode ? 'hover:bg-[#374151] bg-[#0f172a]' : 'hover:bg-gray-100 bg-gray-50'
+                                    }`}
+                                >
+                                    <div className="flex-1 min-w-0">
+                                        <div className={`text-sm font-medium truncate ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                            {event.title || 'Untitled Event'}
+                                        </div>
+                                        <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            Event Date: {event.startTime ? new Date(event.startTime).toLocaleDateString() : 'N/A'}
+                                        </div>
+                                        <div className={`text-xs ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                            Created: {event.createdAt ? new Date(event.createdAt).toLocaleString() : 'N/A'}
+                                        </div>
+                                        {event.organizer && (
+                                            <div className={`text-xs ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                By: {event.organizer.firstName} {event.organizer.lastName}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className={`text-[10px] px-2 py-1 rounded ${colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
+                                        {event.eventType || 'Event'}
+                                    </span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+
+            {/* Search Results Panel */}
+            {showSearchResults && searchResults.length > 0 && (
+                <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-blue-500/30' : 'bg-white border border-blue-200'}`}>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                            🔍 Search Results
+                        </h3>
+                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            Found {searchResults.length} event{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+                        </span>
+                    </div>
+                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                        {searchResults.map((event, idx) => {
+                            const eventStyle = getEventStyle(event);
+                            return (
+                                <div 
+                                    key={event.id || idx}
+                                    onClick={() => handleEventClick(event)}
+                                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
+                                        colorMode ? 'hover:bg-[#374151] bg-[#0f172a]' : 'hover:bg-gray-100 bg-gray-50'
+                                    }`}
+                                >
+                                    <div 
+                                        className="w-2 h-full min-h-[40px] rounded"
+                                        style={eventStyle.style.backgroundColor ? { backgroundColor: eventStyle.style.backgroundColor } : {}}
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className={`text-sm font-medium truncate ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                            {event.title || 'Untitled Event'}
+                                        </div>
+                                        <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                            {event.startTime ? new Date(event.startTime).toLocaleDateString('en-US', { 
+                                                weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
+                                            }) : 'N/A'}
+                                            {event.startTime && ` at ${new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
+                                        </div>
+                                        {event.description && (
+                                            <div className={`text-xs truncate ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                                                {event.description.substring(0, 100)}...
+                                            </div>
+                                        )}
+                                        {event.organizer && (
+                                            <div className={`text-xs ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                Organizer: {event.organizer.firstName} {event.organizer.lastName}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className={`text-[10px] px-2 py-1 rounded ${colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
+                                        {event.eventType || 'Event'}
+                                    </span>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             {/* User Calendar Panel */}
             {showUserPanel && (
                 <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-purple-500/30' : 'bg-white border border-purple-200'}`}>
-                    <h3 className={`text-sm font-bold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                        👥 Team Calendars
-                    </h3>
+                    <div className="flex items-center justify-between mb-3">
+                        <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                            👥 Team Calendars
+                        </h3>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={() => {
+                                    const allVisible = {};
+                                    (teamMembers || []).forEach(m => { allVisible[m.id] = true; });
+                                    setUserCalendarVisibility(allVisible);
+                                }}
+                                className={`px-2 py-1 rounded text-[10px] font-medium ${colorMode ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                            >
+                                Show All
+                            </button>
+                            <button
+                                onClick={() => {
+                                    const noneVisible = {};
+                                    (teamMembers || []).forEach(m => { noneVisible[m.id] = false; });
+                                    setUserCalendarVisibility(noneVisible);
+                                }}
+                                className={`px-2 py-1 rounded text-[10px] font-medium ${colorMode ? 'bg-gray-600 text-white hover:bg-gray-700' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
+                            >
+                                Hide All
+                            </button>
+                        </div>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                         {(teamMembers || []).map(user => (
                             <div key={user.id} className="flex items-center gap-2">
@@ -904,10 +1229,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 {colorPresets.map((color, idx) => (
                                     <button
                                         key={idx}
-                                        onClick={() => {
-                                            setUserColors(prev => ({ ...prev, [showColorPicker]: color }));
-                                            setShowColorPicker(null);
-                                        }}
+                                        onClick={() => handleColorChange(showColorPicker, color)}
                                         className="w-6 h-6 rounded-full hover:scale-110 transition-transform border-2 border-white shadow"
                                         style={{ backgroundColor: color }}
                                     />
@@ -917,10 +1239,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             <div className="flex items-center gap-2 mt-2">
                                 <input
                                     type="color"
-                                    onChange={(e) => {
-                                        setUserColors(prev => ({ ...prev, [showColorPicker]: e.target.value }));
-                                        setShowColorPicker(null);
-                                    }}
+                                    onChange={(e) => handleColorChange(showColorPicker, e.target.value)}
                                     className="w-8 h-8 rounded cursor-pointer"
                                 />
                                 <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>Custom color</span>
@@ -1067,20 +1386,24 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 
                                 {/* Events */}
                                 <div className="space-y-0.5">
-                                    {getFilteredEvents(day.events).slice(0, 1).map(event => (
-                                        <div
-                                            key={event.id}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleEventClick(event);
-                                            }}
-                                            className={`text-xs p-0.5 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm`}
-                                            title={`${event.time} - ${event.title}`}
-                                        >
-                                            <div className="truncate font-medium text-xs">{event.title}</div>
-                                            <div className="text-xs opacity-90">{event.time}</div>
-                                        </div>
-                                    ))}
+                                    {getFilteredEvents(day.events).slice(0, 1).map(event => {
+                                        const eventStyle = getEventStyle(event);
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleEventClick(event);
+                                                }}
+                                                className={`text-xs p-0.5 rounded cursor-pointer transition-all duration-200 ${eventStyle.className}`}
+                                                style={eventStyle.style}
+                                                title={`${event.time} - ${event.title}`}
+                                            >
+                                                <div className="truncate font-medium text-xs">{event.title}</div>
+                                                <div className="text-xs opacity-90">{event.time}</div>
+                                            </div>
+                                        );
+                                    })}
                                     {getFilteredEvents(day.events).length > 1 && (
                                         <div className={`text-xs px-1 py-0.5 rounded shadow-sm ${colorMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
                                             +{getFilteredEvents(day.events).length - 1} more
@@ -1128,16 +1451,20 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 className={`min-h-[300px] p-2 border-r ${colorMode ? 'border-[#3b82f6]/20' : 'border-gray-200'}`}
                             >
                                 <div className="space-y-1">
-                                    {getFilteredEvents(day.events).map(event => (
-                                        <div
-                                            key={event.id}
-                                            onClick={() => handleEventClick(event)}
-                                            className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm`}
-                                        >
-                                            <div className="font-bold text-[10px] opacity-80">{event.time}</div>
-                                            <div className="font-medium truncate">{event.title}</div>
-                                        </div>
-                                    ))}
+                                    {getFilteredEvents(day.events).map(event => {
+                                        const eventStyle = getEventStyle(event);
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                onClick={() => handleEventClick(event)}
+                                                className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${eventStyle.className}`}
+                                                style={eventStyle.style}
+                                            >
+                                                <div className="font-bold text-[10px] opacity-80">{event.time}</div>
+                                                <div className="font-medium truncate">{event.title}</div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}
@@ -1188,16 +1515,20 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 </div>
                                 {/* Events for this hour */}
                                 <div className="flex-1 min-h-[50px] p-1">
-                                    {hourSlot.events.map(event => (
-                                        <div
-                                            key={event.id}
-                                            onClick={() => handleEventClick(event)}
-                                            className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${event.color} text-white hover:opacity-90 shadow-sm mb-1`}
-                                        >
-                                            <div className="font-medium">{event.title}</div>
-                                            <div className="opacity-80 text-[10px]">{event.description || 'No description'}</div>
-                                        </div>
-                                    ))}
+                                    {hourSlot.events.map(event => {
+                                        const eventStyle = getEventStyle(event);
+                                        return (
+                                            <div
+                                                key={event.id}
+                                                onClick={() => handleEventClick(event)}
+                                                className={`text-xs p-2 rounded cursor-pointer transition-all duration-200 ${eventStyle.className} mb-1`}
+                                                style={eventStyle.style}
+                                            >
+                                                <div className="font-medium">{event.title}</div>
+                                                <div className="opacity-80 text-[10px]">{event.description || 'No description'}</div>
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         ))}

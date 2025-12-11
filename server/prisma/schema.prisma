@@ -47,6 +47,7 @@ model User {
   experience               Int?
   emergencyContact         Json?
   address                  Json?
+  calendarColor            String?                   @db.VarChar(7) @map("calendar_color")
   eventAttendees           CalendarEventAttendee[]
   calendarEventComments    CalendarEventComment[]
   calendarEvents           CalendarEvent[]           @relation("Organizer")
@@ -519,6 +520,12 @@ model CalendarEvent {
   childEvents    CalendarEvent[]         @relation("EventRecurrence")
   project        Project?                @relation(fields: [projectId], references: [id])
 
+  // Indexes for search optimization (supports queries spanning up to 5 years)
+  @@index([title])
+  @@index([eventType])
+  @@index([createdAt(sort: Desc)])
+  @@index([startTime(sort: Desc)])
+  @@index([createdAt, eventType])
   @@map("calendar_events")
 }
 

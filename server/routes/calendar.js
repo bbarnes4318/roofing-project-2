@@ -18,11 +18,10 @@ router.get('/', asyncHandler(async (req, res) => {
   
   // View Logic: Personal vs Team
   if (view === 'personal') {
-    // Personal View: Events where user is attendee OR organizer
-    where.OR = [
-      { organizerId: req.user.id },
-      { attendees: { some: { userId: req.user.id } } }
-    ];
+    // Personal View: Only events where the user is an attendee
+    // This ensures events created by the user for others (without adding themselves as attendee)
+    // will NOT appear on the creator's Personal calendar, only on Team calendar and assignee's calendar
+    where.attendees = { some: { userId: req.user.id } };
   }
 
   if (startDate && endDate) {
@@ -114,6 +113,159 @@ router.get('/', asyncHandler(async (req, res) => {
     success: true,
     data: { events, count: events.length },
     message: 'Calendar events retrieved successfully'
+  });
+}));
+
+// @desc    Get recently added events (audit trail - sorted by creation time)
+// @route   GET /api/calendar-events/recent
+// @access  Private
+router.get('/recent', asyncHandler(async (req, res) => {
+  console.log('📅 CALENDAR: GET /api/calendar-events/recent - Fetching last 15 events by creation time');
+  
+  const events = await prisma.calendarEvent.findMany({
+    take: 15,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      organizer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true
+        }
+      },
+      attendees: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  console.log(`📅 CALENDAR: Found ${events.length} recently added events`);
+  
+  res.json({
+    success: true,
+    data: { events, count: events.length },
+    message: 'Recently added events retrieved successfully'
+  });
+}));
+
+// @desc    Search calendar events with date range filter
+// @route   GET /api/calendar-events/search
+// @access  Private
+router.get('/search', asyncHandler(async (req, res) => {
+  const { query, dateRange, eventType } = req.query;
+  
+  console.log('📅 CALENDAR: GET /api/calendar-events/search', { query, dateRange, eventType });
+  
+  // Calculate date cutoff based on dateRange parameter
+  // Default to 3 years if not specified
+  const now = new Date();
+  let cutoffDate = new Date();
+  
+  switch (dateRange) {
+    case '3m':
+      cutoffDate.setMonth(now.getMonth() - 3);
+      break;
+    case '6m':
+      cutoffDate.setMonth(now.getMonth() - 6);
+      break;
+    case '1y':
+      cutoffDate.setFullYear(now.getFullYear() - 1);
+      break;
+    case '2y':
+      cutoffDate.setFullYear(now.getFullYear() - 2);
+      break;
+    case '5y':
+      cutoffDate.setFullYear(now.getFullYear() - 5);
+      break;
+    case '3y':
+    default:
+      // Default: 3 years
+      cutoffDate.setFullYear(now.getFullYear() - 3);
+      break;
+  }
+  
+  // Build where clause
+  let where = {
+    createdAt: { gte: cutoffDate }
+  };
+  
+  // Add search query for title and eventType
+  if (query && query.trim()) {
+    const searchTerm = query.trim();
+    where.OR = [
+      { title: { contains: searchTerm, mode: 'insensitive' } },
+      { description: { contains: searchTerm, mode: 'insensitive' } }
+    ];
+  }
+  
+  // Filter by specific event type if provided
+  if (eventType && eventType !== 'all') {
+    where.eventType = eventType.toUpperCase();
+  }
+  
+  const events = await prisma.calendarEvent.findMany({
+    where,
+    take: 100, // Limit results for performance
+    orderBy: { startTime: 'desc' },
+    include: {
+      organizer: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          avatar: true
+        }
+      },
+      project: {
+        select: {
+          id: true,
+          projectNumber: true,
+          projectName: true
+        }
+      },
+      attendees: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true
+            }
+          }
+        }
+      }
+    }
+  });
+  
+  console.log(`📅 CALENDAR: Search found ${events.length} events for query "${query}" within ${dateRange || '3y'}`);
+  
+  res.json({
+    success: true,
+    data: { 
+      events, 
+      count: events.length,
+      searchQuery: query || '',
+      dateRange: dateRange || '3y'
+    },
+    message: 'Search completed successfully'
   });
 }));
 

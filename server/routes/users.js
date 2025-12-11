@@ -68,7 +68,8 @@ router.get('/team-members', asyncHandler(async (req, res) => {
       position: true,
       avatar: true,
       isActive: true,
-      isVerified: true
+      isVerified: true,
+      calendarColor: true
     },
     orderBy: [
       { firstName: 'asc' },
@@ -902,6 +903,63 @@ router.delete('/:id', authenticateToken, adminOnly, asyncHandler(async (req, res
   res.json({
     success: true,
     message: `User ${user.firstName} ${user.lastName} has been deleted successfully`
+  });
+}));
+
+// @desc    Update user's calendar color
+// @route   PUT /api/users/:id/calendar-color
+// @access  Private (self or admin)
+router.put('/:id/calendar-color', authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.params.id;
+  const { calendarColor } = req.body;
+
+  // Users can only update their own color, unless they are admin
+  if (req.user.id !== userId && req.user.role !== 'ADMIN') {
+    return res.status(403).json({
+      success: false,
+      message: 'You can only update your own calendar color'
+    });
+  }
+
+  // Validate hex color format
+  if (calendarColor && !/^#[0-9A-Fa-f]{6}$/.test(calendarColor)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Invalid color format. Must be a hex color code (e.g., #3B82F6)'
+    });
+  }
+
+  // Check if user exists
+  const existingUser = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { id: true }
+  });
+
+  if (!existingUser) {
+    return res.status(404).json({
+      success: false,
+      message: 'User not found'
+    });
+  }
+
+  // Update the user's calendar color
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { calendarColor: calendarColor || null },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      calendarColor: true
+    }
+  });
+
+  console.log(`✅ Calendar color updated for user ${updatedUser.firstName} ${updatedUser.lastName}: ${calendarColor}`);
+
+  res.json({
+    success: true,
+    data: { user: updatedUser },
+    message: 'Calendar color updated successfully'
   });
 }));
 
