@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeftIcon, PlusCircleIcon } from '../common/Icons';
 import { authService, usersService } from '../../services/api';
+import { toast } from 'react-hot-toast';
 
 const ChevronRightIcon = ({ className = "w-5 h-5" }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -852,12 +853,18 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             // Close modal and reset form
             closeAddEventModal();
             
+            // Show success notification
+            toast.success('Event created successfully!', {
+                duration: 3000,
+                icon: '📅'
+            });
+            
             // Immediate refresh for instant feedback
             await fetchCalendarEvents();
             
         } catch (error) {
             console.error('Error creating event:', error);
-            alert(`Failed to create event: ${error.message}`);
+            toast.error(`Failed to create event: ${error.message}`);
         }
     };
 
@@ -905,17 +912,31 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     Add Event
                                 </button>
 
-                                {/* View Toggle */}
-                                <button
-                                    onClick={() => setCalendarView(calendarView === 'team' ? 'personal' : 'team')}
-                                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${
-                                        calendarView === 'team'
-                                            ? (colorMode ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-purple-50 text-purple-700 border border-purple-200')
-                                            : (colorMode ? 'bg-slate-700/50 text-slate-300 border border-slate-600' : 'bg-slate-100 text-slate-600 border border-slate-200')
-                                    }`}
-                                >
-                                    {calendarView === 'team' ? '👥 Team View' : '👤 Personal'}
-                                </button>
+                                {/* View Toggle - Segmented Control */}
+                                <div className={`flex items-center rounded-xl p-1 ${colorMode ? 'bg-slate-800/80 backdrop-blur-sm' : 'bg-white shadow-sm border border-slate-200'}`}>
+                                    <button
+                                        onClick={() => setCalendarView('team')}
+                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                                            calendarView === 'team'
+                                                ? `${colorMode ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg shadow-purple-500/25' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/25'}`
+                                                : `${colorMode ? 'text-slate-400 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`
+                                        }`}
+                                        title="View all team events"
+                                    >
+                                        👥 Team
+                                    </button>
+                                    <button
+                                        onClick={() => setCalendarView('personal')}
+                                        className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
+                                            calendarView === 'personal'
+                                                ? `${colorMode ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25' : 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-600/25'}`
+                                                : `${colorMode ? 'text-slate-400 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`
+                                        }`}
+                                        title="View only your assigned events"
+                                    >
+                                        👤 My Events
+                                    </button>
+                                </div>
 
                                 {/* Refresh */}
                                 <button

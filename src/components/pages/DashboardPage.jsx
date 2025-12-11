@@ -678,6 +678,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     const convertMockToReal = async () => {
       if (mockDataConverted) return;
       
+      // DISABLED: Mock data conversion is disabled to prevent orphan reminders
+      // that appear with "System Admin" and "No recipients"
+      // The mock data was causing issues when organizerId was null
+      // If you need to seed test data, use the server/prisma/seed.js script instead
+      console.log('📝 Mock data conversion is disabled to prevent orphan reminders');
+      setMockDataConverted(true);
+      return;
+      
+      /* Original code disabled:
       // Only convert if we have no real data
       const needsConversion = (
         (!realTasks || realTasks.length === 0) && mockTasks.length > 0
@@ -686,6 +695,15 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       );
       
       if (!needsConversion) {
+        setMockDataConverted(true);
+        return;
+      }
+      
+      // CRITICAL: Only proceed if we have a valid user with an ID
+      // Otherwise, reminders will be created with organizerId = null
+      // which causes them to display as "System Admin"
+      if (!currentUser?.id) {
+        console.log('⚠️ Skipping mock conversion - no valid user ID');
         setMockDataConverted(true);
         return;
       }
@@ -741,6 +759,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       } catch (error) {
         console.error('Error converting mock data:', error);
       }
+      */
     };
     
     if (!tasksLoading && !calendarLoading && currentUser) {

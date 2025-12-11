@@ -239,14 +239,14 @@ const FeedbackCard = ({ feedback, currentUser, onVote, onFollow, onClick, onDele
           {isAuthor && onDelete && (
             <button
               onClick={handleDelete}
-              className={`p-1.5 rounded-lg transition-colors ${
+              className={`p-1 rounded-md transition-all duration-200 opacity-60 hover:opacity-100 ${
                 colorMode 
-                  ? 'hover:bg-red-900/20 text-red-400 hover:text-red-300' 
-                  : 'hover:bg-red-50 text-red-600 hover:text-red-700'
+                  ? 'text-gray-400 hover:text-red-400 hover:bg-red-900/20' 
+                  : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
               }`}
               title="Delete this post"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-3.5 w-3.5" />
             </button>
           )}
         </div>
