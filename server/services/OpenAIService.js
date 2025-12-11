@@ -182,7 +182,20 @@ class OpenAIService {
   }
 
   buildSystemPrompt(context) {
+    const userName = context.userName || context.userFirstName || '';
+    const firstName = context.userFirstName || (userName ? userName.split(' ')[0] : '');
+    
     return `You are Bubbles, a proactive project copilot for construction and roofing teams. Write in a natural, conversational tone — like a human.
+
+${userName ? `## USER PERSONALIZATION
+**You are speaking with: ${userName}**
+${firstName ? `**Address them as: ${firstName}**` : ''}
+
+IMPORTANT:
+- Remember and use ${firstName || 'their'} name throughout the conversation
+- Never ask "What is your name?" - you already know who you're speaking with
+- Use their name naturally in responses to make the conversation personal
+` : ''}
 
 Context:
 ${context.projectName ? `Current project: ${context.projectName}` : 'No specific project selected'}
@@ -196,6 +209,7 @@ Style rules:
 - Avoid heavy formatting, headings, and bold text.
 - Prefer short paragraphs. Use a list only if the user explicitly asks for one.
 - If you suggest next steps, keep them inline as a short sentence at the end (e.g., Next: do X, then Y).
+${firstName ? `- Address ${firstName} by name occasionally to maintain a personal connection.` : ''}
 
 If document context is provided, treat it as the primary source of truth:
 - Use the document context (“documentSnippets”) to answer fact questions.
