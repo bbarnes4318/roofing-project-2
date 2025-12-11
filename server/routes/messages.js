@@ -218,17 +218,19 @@ router.post('/', authenticateToken, messageValidation, asyncHandler(async (req, 
   const messageData = {
     content,
     type,
-    recipientId,
-    projectId,
-    projectName,
-    priority,
-    attachments,
     senderId: req.user.id,
-    senderName: `${req.user.firstName} ${req.user.lastName}`,
-    senderAvatar: req.user.avatar || '',
-    recipientName,
-    participants: type === 'GROUP' ? [req.user.id, recipientId] : undefined
+    senderName: `${req.user.firstName || ''} ${req.user.lastName || ''}`.trim() || 'Unknown User',
+    priority
   };
+  
+  // Add optional fields only if they have values
+  if (recipientId) messageData.recipientId = recipientId;
+  if (recipientName) messageData.recipientName = recipientName;
+  if (projectId) messageData.projectId = projectId;
+  if (projectName) messageData.projectName = projectName;
+  if (req.user.avatar) messageData.senderAvatar = req.user.avatar;
+  if (attachments && attachments.length > 0) messageData.attachments = attachments;
+  if (type === 'GROUP' && recipientId) messageData.participants = [req.user.id, recipientId];
 
   const message = await prisma.directMessage.create({
     data: messageData
@@ -254,7 +256,7 @@ router.put('/:id', authenticateToken, [
     });
   }
 
-  const message = await prisma.message.findUnique({
+  const message = await prisma.directMessage.findUnique({
     where: { id: req.params.id }
   });
 
