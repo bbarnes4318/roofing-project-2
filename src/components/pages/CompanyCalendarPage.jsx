@@ -968,10 +968,29 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                             </div>
                         </div>
 
-                        {/* Right Section: Search */}
+                        {/* Right Section: Search - Premium Modern Design */}
                         <div className="flex items-center gap-3">
-                            <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${colorMode ? 'bg-slate-800/80 border border-slate-700' : 'bg-white shadow-sm border border-slate-200'}`}>
-                                <span className="text-slate-400">🔍</span>
+                            {/* Premium Search Container */}
+                            <div 
+                                className={`relative flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300 ${
+                                    colorMode 
+                                        ? 'bg-gradient-to-r from-slate-800/90 to-slate-700/90 border border-slate-600/50 shadow-lg shadow-slate-900/30 hover:shadow-xl hover:shadow-slate-900/40 hover:border-slate-500/50' 
+                                        : 'bg-gradient-to-r from-white to-slate-50 border border-slate-200/80 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-slate-300/50 hover:border-blue-200'
+                                }`}
+                                style={{ minWidth: '380px' }}
+                            >
+                                {/* Search Icon with Gradient */}
+                                <div className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                                    colorMode 
+                                        ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30' 
+                                        : 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100'
+                                }`}>
+                                    <svg className={`w-5 h-5 ${colorMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                    </svg>
+                                </div>
+                                
+                                {/* Search Input */}
                                 <input
                                     type="text"
                                     value={searchQuery}
@@ -982,26 +1001,69 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         }
                                     }}
                                     placeholder="Search events..."
-                                    className={`w-48 bg-transparent text-sm outline-none ${
-                                        colorMode ? 'text-white placeholder-slate-500' : 'text-slate-900 placeholder-slate-400'
+                                    className={`flex-1 bg-transparent text-sm font-medium outline-none transition-all duration-300 ${
+                                        colorMode 
+                                            ? 'text-white placeholder-slate-400' 
+                                            : 'text-slate-800 placeholder-slate-400'
                                     }`}
+                                    style={{ minWidth: '160px' }}
                                 />
-                                <select
-                                    value={searchDateRange}
-                                    onChange={(e) => setSearchDateRange(e.target.value)}
-                                    className={`bg-transparent text-xs font-medium outline-none cursor-pointer ${
-                                        colorMode ? 'text-slate-400' : 'text-slate-500'
+                                
+                                {/* Date Range Select - Premium Dropdown */}
+                                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
+                                    colorMode 
+                                        ? 'bg-slate-700/60 border border-slate-600/50 hover:bg-slate-600/60' 
+                                        : 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
+                                }`}>
+                                    <svg className={`w-4 h-4 ${colorMode ? 'text-slate-400' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <select
+                                        value={searchDateRange}
+                                        onChange={(e) => setSearchDateRange(e.target.value)}
+                                        className={`bg-transparent text-sm font-semibold outline-none cursor-pointer appearance-none pr-1 ${
+                                            colorMode ? 'text-slate-300' : 'text-slate-700'
+                                        }`}
+                                    >
+                                        <option value="3m">3 Months</option>
+                                        <option value="6m">6 Months</option>
+                                        <option value="1y">1 Year</option>
+                                        <option value="2y">2 Years</option>
+                                        <option value="3y">3 Years</option>
+                                        <option value="5y">5 Years</option>
+                                    </select>
+                                    <svg className={`w-3 h-3 ${colorMode ? 'text-slate-500' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                
+                                {/* Search Button */}
+                                <button
+                                    onClick={() => searchQuery.trim().length >= 2 && searchEvents(searchQuery, searchDateRange)}
+                                    disabled={searchQuery.trim().length < 2 || isSearching}
+                                    className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
+                                        searchQuery.trim().length >= 2
+                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 cursor-pointer'
+                                            : colorMode 
+                                                ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed' 
+                                                : 'bg-slate-100 text-slate-400 cursor-not-allowed'
                                     }`}
+                                    title="Search"
                                 >
-                                    <option value="3m">3 Mo</option>
-                                    <option value="6m">6 Mo</option>
-                                    <option value="1y">1 Yr</option>
-                                    <option value="2y">2 Yr</option>
-                                    <option value="3y">3 Yr</option>
-                                    <option value="5y">5 Yr</option>
-                                </select>
-                                {isSearching && <span className="animate-spin">⏳</span>}
+                                    {isSearching ? (
+                                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                    ) : (
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    )}
+                                </button>
                             </div>
+                            
+                            {/* Clear Results Button */}
                             {showSearchResults && searchResults.length > 0 && (
                                 <button
                                     onClick={() => {
@@ -1009,15 +1071,31 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         setSearchResults([]);
                                         setSearchQuery('');
                                     }}
-                                    className={`p-2 rounded-lg text-sm ${colorMode ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30' : 'bg-red-50 text-red-600 hover:bg-red-100'}`}
+                                    className={`flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
+                                        colorMode 
+                                            ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border border-red-500/30 hover:from-red-500/30 hover:to-rose-500/30 hover:border-red-400/50' 
+                                            : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-600 border border-red-200 hover:from-red-100 hover:to-rose-100 hover:border-red-300'
+                                    }`}
                                 >
-                                    ✕
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                    <span>Clear</span>
                                 </button>
                             )}
+                            
+                            {/* Last Updated Badge */}
                             {lastUpdated && (
-                                <span className={`text-xs ${colorMode ? 'text-slate-500' : 'text-slate-400'}`}>
-                                    {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                </span>
+                                <div className={`flex items-center gap-2 px-3 py-2 rounded-xl ${
+                                    colorMode 
+                                        ? 'bg-slate-800/60 border border-slate-700/50' 
+                                        : 'bg-slate-50 border border-slate-200'
+                                }`}>
+                                    <div className={`w-2 h-2 rounded-full animate-pulse ${colorMode ? 'bg-emerald-400' : 'bg-emerald-500'}`}></div>
+                                    <span className={`text-xs font-medium ${colorMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                        {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -1196,56 +1274,122 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                 </div>
             )}
 
-            {/* Search Results Panel */}
+            {/* Search Results Panel - Premium Modern Design */}
             {showSearchResults && searchResults.length > 0 && (
-                <div className={`mb-3 p-4 rounded-xl shadow-md ${colorMode ? 'bg-[#1e293b] border border-blue-500/30' : 'bg-white border border-blue-200'}`}>
-                    <div className="flex items-center justify-between mb-3">
-                        <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                            🔍 Search Results
-                        </h3>
-                        <span className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                            Found {searchResults.length} event{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
-                        </span>
+                <div className={`mb-4 rounded-2xl overflow-hidden shadow-xl ${
+                    colorMode 
+                        ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-blue-500/20' 
+                        : 'bg-gradient-to-br from-white via-slate-50 to-blue-50/30 border border-blue-200/50'
+                }`}>
+                    {/* Header */}
+                    <div className={`px-5 py-4 flex items-center justify-between ${
+                        colorMode 
+                            ? 'bg-gradient-to-r from-blue-600/10 via-indigo-600/5 to-blue-600/10 border-b border-slate-700/50' 
+                            : 'bg-gradient-to-r from-blue-50 via-white to-indigo-50 border-b border-slate-200'
+                    }`}>
+                        <div className="flex items-center gap-3">
+                            <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${
+                                colorMode 
+                                    ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30' 
+                                    : 'bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200'
+                            }`}>
+                                <svg className={`w-5 h-5 ${colorMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 className={`text-sm font-bold ${colorMode ? 'text-white' : 'text-slate-800'}`}>
+                                    Search Results
+                                </h3>
+                                <p className={`text-xs ${colorMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                    Found <span className={`font-semibold ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>{searchResults.length}</span> event{searchResults.length !== 1 ? 's' : ''} for "{searchQuery}"
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => {
+                                setShowSearchResults(false);
+                                setSearchResults([]);
+                                setSearchQuery('');
+                            }}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-300 ${
+                                colorMode 
+                                    ? 'bg-slate-700/50 text-slate-400 hover:bg-slate-700 hover:text-white border border-slate-600/50' 
+                                    : 'bg-slate-100 text-slate-500 hover:bg-slate-200 hover:text-slate-700 border border-slate-200'
+                            }`}
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                            Close
+                        </button>
                     </div>
-                    <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    
+                    {/* Results List */}
+                    <div className="p-4 space-y-3 max-h-[400px] overflow-y-auto custom-scrollbar">
                         {searchResults.map((event, idx) => {
                             const eventStyle = getEventStyle(event);
                             return (
                                 <div 
                                     key={event.id || idx}
                                     onClick={() => handleEventClick(event)}
-                                    className={`flex items-start gap-3 p-3 rounded-lg cursor-pointer transition-all ${
-                                        colorMode ? 'hover:bg-[#374151] bg-[#0f172a]' : 'hover:bg-gray-100 bg-gray-50'
+                                    className={`group flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                                        colorMode 
+                                            ? 'bg-slate-700/30 hover:bg-slate-700/60 border border-slate-700/50 hover:border-slate-600' 
+                                            : 'bg-white hover:bg-blue-50/50 border border-slate-200/80 hover:border-blue-200 shadow-sm hover:shadow-md'
                                     }`}
                                 >
+                                    {/* Color Indicator */}
                                     <div 
-                                        className="w-2 h-full min-h-[40px] rounded"
-                                        style={eventStyle.style.backgroundColor ? { backgroundColor: eventStyle.style.backgroundColor } : {}}
+                                        className="w-1.5 h-full min-h-[48px] rounded-full flex-shrink-0"
+                                        style={eventStyle.style.backgroundColor ? { backgroundColor: eventStyle.style.backgroundColor } : { backgroundColor: '#3B82F6' }}
                                     />
+                                    
+                                    {/* Event Details */}
                                     <div className="flex-1 min-w-0">
-                                        <div className={`text-sm font-medium truncate ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                        <div className={`text-sm font-semibold truncate group-hover:text-blue-500 transition-colors ${colorMode ? 'text-white' : 'text-slate-800'}`}>
                                             {event.title || 'Untitled Event'}
                                         </div>
-                                        <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        <div className={`flex items-center gap-2 mt-1 text-xs ${colorMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                            </svg>
                                             {event.startTime ? new Date(event.startTime).toLocaleDateString('en-US', { 
                                                 weekday: 'short', month: 'short', day: 'numeric', year: 'numeric'
                                             }) : 'N/A'}
-                                            {event.startTime && ` at ${new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`}
+                                            {event.startTime && (
+                                                <>
+                                                    <span className={colorMode ? 'text-slate-600' : 'text-slate-300'}>•</span>
+                                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                    {new Date(event.startTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+                                                </>
+                                            )}
                                         </div>
                                         {event.description && (
-                                            <div className={`text-xs truncate ${colorMode ? 'text-gray-500' : 'text-gray-400'}`}>
-                                                {event.description.substring(0, 100)}...
+                                            <div className={`text-xs mt-1.5 line-clamp-1 ${colorMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                {event.description.substring(0, 100)}{event.description.length > 100 ? '...' : ''}
                                             </div>
                                         )}
                                         {event.organizer && (
-                                            <div className={`text-xs ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                                                Organizer: {event.organizer.firstName} {event.organizer.lastName}
+                                            <div className={`flex items-center gap-1.5 mt-2 text-xs ${colorMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                </svg>
+                                                {event.organizer.firstName} {event.organizer.lastName}
                                             </div>
                                         )}
                                     </div>
-                                    <span className={`text-[10px] px-2 py-1 rounded ${colorMode ? 'bg-gray-700 text-gray-300' : 'bg-gray-200 text-gray-600'}`}>
+                                    
+                                    {/* Event Type Badge */}
+                                    <div className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold ${
+                                        colorMode 
+                                            ? 'bg-slate-800 text-slate-300 border border-slate-700' 
+                                            : 'bg-gradient-to-r from-slate-100 to-slate-50 text-slate-600 border border-slate-200'
+                                    }`}>
                                         {event.eventType || 'Event'}
-                                    </span>
+                                    </div>
                                 </div>
                             );
                         })}
