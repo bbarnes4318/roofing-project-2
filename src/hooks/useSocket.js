@@ -204,6 +204,127 @@ export const useRealTimeNotifications = () => {
   };
 };
 
+// Hook for tracking user online/offline presence
+export const useUserPresence = () => {
+  const { socketService, isConnected } = useSocket();
+  const [onlineUsers, setOnlineUsers] = useState(new Map());
+  const [lastActivity, setLastActivity] = useState(new Map());
+
+  useEffect(() => {
+    if (isConnected) {
+      // Broadcast that current user is online when connected
+      socketService.updateUserStatus('online');
+
+      // Handle user status changes
+      const handleUserStatus = (data) => {
+        const { userId, status, timestamp } = data;
+        
+        setOnlineUsers(prev => {
+          const updated = new Map(prev);
+          if (status === 'online') {
+            updated.set(userId, true);
+          } else if (status === 'offline') {
+            updated.delete(userId);
+          } else {
+            // Handle 'busy', 'away' etc - still considered online
+            updated.set(userId, status);
+          }
+          return updated;
+        });
+
+        setLastActivity(prev => {
+          const updated = new Map(prev);
+          updated.set(userId, new Date(timestamp));
+          return updated;
+        });
+
+        console.log(`👤 User ${userId} is now ${status}`);
+      };
+
+      // Listen for user status changes
+      socketService.on('userStatus', handleUserStatus);
+
+      // Set up activity tracking - update status on activity
+      const activityEvents = ['mousemove', 'keydown', 'click', 'scroll'];
+      let inactivityTimer = null;
+      
+      const resetInactivityTimer = () => {
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        // If user was away, mark as online again
+        socketService.updateUserStatus('online');
+        
+        // Set user as "away" after 5 minutes of inactivity
+        inactivityTimer = setTimeout(() => {
+          socketService.updateUserStatus('away');
+        }, 5 * 60 * 1000);
+      };
+
+      activityEvents.forEach(event => {
+        window.addEventListener(event, resetInactivityTimer, { passive: true });
+      });
+
+      // Handle page visibility changes
+      const handleVisibilityChange = () => {
+        if (document.hidden) {
+          socketService.updateUserStatus('away');
+        } else {
+          socketService.updateUserStatus('online');
+        }
+      };
+
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      // Handle window close/unload
+      const handleUnload = () => {
+        socketService.updateUserStatus('offline');
+      };
+
+      window.addEventListener('beforeunload', handleUnload);
+
+      // Cleanup
+      return () => {
+        socketService.off('userStatus', handleUserStatus);
+        socketService.updateUserStatus('offline');
+        
+        activityEvents.forEach(event => {
+          window.removeEventListener(event, resetInactivityTimer);
+        });
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+        window.removeEventListener('beforeunload', handleUnload);
+        
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+      };
+    }
+  }, [isConnected, socketService]);
+
+  // Helper function to check if a user is online
+  const isUserOnline = useCallback((userId) => {
+    return onlineUsers.has(userId);
+  }, [onlineUsers]);
+
+  // Helper function to get user status (online, away, busy, offline)
+  const getUserStatus = useCallback((userId) => {
+    const status = onlineUsers.get(userId);
+    if (!status) return 'offline';
+    if (status === true) return 'online';
+    return status; // 'away', 'busy', etc.
+  }, [onlineUsers]);
+
+  // Helper function to get last activity time
+  const getLastActivity = useCallback((userId) => {
+    return lastActivity.get(userId) || null;
+  }, [lastActivity]);
+
+  return {
+    onlineUsers,
+    isUserOnline,
+    getUserStatus,
+    getLastActivity,
+    isConnected
+  };
+};
+
 export const useRealTimeWorkflowAlerts = () => {
   const { socketService, isConnected } = useSocket();
   const [workflowAlerts, setWorkflowAlerts] = useState([]);

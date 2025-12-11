@@ -4,11 +4,15 @@ import { useNavigationHistory } from '../../hooks/useNavigationHistory';
 import { authService } from '../../services/api';
 import { useSubjects } from '../../contexts/SubjectsContext';
 import api from '../../services/api';
+import { useUserPresence } from '../../hooks/useSocket';
 
 const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContext, previousPage }) => {
   const { pushNavigation, goBack, canGoBack, getPrevious } = useNavigationHistory();
   const { subjects } = useSubjects();
   const messagesEndRef = useRef(null);
+  
+  // Real-time user presence tracking
+  const { isUserOnline, getUserStatus, isConnected: socketConnected } = useUserPresence();
   
   // State for users, conversations, and messages
   const [currentUser, setCurrentUser] = useState(null);
@@ -256,6 +260,22 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
     return (first + last).toUpperCase() || user.email?.charAt(0)?.toUpperCase() || '?';
   };
 
+  // Get presence status color and label based on real-time status
+  const getPresenceStatus = (userId) => {
+    const status = getUserStatus(userId);
+    switch (status) {
+      case 'online':
+        return { color: 'bg-green-500', label: 'Online', pulse: true };
+      case 'away':
+        return { color: 'bg-yellow-500', label: 'Away', pulse: false };
+      case 'busy':
+        return { color: 'bg-red-500', label: 'Busy', pulse: false };
+      case 'offline':
+      default:
+        return { color: 'bg-gray-400', label: 'Offline', pulse: false };
+    }
+  };
+
   // Navigation handlers
   const handleBackNavigation = () => {
     const isMenuNavigation = navigationContext?.isMenuNavigation;
@@ -311,12 +331,27 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
 
         {/* Page Header */}
         <div className="mb-3">
-          <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-1`}>
-            My Messages
-          </h1>
-          <p className={`text-lg ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
-            Direct conversations with team members
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-1`}>
+                My Messages
+              </h1>
+              <p className={`text-lg ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
+                Direct conversations with team members
+              </p>
+            </div>
+            {/* Real-time connection status */}
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+              socketConnected 
+                ? 'bg-green-100 text-green-700 border border-green-200' 
+                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+            }`}>
+              <div className={`w-2 h-2 rounded-full ${
+                socketConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+              }`}></div>
+              {socketConnected ? 'Live' : 'Connecting...'}
+            </div>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -357,6 +392,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
               <div className="space-y-2 max-h-[500px] overflow-y-auto">
                 {teamMembers.map(member => {
                   const unreadCount = getUnreadCount(member.id);
+                  const presence = getPresenceStatus(member.id);
                   return (
                     <button
                       key={member.id}
@@ -385,18 +421,28 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                                 {getUserInitials(member)}
                               </div>
                             )}
-                            <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 ${
-                              colorMode ? 'border-[#232b4d]' : 'border-white'
-                            } ${
-                              member.isActive ? 'bg-green-500' : 'bg-gray-400'
-                            }`}></div>
+                            {/* Real-time presence indicator */}
+                            <div 
+                              className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 ${
+                                colorMode ? 'border-[#232b4d]' : 'border-white'
+                              } ${presence.color} ${presence.pulse ? 'animate-pulse' : ''}`}
+                              title={presence.label}
+                            ></div>
                           </div>
                           <div>
                             <div className={`font-medium text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                               {getUserDisplayName(member)}
                             </div>
-                            <div className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                              {member.role || 'Team Member'}
+                            <div className={`text-xs flex items-center gap-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                              <span>{member.role || 'Team Member'}</span>
+                              <span className="text-[10px]">•</span>
+                              <span className={`text-[10px] ${
+                                presence.label === 'Online' ? 'text-green-500' : 
+                                presence.label === 'Away' ? 'text-yellow-500' : 
+                                'text-gray-400'
+                              }`}>
+                                {presence.label}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -430,18 +476,40 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                           {getUserInitials(selectedUser)}
                         </div>
                       )}
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 ${
-                        colorMode ? 'border-[#232b4d]' : 'border-white'
-                      } ${
-                        selectedUser.isActive ? 'bg-green-500' : 'bg-gray-400'
-                      }`}></div>
+                      {/* Real-time presence indicator in chat header */}
+                      {(() => {
+                        const presence = getPresenceStatus(selectedUser.id);
+                        return (
+                          <div 
+                            className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 ${
+                              colorMode ? 'border-[#232b4d]' : 'border-white'
+                            } ${presence.color} ${presence.pulse ? 'animate-pulse' : ''}`}
+                            title={presence.label}
+                          ></div>
+                        );
+                      })()}
                     </div>
                     <div>
                       <h3 className={`font-semibold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                         {getUserDisplayName(selectedUser)}
                       </h3>
-                      <p className={`text-xs ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                        {selectedUser.role || 'Team Member'} • {selectedUser.email}
+                      <p className={`text-xs flex items-center gap-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                        <span>{selectedUser.role || 'Team Member'}</span>
+                        <span>•</span>
+                        {(() => {
+                          const presence = getPresenceStatus(selectedUser.id);
+                          return (
+                            <span className={`font-medium ${
+                              presence.label === 'Online' ? 'text-green-500' : 
+                              presence.label === 'Away' ? 'text-yellow-500' : 
+                              'text-gray-400'
+                            }`}>
+                              {presence.label}
+                            </span>
+                          );
+                        })()}
+                        <span>•</span>
+                        <span>{selectedUser.email}</span>
                       </p>
                     </div>
                   </div>
