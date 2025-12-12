@@ -519,35 +519,18 @@ const CurrentProjectsByPhase = ({
                                 const result = response.data;
                                 if (result.success && result.data) {
                                   const position = result.data;
-                                  const getSubtaskIndex = async () => {
-                                    try {
-                                      const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                                        headers: { 'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}` }
-                                      });
-                                      if (workflowResponse.ok) {
-                                        const workflowResult = await workflowResponse.json();
-                                        if (workflowResult.success && workflowResult.data) {
-                                          const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
-                                          if (currentPhaseData) {
-                                            const currentSectionData = currentPhaseData.items.find(item => item.id === position.currentSection);
-                                            if (currentSectionData) {
-                                              const subtaskIndex = currentSectionData.subtasks.findIndex(subtask => {
-                                                if (typeof subtask === 'object') {
-                                                  return subtask.id === position.currentLineItem || subtask.label === position.currentLineItemName;
-                                                }
-                                                return subtask === position.currentLineItemName;
-                                              });
-                                              return subtaskIndex >= 0 ? subtaskIndex : 0;
-                                            }
-                                          }
-                                        }
-                                      }
-                                    } catch (_) {}
-                                    return 0;
-                                  };
-                                  const subtaskIndex = await getSubtaskIndex();
-                                  const targetLineItemId = position.currentLineItem || `${position.currentPhase}-${position.currentSection}-${subtaskIndex}`;
-                                  const targetSectionId = position.currentSection;
+                                  // The API returns:
+                                  // - phaseType: "LEAD", "PROSPECT", etc. (matches workflow structure phase.id)
+                                  // - currentSection: UUID of the section
+                                  // - currentLineItemId: UUID of the line item
+                                  // Use phaseType to match against workflow structure phases
+                                  const targetLineItemId = position.currentLineItemId || position.currentLineItem;
+                                  const targetSectionId = position.currentSectionId || position.currentSection;
+                                  
+                                  console.log('🔍 WORKFLOW_NAV: position:', position);
+                                  console.log('🔍 WORKFLOW_NAV: targetLineItemId:', targetLineItemId);
+                                  console.log('🔍 WORKFLOW_NAV: targetSectionId:', targetSectionId);
+                                  
                                   const projectWithNavigation = {
                                     ...project,
                                     dashboardState: {
@@ -570,7 +553,8 @@ const CurrentProjectsByPhase = ({
                               } else {
                                 onProjectSelect(project, 'Project Workflow', null, 'Project Phases');
                               }
-                            } catch (_) {
+                            } catch (err) {
+                              console.error('❌ WORKFLOW_NAV: Error getting position:', err);
                               onProjectSelect(project, 'Project Workflow', null, 'Project Phases');
                             }
                           }}

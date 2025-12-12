@@ -834,15 +834,47 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       });
       
       // Add calendar events (reminders) using displayCalendarEvents fallback
-      (Array.isArray(displayCalendarEvents) ? displayCalendarEvents : []).forEach(event => {
+      // IMPORTANT: Only show events where the current user is the organizer OR is an attendee
+      const currentUserId = currentUser?.id;
+      (Array.isArray(displayCalendarEvents) ? displayCalendarEvents : [])
+        .filter(event => {
+          // If no current user, don't show any events (prevents "All Users" issue)
+          if (!currentUserId) return false;
+          
+          // Check if current user is the organizer
+          const isOrganizer = event.organizerId === currentUserId || 
+                              event.createdBy === currentUserId ||
+                              event.authorId === currentUserId;
+          
+          // Check if current user is an attendee
+          const attendeeUserIds = Array.isArray(event.attendees) 
+            ? event.attendees.map(a => a.userId || a.user?.id || a).filter(Boolean)
+            : [];
+          const isAttendee = attendeeUserIds.some(id => String(id) === String(currentUserId));
+          
+          // Only show if user is organizer or attendee
+          return isOrganizer || isAttendee;
+        })
+        .forEach(event => {
         const key = `reminder:${event.id}`;
         if (!seenKeys.has(key)) {
+          // Get the actual attendee names for display
+          const attendeeNames = Array.isArray(event.attendees)
+            ? event.attendees
+                .map(a => {
+                  if (a.user) return `${a.user.firstName || ''} ${a.user.lastName || ''}`.trim();
+                  return null;
+                })
+                .filter(Boolean)
+            : [];
+          
           realItems.push({
             id: `reminder_${event.id}`,
             type: 'reminder', 
             subject: event.title || event.subject || 'Reminder',
             description: event.description || event.content,
-            user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 'Unknown User',
+            user: event.createdByUser ? `${event.createdByUser.firstName} ${event.createdByUser.lastName}` : 
+                  event.organizer ? `${event.organizer.firstName || ''} ${event.organizer.lastName || ''}`.trim() : 'Unknown User',
             // Use 'when' as timestamp fallback for mock reminders
             timestamp: event.createdAt || event.timestamp || event.when || event.startDate || new Date().toISOString(),
             projectId: event.projectId,
@@ -851,7 +883,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             when: event.startDate || event.when,
             // Provide authorId and recipients for UI filters and display
             authorId: event.createdBy || event.organizerId || event.authorId || currentUser?.id || null,
-            recipients: Array.isArray(event.userIds) ? event.userIds : ['all']
+            // Set recipients to actual attendee IDs, NOT 'all'
+            recipients: Array.isArray(event.attendees) 
+              ? event.attendees.map(a => a.userId || a.user?.id || a).filter(Boolean)
+              : [],
+            attendeeNames: attendeeNames.length > 0 ? attendeeNames : ['You']
           });
           markSeen('reminder', event.id);
         }

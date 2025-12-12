@@ -65,10 +65,41 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
         });
         
         // Calendar Events: tasks (DEADLINE) and reminders (REMINDER)
-        calendarEvents.forEach(ev => {
+        // IMPORTANT: Only show events where the current user is the organizer OR is an attendee
+        const currentUserId = currentUser?.id;
+        calendarEvents
+            .filter(ev => {
+                // If no current user, don't show any events (prevents "All Users" issue)
+                if (!currentUserId) return false;
+                
+                // Check if current user is the organizer
+                const isOrganizer = ev.organizerId === currentUserId || 
+                                    ev.createdBy === currentUserId ||
+                                    ev.authorId === currentUserId;
+                
+                // Check if current user is an attendee
+                const attendeeUserIds = Array.isArray(ev.attendees) 
+                    ? ev.attendees.map(a => a.userId || a.user?.id || a).filter(Boolean)
+                    : [];
+                const isAttendee = attendeeUserIds.some(id => String(id) === String(currentUserId));
+                
+                // Only show if user is organizer or attendee
+                return isOrganizer || isAttendee;
+            })
+            .forEach(ev => {
             const evType = (ev.eventType || ev.type || '').toString().toUpperCase();
             const mappedType = evType === 'REMINDER' ? 'reminder' : 'task';
             const attendeesIds = Array.isArray(ev.attendees) ? ev.attendees.map(a => a.userId).filter(Boolean) : [];
+            
+            // Get the actual attendee names for display
+            const attendeeNames = Array.isArray(ev.attendees)
+                ? ev.attendees
+                    .map(a => {
+                        if (a.user) return `${a.user.firstName || ''} ${a.user.lastName || ''}`.trim();
+                        return null;
+                    })
+                    .filter(Boolean)
+                : [];
             
             items.push({
                 id: `cal_${ev.id}`,
@@ -82,7 +113,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                 content: ev.description || ev.content || '',
                 timestamp: ev.startTime || ev.createdAt || ev.timestamp || new Date().toISOString(),
                 attendees: attendeesIds,
-                assignedTo: ev.assignedTo || ev.recipient || 'You',
+                assignedTo: attendeeNames.length > 0 ? attendeeNames.join(', ') : (ev.assignedTo || ev.recipient || 'You'),
             });
         });
         

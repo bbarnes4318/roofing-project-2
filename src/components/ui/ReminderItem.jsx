@@ -24,11 +24,17 @@ const ReminderItem = ({
   const primaryCustomer = project?.customer?.primaryName || project?.client?.name || project?.clientName || project?.projectName || item.projectName || 'Primary Customer';
   const subject = item.subject || item.title || 'Reminder';
   const author = availableUsers.find(u => String(u.id) === String(item.authorId)) || { firstName: 'System', lastName: 'Admin' };
-  const recipients = Array.isArray(item.recipients) ? 
-    item.recipients.map(id => {
-      if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
-      return availableUsers.find(u => String(u.id) === String(id));
-    }).filter(Boolean) : [];
+  
+  // Use attendeeNames if provided (from the DashboardPage activity feed builder)
+  // Otherwise fall back to looking up recipients by ID
+  const recipients = item.attendeeNames && Array.isArray(item.attendeeNames) && item.attendeeNames.length > 0
+    ? item.attendeeNames.map(name => ({ firstName: name.split(' ')[0] || name, lastName: name.split(' ').slice(1).join(' ') || '', isAll: false }))
+    : Array.isArray(item.recipients) 
+      ? item.recipients.map(id => {
+          if (id === 'all') return { firstName: 'All', lastName: 'Users', isAll: true };
+          return availableUsers.find(u => String(u.id) === String(id));
+        }).filter(Boolean) 
+      : [];
 
   const handleToggleExpanded = () => {
     actions.toggleExpanded(item.id);
