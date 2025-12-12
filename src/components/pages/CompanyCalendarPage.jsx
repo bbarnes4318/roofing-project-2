@@ -906,7 +906,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 {/* Add Event - Primary CTA */}
                                 <button
                                     onClick={handleAddEvent}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-blue-700 hover:to-indigo-700 shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all duration-300 hover:scale-[1.02]"
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[var(--color-brand-aqua-blue)] hover:bg-[var(--color-brand-deep-teal)] shadow-lg shadow-[var(--color-brand-aqua-blue)]/30 hover:shadow-[var(--color-brand-aqua-blue)]/50 transition-all duration-300 hover:scale-[1.02]"
                                 >
                                     <PlusCircleIcon className="w-4 h-4" />
                                     Add Event
@@ -918,7 +918,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onClick={() => setCalendarView('team')}
                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
                                             calendarView === 'team'
-                                                ? `${colorMode ? 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white shadow-lg shadow-purple-500/25' : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-600/25'}`
+                                                ? `${colorMode ? 'bg-[var(--color-brand-aqua-blue)] text-white shadow-lg shadow-[var(--color-brand-aqua-blue)]/25' : 'bg-[var(--color-brand-aqua-blue)] text-white shadow-lg shadow-[var(--color-brand-aqua-blue)]/25'}`
                                                 : `${colorMode ? 'text-slate-400 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`
                                         }`}
                                         title="View all team events"
@@ -929,7 +929,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onClick={() => setCalendarView('personal')}
                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
                                             calendarView === 'personal'
-                                                ? `${colorMode ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25' : 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-lg shadow-blue-600/25'}`
+                                                ? `${colorMode ? 'bg-[var(--color-brand-deep-teal)] text-white shadow-lg shadow-[var(--color-brand-deep-teal)]/25' : 'bg-[var(--color-brand-deep-teal)] text-white shadow-lg shadow-[var(--color-brand-deep-teal)]/25'}`
                                                 : `${colorMode ? 'text-slate-400 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`
                                         }`}
                                         title="View only your assigned events"
@@ -1013,7 +1013,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 <div className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
                                     colorMode 
                                         ? 'bg-slate-700/60 border border-slate-600/50 hover:bg-slate-600/60' 
-                                        : 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 hover:from-blue-50 hover:to-indigo-50 hover:border-blue-200'
+                                        : 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 hover:from-[var(--color-brand-aqua-blue-light-tint)] hover:to-[var(--color-brand-aqua-blue-light-tint)] hover:border-[var(--color-brand-aqua-blue)]'
                                 }`}>
                                     <svg className={`w-4 h-4 ${colorMode ? 'text-slate-400' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1043,7 +1043,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     disabled={searchQuery.trim().length < 2 || isSearching}
                                     className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
                                         searchQuery.trim().length >= 2
-                                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30 hover:shadow-lg hover:shadow-blue-500/40 hover:scale-105 cursor-pointer'
+                                            ? 'bg-[var(--color-brand-aqua-blue)] text-white shadow-md shadow-[var(--color-brand-aqua-blue)]/30 hover:bg-[var(--color-brand-deep-teal)] hover:shadow-lg hover:shadow-[var(--color-brand-aqua-blue)]/40 hover:scale-105 cursor-pointer'
                                             : colorMode 
                                                 ? 'bg-slate-700/50 text-slate-500 cursor-not-allowed' 
                                                 : 'bg-slate-100 text-slate-400 cursor-not-allowed'
@@ -1278,20 +1278,20 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {showSearchResults && searchResults.length > 0 && (
                 <div className={`mb-4 rounded-2xl overflow-hidden shadow-xl ${
                     colorMode 
-                        ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-blue-500/20' 
-                        : 'bg-gradient-to-br from-white via-slate-50 to-blue-50/30 border border-blue-200/50'
+                        ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-[var(--color-brand-aqua-blue)]/20' 
+                        : 'bg-gradient-to-br from-white via-slate-50 to-[var(--color-brand-aqua-blue-light-tint)] border border-[var(--color-brand-aqua-blue)]/30'
                 }`}>
                     {/* Header */}
                     <div className={`px-5 py-4 flex items-center justify-between ${
                         colorMode 
-                            ? 'bg-gradient-to-r from-blue-600/10 via-indigo-600/5 to-blue-600/10 border-b border-slate-700/50' 
-                            : 'bg-gradient-to-r from-blue-50 via-white to-indigo-50 border-b border-slate-200'
+                            ? 'bg-[var(--color-brand-aqua-blue)]/10 border-b border-slate-700/50' 
+                            : 'bg-gradient-to-r from-[var(--color-brand-aqua-blue-light-tint)] via-white to-[var(--color-brand-aqua-blue-light-tint)] border-b border-slate-200'
                     }`}>
                         <div className="flex items-center gap-3">
                             <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${
                                 colorMode 
-                                    ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30' 
-                                    : 'bg-gradient-to-br from-blue-100 to-indigo-100 border border-blue-200'
+                                    ? 'bg-[var(--color-brand-aqua-blue)]/20 border border-[var(--color-brand-aqua-blue)]/30' 
+                                    : 'bg-[var(--color-brand-aqua-blue-light-tint)] border border-[var(--color-brand-aqua-blue)]/30'
                             }`}>
                                 <svg className={`w-5 h-5 ${colorMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1453,9 +1453,9 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 {/* Date Number */}
                                 <div className={`text-xs font-bold mb-1 ${
                                     isToday(day.date) 
-                                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
+                                        ? 'bg-[var(--color-brand-aqua-blue)] text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
                                         : isSelected(day.date)
-                                            ? `${colorMode ? 'text-blue-400' : 'text-blue-600'} font-bold`
+                                            ? `${colorMode ? 'text-[var(--color-brand-aqua-blue)]' : 'text-[var(--color-brand-aqua-blue)]'} font-bold`
                                             : day.isCurrentMonth 
                                                 ? (colorMode ? 'text-white' : 'text-gray-900')
                                                 : (colorMode ? 'text-gray-500' : 'text-gray-400')
@@ -1513,7 +1513,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 </div>
                                 <div className={`text-sm font-bold ${
                                     isToday(day.date) 
-                                        ? 'bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto' 
+                                        ? 'bg-[var(--color-brand-aqua-blue)] text-white rounded-full w-6 h-6 flex items-center justify-center mx-auto' 
                                         : colorMode ? 'text-white' : 'text-gray-900'
                                 }`}>
                                     {day.date.getDate()}
@@ -1676,8 +1676,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         }}
                                         className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
                                             colorMode 
-                                                ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
-                                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                                                ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
+                                                : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
                                         }`}
                                     >
                                         View Project
@@ -1718,8 +1718,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onChange={(e) => handleNewEventChange('title', e.target.value)}
                                         className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                             colorMode 
-                                                ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                         } focus:outline-none transition-all duration-200`}
                                         placeholder="Enter event title"
                                     />
@@ -1739,11 +1739,11 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                             {(selectedAssignees || []).map(userId => {
                                                 const user = (teamMembers || []).find(u => u.id === userId);
                                                 return (
-                                                    <span key={userId} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-100 text-blue-800">
+                                                    <span key={userId} className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[var(--color-brand-aqua-blue-light-tint)] text-[var(--color-brand-deep-teal)]">
                                                         {user ? `${user.firstName} ${user.lastName}` : 'Unknown User'}
                                                         <button
                                                             onClick={() => setSelectedAssignees(prev => prev.filter(id => id !== userId))}
-                                                            className="ml-1 text-blue-600 hover:text-blue-800"
+                                                            className="ml-1 text-[var(--color-brand-aqua-blue)] hover:text-[var(--color-brand-deep-teal)]"
                                                         >
                                                             ×
                                                         </button>
@@ -1782,8 +1782,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onChange={(e) => handleNewEventChange('type', e.target.value)}
                                         className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                             colorMode 
-                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                         } focus:outline-none transition-all duration-200`}
                                     >
                                         <option value="meeting">Meeting</option>
@@ -1810,8 +1810,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                             onChange={(e) => handleNewEventChange('date', e.target.value)}
                                             className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                                 colorMode 
-                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                             } focus:outline-none transition-all duration-200`}
                                         />
                                     </div>
@@ -1825,8 +1825,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                             onChange={(e) => handleNewEventChange('time', e.target.value)}
                                             className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                                 colorMode 
-                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                             } focus:outline-none transition-all duration-200`}
                                         />
                                     </div>
@@ -1842,8 +1842,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onChange={(e) => handleNewEventChange('priority', e.target.value)}
                                         className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                             colorMode 
-                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                         } focus:outline-none transition-all duration-200`}
                                     >
                                         <option value="low">Low</option>
@@ -1862,8 +1862,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         onChange={(e) => handleNewEventChange('projectId', e.target.value)}
                                         className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                             colorMode 
-                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                         } focus:outline-none transition-all duration-200`}
                                     >
                                         <option value="">No project</option>
@@ -1886,8 +1886,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         rows={3}
                                         className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                             colorMode 
-                                                ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[#3b82f6] focus:ring-2 focus:ring-[#3b82f6]/20' 
-                                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20'
+                                                ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
                                         } focus:outline-none transition-all duration-200`}
                                         placeholder="Enter event description..."
                                     />
@@ -1909,8 +1909,8 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     onClick={handleSubmitNewEvent}
                                     className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
                                         colorMode 
-                                            ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
-                                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                                            ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
+                                            : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
                                     }`}
                                 >
                                     Create Event
