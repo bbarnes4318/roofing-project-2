@@ -1,453 +1,372 @@
-c	@	useAuth.js:27
-(anonymous)	@	useAuth.js:14
-hl	@	react-dom.production.min.js:243
-Ic	@	react-dom.production.min.js:285
-(anonymous)	@	react-dom.production.min.js:281
-j	@	scheduler.production.min.js:13
-_	@	scheduler.production.min.js:14
-Request initiator chain
-https://goldfish-app-4yuma.ondigitalocean.app/?email=nedged81%40gmail.com
-https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js
-https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me
-
-Request URL
-https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me
-Request Method
-GET
-Status Code
-504 Gateway Timeout
-Remote Address
-[2606:4700:7::60]:443
-Referrer Policy
-no-referrer
-alt-svc
-h3=":443"; ma=86400
-cache-control
-private
-cf-cache-status
-MISS
-cf-ray
-9aafcf145ca0340c-ATL
-content-type
-text/html
-date
-Mon, 08 Dec 2025 22:48:12 GMT
-priority
-u=1,i
-server
-cloudflare
-server-timing
-cfExtPri
-set-cookie
-__cf_bm=qR90Q.TTMT84EDmmBXb5EFbL4OPKqXrNhQmn3UeNZkk-1765234092-1.0.1.1-RZozQRtFYzbPDJs3PQBNGV_3.SIOxpk.9L5UhB4sIJjKKjmWyHJD45Nglw2_uhtdiF25tgarKEbaVjeJkjZQOC1IVLPWiVZyUM.IFqdOyWo; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
-vary
-Accept-Encoding
-x-do-app-origin
-edf924d8-6fc4-4919-9a80-7c0b2dfbd910
-x-do-failure-code
-UC
-x-do-failure-msg
-upstream_reset_before_response_started{connection_termination}
-x-do-orig-status
-503
-:authority
-goldfish-app-4yuma.ondigitalocean.app
-:method
-GET
-:path
-/api/auth/me
-:scheme
-https
-accept
-*/*
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-en-US,en;q=0.9
-authorization
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
-if-none-match
-W/"262-IIv8t+eq8ODZKgCkIl8NK3e8668"
-priority
-u=1, i
-sec-ch-ua
-"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-empty
-sec-fetch-mode
-cors
-sec-fetch-site
-same-origin
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
-
-
-equest URL
-https://goldfish-app-4yuma.ondigitalocean.app/api/activities
-Request Method
-GET
-Status Code
-504 Gateway Timeout
-Remote Address
-[2606:4700:7::60]:443
-Referrer Policy
-no-referrer
-alt-svc
-h3=":443"; ma=86400
-cache-control
-private
-cf-cache-status
-MISS
-cf-ray
-9aafcf13da43340c-ATL
-content-type
-text/html
-date
-Mon, 08 Dec 2025 22:48:12 GMT
-priority
-u=1,i
-server
-cloudflare
-server-timing
-cfExtPri
-set-cookie
-__cf_bm=SYcPmGU0AGWg1iHgOlBVRT_d3JH9zrzVeh.acCpPA5A-1765234092-1.0.1.1-XlNZi3PJJdXI5H5oKv7thet4E.zpSPJdTXIcqGqCrii0z7M5pJ28QqrE57pXOjGBzFE9_tSmeoBXNRMxjjr9dWTPnLFr7LWT_C6AcsMZe00; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
-vary
-Accept-Encoding
-x-do-app-origin
-edf924d8-6fc4-4919-9a80-7c0b2dfbd910
-x-do-failure-code
-UC
-x-do-failure-msg
-upstream_reset_before_response_started{connection_termination}
-x-do-orig-status
-503
-:authority
-goldfish-app-4yuma.ondigitalocean.app
-:method
-GET
-:path
-/api/activities
-:scheme
-https
-accept
-application/json, text/plain, */*
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-en-US,en;q=0.9
-authorization
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
-if-none-match
-W/"ad7-MVy87CLrD9evKRTFlg7+mFgn5VI"
-priority
-u=1, i
-sec-ch-ua
-"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-empty
-sec-fetch-mode
-cors
-sec-fetch-site
-same-origin
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
-
-(anonymous)	@	xhr.js:195
-xhr	@	xhr.js:15
-ft	@	dispatchRequest.js:51
-Promise.then		
-_request	@	Axios.js:163
-request	@	Axios.js:40
-(anonymous)	@	Axios.js:213
-(anonymous)	@	bind.js:5
-getAll	@	api.js:509
-(anonymous)	@	App.jsx:523
-(anonymous)	@	App.jsx:549
-hl	@	react-dom.production.min.js:243
-Ic	@	react-dom.production.min.js:285
-(anonymous)	@	react-dom.production.min.js:281
-j	@	scheduler.production.min.js:13
-_	@	scheduler.production.min.js:14
-Request initiator chain
-https://goldfish-app-4yuma.ondigitalocean.app/?email=nedged81%
-
-
-Request URL
-https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100
-Request Method
-GET
-Status Code
-504 Gateway Timeout
-Remote Address
-[2606:4700:7::60]:443
-Referrer Policy
-no-referrer
-alt-svc
-h3=":443"; ma=86400
-cache-control
-private
-cf-cache-status
-MISS
-cf-ray
-9aafcf142bbe340c-ATL
-content-type
-text/html
-date
-Mon, 08 Dec 2025 22:48:12 GMT
-priority
-u=1,i
-server
-cloudflare
-server-timing
-cfExtPri
-set-cookie
-__cf_bm=vJg7Mdqm3cq.Hy.cDRaGCH_6ydajEOBkfEOMOw09d6k-1765234092-1.0.1.1-MkwMVB2KfcO0umM0HIcRNG4ZORzHigJD13MWbzGO_Ya81TSw7sHZPlF0GC0pr5slUJR1I1lOws4qbMIbDx7vcKzfX6DbmenserjYeBW2fis; path=/; expires=Mon, 08-Dec-25 23:18:12 GMT; domain=.ondigitalocean.app; HttpOnly; Secure; SameSite=None
-vary
-Accept-Encoding
-x-do-app-origin
-edf924d8-6fc4-4919-9a80-7c0b2dfbd910
-x-do-failure-code
-UC
-x-do-failure-msg
-upstream_reset_before_response_started{connection_termination}
-x-do-orig-status
-503
-:authority
-goldfish-app-4yuma.ondigitalocean.app
-:method
-GET
-:path
-/api/projects?limit=100
-:scheme
-https
-accept
-application/json, text/plain, */*
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-en-US,en;q=0.9
-authorization
-Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImNtZmxkNjBlZjAwMDBiaTBkOGt5OGhsb3QiLCJyb2xlIjoiV09SS0VSIiwiaWF0IjoxNzY1MjE2MDk5LCJleHAiOjE3Njc4MDgwOTksImF1ZCI6ImtlbnN0cnVjdGlvbi1jbGllbnQiLCJpc3MiOiJrZW5zdHJ1Y3Rpb24tYXBpIn0.TZPP7X1IuqhLdSrOq9xGZtMJnPyRvHlUJl134DGBxNs
-if-none-match
-W/"c47-B0fbZ7yaY+EqcrIdboKYF8/Delw"
-priority
-u=1, i
-sec-ch-ua
-"Google Chrome";v="143", "Chromium";v="143", "Not A(Brand";v="24"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-empty
-sec-fetch-mode
-cors
-sec-fetch-site
-same-origin
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36
-
-(anonymous)	@	xhr.js:195
-xhr	@	xhr.js:15
-ft	@	dispatchRequest.js:51
-Promise.then		
-_request	@	Axios.js:163
-request	@	Axios.js:40
-(anonymous)	@	Axios.js:213
-(anonymous)	@	bind.js:5
-getAll	@	api.js:274
-queryFn	@	useQueryApi.js:165
-o	@	query.ts:457
-u	@	retryer.ts:153
-start	@	retryer.ts:218
-fetch	@	query.ts:576
-os	@	queryObserver.ts:333
-onSubscribe	@	queryObserver.ts:104
-subscribe	@	subscribable.ts:11
-(anonymous)	@	useBaseQuery.ts:100
-Oo	@	react-dom.production.min.js:167
-hl	@	react-dom.production.min.js:243
-Ic	@	react-dom.production.min.js:285
-(anonymous)	@	react-dom.production.min.js:281
-j	@	scheduler.production.min.js:13
-_	@	scheduler.production.min.js:14
-
-
-GET https://goldfish-app-4yuma.ondigitalocean.app/api/auth/me 504 (Gateway Timeout)
-c @ useAuth.js:27
-(anonymous) @ useAuth.js:14
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-api.js:274  GET https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100 504 (Gateway Timeout)
-(anonymous) @ xhr.js:195
-xhr @ xhr.js:15
-ft @ dispatchRequest.js:51
-Promise.then
-_request @ Axios.js:163
-request @ Axios.js:40
-(anonymous) @ Axios.js:213
-(anonymous) @ bind.js:5
-getAll @ api.js:274
-queryFn @ useQueryApi.js:165
-o @ query.ts:457
-u @ retryer.ts:153
-start @ retryer.ts:218
-fetch @ query.ts:576
-os @ queryObserver.ts:333
-onSubscribe @ queryObserver.ts:104
-subscribe @ subscribable.ts:11
-(anonymous) @ useBaseQuery.ts:100
-Oo @ react-dom.production.min.js:167
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-api.js:145 🚨 API ERROR: {url: '/projects', method: 'get', status: 504, statusText: '', data: '      <!DOCTYPE html>\n      <html>\n      <head>\n  …/p>\n      </div>\n      </body>\n      </html>\n    ', …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "message: "Request failed with status code 504"method: "get"status: 504statusText: ""url: "/projects"[[Prototype]]: Object
-(anonymous) @ api.js:145
-Promise.then
-_request @ Axios.js:163
-request @ Axios.js:40
-(anonymous) @ Axios.js:213
-(anonymous) @ bind.js:5
-getAll @ api.js:274
-queryFn @ useQueryApi.js:165
-o @ query.ts:457
-u @ retryer.ts:153
-start @ retryer.ts:218
-fetch @ query.ts:576
-os @ queryObserver.ts:333
-onSubscribe @ queryObserver.ts:104
-subscribe @ subscribable.ts:11
-(anonymous) @ useBaseQuery.ts:100
-Oo @ react-dom.production.min.js:167
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-DashboardPage.jsx:143 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:155 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projects array: []
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:296 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:297 🔍 DASHBOARD: Projects error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
-DashboardPage.jsx:298 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:299 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:303 🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}error: Vcode: "ERR_BAD_RESPONSE"config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 20000, …}message: "Server error: The server is experiencing issues. Please try again later."name: "AxiosError"request: XMLHttpRequestonabort: ƒ ()onerror: ƒ ()onload: nullonloadend: ƒ g()onloadstart: nullonprogress: nullonreadystatechange: nullontimeout: ƒ ()readyState: 4response: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "responseText: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "responseType: ""responseURL: "https://goldfish-app-4yuma.ondigitalocean.app/api/projects?limit=100"responseXML: nullstatus: 504statusText: ""timeout: 20000upload: XMLHttpRequestUpload {onloadstart: null, onprogress: null, onabort: null, onerror: null, onload: null, …}withCredentials: false[[Prototype]]: XMLHttpRequestresponse: config: {transitional: {…}, adapter: Array(3), transformRequest: Array(1), transformResponse: Array(1), timeout: 20000, …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "headers: Ne {alt-svc: 'h3=":443"; ma=86400', cache-control: 'private', cf-cache-status: 'MISS', cf-ray: '9aafcf142bbe340c-ATL', content-type: 'text/html', …}request: XMLHttpRequest {onreadystatechange: null, readyState: 4, timeout: 20000, withCredentials: false, upload: XMLHttpRequestUpload, …}status: 504statusText: ""[[Prototype]]: Objectstatus: 504stack: "AxiosError: Server error: The server is experiencing issues. Please try again later.\n    at Ee (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:328278)\n    at XMLHttpRequest.g (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:332878)\n    at wt.request (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:344007)\n    at async Object.getAll (https://goldfish-app-4yuma.ondigitalocean.app/static/js/main.da84c93a.js:2:269309)"[[Prototype]]: Errorloading: falseprojectsData: undefined[[Prototype]]: Object
-
-🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}loading: falseprojectsData: undefined[[Prototype]]: Object
-li @ DashboardPage.jsx:303
-ko @ react-dom.production.min.js:160
-Mi @ react-dom.production.min.js:196
-Tl @ react-dom.production.min.js:291
-Pc @ react-dom.production.min.js:279
-Ac @ react-dom.production.min.js:279
-kc @ react-dom.production.min.js:279
-mc @ react-dom.production.min.js:267
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-DashboardPage.jsx:666 🔍 DASHBOARD: About to call useFeedback hook
-DashboardPage.jsx:668 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback: []
-DashboardPage.jsx:669 🔍 DASHBOARD FEEDBACK DEBUG: feedbackLoading: true
-DashboardPage.jsx:670 🔍 DASHBOARD FEEDBACK DEBUG: feedbackError: null
-DashboardPage.jsx:671 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback type: object
-DashboardPage.jsx:672 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback length: 0
-DashboardPage.jsx:844 🔍 FEEDBACK DEBUG: Feedback items excluded from activity feed as requested
-DashboardPage.jsx:969 🔍 DASHBOARD: currentUser from hook: {id: 'cmfld60ef0000bi0d8ky8hlot', firstName: 'James', lastName: 'Kelly', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
-DashboardPage.jsx:970 🔍 DASHBOARD: assignableUsers length: 0
-DashboardPage.jsx:971 🔍 DASHBOARD: usersForUi length: 0
-DashboardPage.jsx:972 🔍 DASHBOARD: subjects from context: (44) ['Input Customer Information', 'Complete Questions to Ask Checklist', 'Input Lead Property Information', 'Assign A Project Manager', 'Schedule Initial Inspection', 'Site Inspection', 'Write Estimate', 'Insurance Process', 'Agreement Preparation', 'Agreement Signing', 'Administrative Setup', 'Pre-Job Actions', 'Prepare for Production', 'Installation', 'Quality Check', 'Multiple Trades', 'Subcontractor Work', 'Update Customer', 'Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp', 'Customer Update', 'Financial Processing', 'Project Closeout', 'General Update', 'Project Status', 'Material Delivery', 'Safety Meeting', 'Quality Inspection', 'Client Communication', 'Permit Update', 'Weather Alert', 'Equipment Issue', 'Crew Assignment', 'Budget Update', 'Schedule Change', 'Inspection Report', 'Documentation', 'Emergency Alert', 'Training Update', 'Maintenance Required', 'Vendor Communication', 'Insurance Update', 'Warranty Information']
-api.js:509  GET https://goldfish-app-4yuma.ondigitalocean.app/api/activities 504 (Gateway Timeout)
-(anonymous) @ xhr.js:195
-xhr @ xhr.js:15
-ft @ dispatchRequest.js:51
-Promise.then
-_request @ Axios.js:163
-request @ Axios.js:40
-(anonymous) @ Axios.js:213
-(anonymous) @ bind.js:5
-getAll @ api.js:509
-(anonymous) @ App.jsx:523
-(anonymous) @ App.jsx:549
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-api.js:145 🚨 API ERROR: {url: '/activities', method: 'get', status: 504, statusText: '', data: '      <!DOCTYPE html>\n      <html>\n      <head>\n  …/p>\n      </div>\n      </body>\n      </html>\n    ', …}data: "      <!DOCTYPE html>\n      <html>\n      <head>\n          <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n          <meta name=\"robots\" content=\"noindex\">\n          <style>body,html{height:100%;margin:0}body{display:flex;align-items:center;justify-content:center;flex-direction:column;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}p{text-align:center;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Cantarell,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;color:#000;font-size:14px;margin-top:-50px}p.code{font-size:24px;font-weight:500;border-bottom:1px solid #e0e1e2;padding:0 20px 15px}p.text{margin:0}a,a:visited{color:#aaa}</style>\n      </head>\n      <body>\n      <p class=\"code\">\n        Error\n      </p>\n      <p class=\"text\">\n        We encountered an error when trying to load your application and your page could not be served. Check the logs for your application in the App Platform dashboard.\n      </p>\n        <div style=\"display:none;\">\n          <h1>\n    upstream_reset_before_response_started{connection_termination} (503 UC)      </h1>\n          <p data-translate=\"connection_timed_out\">App Platform failed to forward this request to the application.</p>\n      </div>\n      </body>\n      </html>\n    "message: "Request failed with status code 504"method: "get"status: 504statusText: ""url: "/activities"[[Prototype]]: Object
-(anonymous) @ api.js:145
-Promise.then
-_request @ Axios.js:163
-request @ Axios.js:40
-(anonymous) @ Axios.js:213
-(anonymous) @ bind.js:5
-getAll @ api.js:509
-(anonymous) @ App.jsx:523
-(anonymous) @ App.jsx:549
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-App.jsx:544 Error fetching activities: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
-(anonymous) @ App.jsx:544
-await in (anonymous)
-(anonymous) @ App.jsx:549
-hl @ react-dom.production.min.js:243
-Ic @ react-dom.production.min.js:285
-(anonymous) @ react-dom.production.min.js:281
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-App.jsx:1912 🔍 MAIN_RENDER: navigationState.selectedProject: null
-App.jsx:1913 🔍 MAIN_RENDER: activePage: Overview
-App.jsx:1956 🔍 MAIN_RENDER: Rendering renderPage()
-App.jsx:1390 🔍 RENDER: renderPage called with activePage: Overview
-App.jsx:1391 🔍 RENDER: navigationState.selectedProject: null
-DashboardPage.jsx:143 🔍 DASHBOARD: Component rendering...
-DashboardPage.jsx:155 🔍 DASHBOARD DEBUG: projectsData: undefined
-DashboardPage.jsx:156 🔍 DASHBOARD DEBUG: projectsData.data: undefined
-DashboardPage.jsx:157 🔍 DASHBOARD DEBUG: projectsData.success: undefined
-DashboardPage.jsx:158 🔍 DASHBOARD DEBUG: projects array: []
-DashboardPage.jsx:159 🔍 DASHBOARD DEBUG: projects length: 0
-DashboardPage.jsx:296 🔍 DASHBOARD: Projects loading state: false
-DashboardPage.jsx:297 🔍 DASHBOARD: Projects error: V {message: 'Server error: The server is experiencing issues. Please try again later.', name: 'AxiosError', code: 'ERR_BAD_RESPONSE', config: {…}, request: XMLHttpRequest, …}
-DashboardPage.jsx:298 🔍 DASHBOARD: Projects data: undefined
-DashboardPage.jsx:299 🔍 DASHBOARD: Projects array length: 0
-DashboardPage.jsx:303 🚨 PROJECTS ERROR DETAILS: {error: V, projectsData: undefined, loading: false}
-li @ DashboardPage.jsx:303
-ko @ react-dom.production.min.js:160
-Mi @ react-dom.production.min.js:196
-Tl @ react-dom.production.min.js:291
-Pc @ react-dom.production.min.js:279
-Ac @ react-dom.production.min.js:279
-kc @ react-dom.production.min.js:279
-mc @ react-dom.production.min.js:267
-j @ scheduler.production.min.js:13
-_ @ scheduler.production.min.js:14Understand this error
-DashboardPage.jsx:666 🔍 DASHBOARD: About to call useFeedback hook
-DashboardPage.jsx:668 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback: []
-DashboardPage.jsx:669 🔍 DASHBOARD FEEDBACK DEBUG: feedbackLoading: true
-DashboardPage.jsx:670 🔍 DASHBOARD FEEDBACK DEBUG: feedbackError: null
-DashboardPage.jsx:671 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback type: object
-DashboardPage.jsx:672 🔍 DASHBOARD FEEDBACK DEBUG: realFeedback length: 0
-DashboardPage.jsx:844 🔍 FEEDBACK DEBUG: Feedback items excluded from activity feed as requested
-DashboardPage.jsx:969 🔍 DASHBOARD: currentUser from hook: {id: 'cmfld60ef0000bi0d8ky8hlot', firstName: 'James', lastName: 'Kelly', email: 'jimbosky35@gmail.com', role: 'WORKER', …}
-DashboardPage.jsx:970 🔍 DASHBOARD: assignableUsers length: 0
-DashboardPage.jsx:971 🔍 DASHBOARD: usersForUi length: 0
-DashboardPage.jsx:972 🔍 DASHBOARD: subjects from context: (44) ['Input Customer Information', 'Complete Questions to Ask Checklist', 'Input Lead Property Information', 'Assign A Project Manager', 'Schedule Initial Inspection', 'Site Inspection', 'Write Estimate', 'Insurance Process', 'Agreement Preparation', 'Agreement Signing', 'Administrative Setup', 'Pre-Job Actions', 'Prepare for Production', 'Installation', 'Quality Check', 'Multiple Trades', 'Subcontractor Work', 'Update Customer', 'Create Supp in Xactimate', 'Follow-Up Calls', 'Review Approved Supp', 'Customer Update', 'Financial Processing', 'Project Closeout', 'General Update', 'Project Status', 'Material Delivery', 'Safety Meeting', 'Quality Inspection', 'Client Communication', 'Permit Update', 'Weather Alert', 'Equipment Issue', 'Crew Assignment', 'Budget Update', 'Schedule Change', 'Inspection Report', 'Documentation', 'Emergency Alert', 'Training Update', 'Maintenance Required', 'Vendor Communication', 'Insurance Update', 'Warranty Information']
-
+Dec 16 21:13:52  GET /api/users/team-members - requested by userId=unknown - found 8 teamMembers
+Dec 16 21:13:52  Sample teamMembers: [
+Dec 16 21:13:52    {
+Dec 16 21:13:52      id: 'cmj7ohubl0002az0de5lq2cen',
+Dec 16 21:13:52      firstName: 'Allen',
+Dec 16 21:13:52      lastName: 'Flores',
+Dec 16 21:13:52      email: 'allenflores@upfrontrnr.com',
+Dec 16 21:13:52      role: 'WORKER'
+Dec 16 21:13:52    },
+Dec 16 21:13:52    {
+Dec 16 21:13:52      id: 'cmfld60ef0000bi0d8ky8hlot',
+Dec 16 21:13:52      firstName: 'James',
+Dec 16 21:13:52      lastName: 'Kelly',
+Dec 16 21:13:52      email: 'jimbosky35@gmail.com',
+Dec 16 21:13:52      role: 'ADMIN'
+Dec 16 21:13:52    },
+Dec 16 21:13:52    {
+Dec 16 21:13:52      id: 'cmj7oh6000004c00d9zb8ftrx',
+Dec 16 21:13:52      firstName: 'Jose',
+Dec 16 21:13:52      lastName: 'Gonzalez',
+Dec 16 21:13:52      email: 'josegonzalez@upfrontrnr.com',
+Dec 16 21:13:52      role: 'WORKER'
+Dec 16 21:13:52    },
+Dec 16 21:13:52    {
+Dec 16 21:13:52      id: 'cmj7o2vku0000az0dp7t9intz',
+Dec 16 21:13:52      firstName: 'Kate',
+Dec 16 21:13:52      lastName: 'the Great',
+Dec 16 21:13:52      email: 'katefoutz@upfrontrnr.com',
+Dec 16 21:13:52      role: 'ADMIN'
+Dec 16 21:13:52    },
+Dec 16 21:13:52    {
+Dec 16 21:13:52      id: 'cmh56k4zi0000500dy5mykbud',
+Dec 16 21:13:52      firstName: 'Ken',
+Dec 16 21:13:52      lastName: 'Hall',
+Dec 16 21:13:52      email: 'khall@dbmgconsulting.com',
+Dec 16 21:13:52      role: 'ADMIN'
+Dec 16 21:13:52    }
+Dec 16 21:13:52  ]
+Dec 16 21:13:52  10.244.30.34 - - [16/Dec/2025:21:13:52 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+Dec 16 21:13:52  🔌 User cmfld60ef0000bi0d8ky8hlot connected
+Dec 16 21:13:52  👥 Socket.io project auto-join DISABLED during PostgreSQL migration
+Dec 16 21:13:52  🚨 SERVER ERROR: {
+Dec 16 21:13:52    "timestamp": "2025-12-16T21:13:52.930Z",
+Dec 16 21:13:52    "method": "GET",
+Dec 16 21:13:52    "url": "/api/messages/conversation/cmj7ohubl0002az0de5lq2cen",
+Dec 16 21:13:52    "ip": "10.244.30.34",
+Dec 16 21:13:52    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+Dec 16 21:13:52    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Dec 16 21:13:52    "error": {
+Dec 16 21:13:52      "message": "Cannot read properties of undefined (reading 'findMany')",
+Dec 16 21:13:52      "statusCode": 500
+Dec 16 21:13:52    }
+Dec 16 21:13:52  }
+Dec 16 21:13:52  ERROR 💥 {
+Dec 16 21:13:52    message: "Cannot read properties of undefined (reading 'findMany')",
+Dec 16 21:13:52    statusCode: 500
+Dec 16 21:13:52  }
+Dec 16 21:13:52  10.244.30.34 - - [16/Dec/2025:21:13:52 +0000] "GET /api/messages/conversation/cmj7ohubl0002az0de5lq2cen HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  🚨 SERVER ERROR: {
+Dec 16 21:13:56    "timestamp": "2025-12-16T21:13:56.601Z",
+Dec 16 21:13:56    "method": "GET",
+Dec 16 21:13:56    "url": "/api/messages/conversation/cmj0oyikr0000gb0d7e4gsxl2",
+Dec 16 21:13:56    "ip": "10.244.3.115",
+Dec 16 21:13:56    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+Dec 16 21:13:56    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Dec 16 21:13:56    "error": {
+Dec 16 21:13:56      "message": "Cannot read properties of undefined (reading 'findMany')",
+Dec 16 21:13:56      "statusCode": 500
+Dec 16 21:13:56    }
+Dec 16 21:13:56  }
+Dec 16 21:13:56  ERROR 💥 {
+Dec 16 21:13:56    message: "Cannot read properties of undefined (reading 'findMany')",
+Dec 16 21:13:56    statusCode: 500
+Dec 16 21:13:56  }
+Dec 16 21:13:56  10.244.3.115 - - [16/Dec/2025:21:13:56 +0000] "GET /api/messages/conversation/cmj0oyikr0000gb0d7e4gsxl2 HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:59  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:13:59  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:00  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:00  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:00  🚨 SERVER ERROR: {
+Dec 16 21:14:00    "timestamp": "2025-12-16T21:14:00.489Z",
+Dec 16 21:14:00    "method": "POST",
+Dec 16 21:14:00    "url": "/api/messages",
+Dec 16 21:14:00    "ip": "10.244.30.34",
+Dec 16 21:14:00    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
+Dec 16 21:14:00    "userId": "cmfld60ef0000bi0d8ky8hlot",
+Dec 16 21:14:00    "error": {
+Dec 16 21:14:00      "message": "Cannot read properties of undefined (reading 'create')",
+Dec 16 21:14:00      "statusCode": 500
+Dec 16 21:14:00    }
+Dec 16 21:14:00  }
+Dec 16 21:14:00  ERROR 💥 {
+Dec 16 21:14:00    message: "Cannot read properties of undefined (reading 'create')",
+Dec 16 21:14:00    statusCode: 500
+Dec 16 21:14:00  }
+Dec 16 21:14:00  10.244.30.34 - - [16/Dec/2025:21:14:00 +0000] "POST /api/messages HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
+Dec 16 21:14:01  10.244.22.75 - - [16/Dec/2025:21:14:01 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Dec 16 21:14:02  10.244.19.36 - - [16/Dec/2025:21:14:02 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
+Dec 16 21:14:11  10.244.22.75 - - [16/Dec/2025:21:14:11 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Dec 16 21:14:12  10.244.19.36 - - [16/Dec/2025:21:14:12 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Dec 16 21:14:18  📅 CALENDAR: GET /api/calendar-events - Request received
+Dec 16 21:14:18  10.244.30.34 - - [16/Dec/2025:21:14:18 +0000] "GET /api/calendar-events?view=team HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
+Dec 16 21:14:21  10.244.22.75 - - [16/Dec/2025:21:14:21 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
+Dec 16 21:14:22  10.244.19.36 - - [16/Dec/2025:21:14:22 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Dec 16 21:14:31  10.244.22.75 - - [16/Dec/2025:21:14:31 +0000] "GET /api/health HTTP/1.1" 200 376 "-" "kube-probe/1.31"
+Dec 16 21:14:32  10.244.19.36 - - [16/Dec/2025:21:14:32 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"

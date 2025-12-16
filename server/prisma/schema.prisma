@@ -496,6 +496,42 @@ model MessageRead {
   @@map("message_reads")
 }
 
+// Direct messages between users (separate from conversation-based Message model)
+model DirectMessage {
+  id             String            @id @default(cuid())
+  created_at     DateTime          @default(now()) @map("created_at")
+  updated_at     DateTime          @updatedAt @map("updated_at")
+  content        String            @db.VarChar(5000)
+  type           DirectMessageType @default(DIRECT)
+  priority       Priority          @default(MEDIUM)
+  senderId       String            @map("sender_id")
+  senderName     String            @db.VarChar(200) @map("sender_name")
+  senderAvatar   String?           @db.VarChar(2000) @map("sender_avatar")
+  recipientId    String?           @map("recipient_id")
+  recipientName  String?           @db.VarChar(200) @map("recipient_name")
+  projectId      String?           @map("project_id")
+  projectName    String?           @db.VarChar(255) @map("project_name")
+  readBy         String[]          @default([])
+  readAt         DateTime?
+  isEdited       Boolean           @default(false)
+  attachments    Json?
+  participants   String[]          @default([])
+
+  @@index([senderId, recipientId])
+  @@index([recipientId, created_at])
+  @@index([senderId, created_at])
+  @@index([projectId])
+  @@map("direct_messages")
+}
+
+enum DirectMessageType {
+  DIRECT
+  PROJECT
+  GROUP
+  ANNOUNCEMENT
+  @@map("direct_message_types")
+}
+
 model CalendarEvent {
   id             String                  @id @default(cuid())
   createdAt      DateTime                @default(now())
