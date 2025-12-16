@@ -78,7 +78,14 @@ const authenticateToken = async (req, res, next) => {
     // First, try to validate as Supabase token (if configured)
     try {
       if (!supabase) throw new Error('Supabase not configured');
-      const { data: supabaseUser, error } = await supabase.auth.getUser(token);
+      
+      // Wrap Supabase call with timeout to handle network issues
+      const supabasePromise = supabase.auth.getUser(token);
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Supabase timeout')), 5000)
+      );
+      
+      const { data: supabaseUser, error } = await Promise.race([supabasePromise, timeoutPromise]);
       
       if (supabaseUser?.user && !error) {
         isSupabaseToken = true;
@@ -141,8 +148,9 @@ const authenticateToken = async (req, res, next) => {
         }
       }
     } catch (supabaseError) {
-      // If Supabase token validation fails, continue to try old JWT
-      console.log('Not a valid Supabase token, trying old JWT...');
+      // If Supabase token validation fails (network error, timeout, invalid token, etc.)
+      // Fall through to try old JWT validation - DO NOT throw or return 500
+      console.log('Supabase validation failed, falling back to JWT:', supabaseError.message || 'Unknown error');
     }
 
     // If not a Supabase token, try old JWT validation
