@@ -141,6 +141,241 @@ router.get('/conversations', authenticateToken, asyncHandler(async (req, res) =>
   sendSuccess(res, 200, conversations, 'Conversations retrieved successfully');
 }));
 
+// ============================================================================
+// IMPORTANT: Specific routes MUST come BEFORE generic /:id route
+// Otherwise Express will match /:id first (e.g., 'conversation' as the id)
+// ============================================================================
+
+// @desc    Get conversation between two users
+// @route   GET /api/messages/conversation/:userId
+// @access  Private
+router.get('/conversation/:userId', authenticateToken, asyncHandler(async (req, res) => {
+  const otherUserId = req.params.userId;
+  const { page = 1, limit = 50 } = req.query;
+
+  // Calculate pagination
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const skip = (pageNum - 1) * limitNum;
+
+  // Find messages between current user and other user
+  const where = {
+    type: 'DIRECT',
+    OR: [
+      { senderId: req.user.id, recipientId: otherUserId },
+      { senderId: otherUserId, recipientId: req.user.id }
+    ]
+  };
+
+  const [messages, total] = await Promise.all([
+    prisma.directMessage.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      skip,
+      take: limitNum
+    }),
+    prisma.directMessage.count({ where })
+  ]);
+
+  // Mark messages as read
+  for (const msg of messages) {
+    if (msg.recipientId === req.user.id && !msg.readBy?.includes(req.user.id)) {
+      const updatedReadBy = msg.readBy || [];
+      updatedReadBy.push(req.user.id);
+      await prisma.directMessage.update({
+        where: { id: msg.id },
+        data: {
+          readBy: updatedReadBy,
+          readAt: new Date()
+        }
+      }).catch(() => {}); // Ignore errors for individual updates
+    }
+  }
+
+  sendPaginatedResponse(res, messages.reverse(), pageNum, limitNum, total, 'Conversation retrieved successfully');
+}));
+
+// @desc    Get project messages
+// @route   GET /api/messages/project/:projectId
+// @access  Private
+router.get('/project/:projectId', authenticateToken, asyncHandler(async (req, res) => {
+  const projectId = req.params.projectId;
+  const { page = 1, limit = 50 } = req.query;
+
+  // Calculate pagination
+  const pageNum = parseInt(page);
+  const limitNum = parseInt(limit);
+  const skip = (pageNum - 1) * limitNum;
+
+  const where = {
+    type: 'PROJECT',
+    projectId
+  };
+
+  const [messages, total] = await Promise.all([
+    prisma.directMessage.findMany({
+      where,
+      orderBy: { created_at: 'desc' },
+      skip,
+      take: limitNum
+    }),
+    prisma.directMessage.count({ where })
+  ]);
+
+  sendPaginatedResponse(res, messages.reverse(), pageNum, limitNum, total, 'Project messages retrieved successfully');
+}));
+
+// @desc    Get unread messages count
+// @route   GET /api/messages/unread/count
+// @access  Private
+router.get('/unread/count', authenticateToken, asyncHandler(async (req, res) => {
+  const unreadCount = await prisma.directMessage.count({
+    where: {
+      OR: [
+        { recipientId: req.user.id },
+        { participants: { has: req.user.id } }
+      ],
+      NOT: {
+        readBy: { has: req.user.id }
+      }
+    }
+  });
+
+  sendSuccess(res, 200, { unreadCount }, 'Unread messages count retrieved successfully');
+}));
+
+// @desc    Get message statistics
+// @route   GET /api/messages/stats/overview
+// @access  Private (Manager and above)
+router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => {
+  const { days = 30 } = req.query;
+
+  const dateThreshold = new Date();
+  dateThreshold.setDate(dateThreshold.getDate() - parseInt(days));
+
+  const stats = await prisma.directMessage.groupBy({
+    by: ['type'],
+    where: {
+      created_at: { gte: dateThreshold }
+    },
+    _count: {
+      id: true
+    }
+  });
+
+  const priorityStats = await prisma.directMessage.groupBy({
+    by: ['priority'],
+    where: {
+      created_at: { gte: dateThreshold }
+    },
+    _count: {
+      id: true
+    }
+  });
+
+  const totalMessages = await prisma.directMessage.count({
+    where: {
+      created_at: { gte: dateThreshold }
+    }
+  });
+
+  const uniqueSenders = await prisma.directMessage.groupBy({
+    by: ['senderId'],
+    where: {
+      created_at: { gte: dateThreshold }
+    },
+    _count: {
+      id: true
+    }
+  });
+
+  const uniqueRecipients = await prisma.directMessage.groupBy({
+    by: ['recipientId'],
+    where: {
+      created_at: { gte: dateThreshold },
+      recipientId: { not: null }
+    },
+    _count: {
+      id: true
+    }
+  });
+
+  const overview = {
+    totalMessages,
+    uniqueSendersCount: uniqueSenders.length,
+    uniqueRecipientsCount: uniqueRecipients.length
+  };
+
+  sendSuccess(res, 200, {
+    overview,
+    byType: stats.map(stat => ({
+      _id: stat.type,
+      count: stat._count.id
+    })),
+    byPriority: priorityStats.map(stat => ({
+      _id: stat.priority,
+      count: stat._count.id
+    }))
+  }, 'Message statistics retrieved successfully');
+}));
+
+// @desc    Search messages
+// @route   GET /api/messages/search/query
+// @access  Private
+router.get('/search/query', authenticateToken, asyncHandler(async (req, res) => {
+  const { q, limit = 10 } = req.query;
+
+  if (!q || q.trim().length < 2) {
+    return res.status(400).json({
+      success: false,
+      message: 'Search query must be at least 2 characters long'
+    });
+  }
+
+  const searchQuery = q.trim();
+  
+  // Only search messages where user is sender or recipient
+  const messages = await prisma.directMessage.findMany({
+    where: {
+      AND: [
+        {
+          OR: [
+            { senderId: req.user.id },
+            { recipientId: req.user.id },
+            { type: 'ANNOUNCEMENT' },
+            { participants: { has: req.user.id } }
+          ]
+        },
+        {
+          OR: [
+            { content: { contains: searchQuery, mode: 'insensitive' } },
+            { senderName: { contains: searchQuery, mode: 'insensitive' } },
+            { recipientName: { contains: searchQuery, mode: 'insensitive' } },
+            { projectName: { contains: searchQuery, mode: 'insensitive' } }
+          ]
+        }
+      ]
+    },
+    take: parseInt(limit),
+    select: {
+      id: true,
+      content: true,
+      type: true,
+      senderName: true,
+      recipientName: true,
+      projectName: true,
+      created_at: true,
+      priority: true
+    }
+  });
+
+  sendSuccess(res, 200, { messages, count: messages.length }, 'Search results retrieved successfully');
+}));
+
+// ============================================================================
+// Generic /:id routes MUST come AFTER all specific routes above
+// ============================================================================
+
 // @desc    Get message by ID
 // @route   GET /api/messages/:id
 // @access  Private
@@ -343,233 +578,6 @@ router.patch('/:id/read', authenticateToken, asyncHandler(async (req, res, next)
   }
 
   sendSuccess(res, 200, { message }, 'Message marked as read');
-}));
-
-// @desc    Get conversation between two users
-// @route   GET /api/messages/conversation/:userId
-// @access  Private
-router.get('/conversation/:userId', authenticateToken, asyncHandler(async (req, res) => {
-  const otherUserId = req.params.userId;
-  const { page = 1, limit = 50 } = req.query;
-
-  // Calculate pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
-
-  // Find messages between current user and other user
-  const where = {
-    type: 'DIRECT',
-    OR: [
-      { senderId: req.user.id, recipientId: otherUserId },
-      { senderId: otherUserId, recipientId: req.user.id }
-    ]
-  };
-
-  const [messages, total] = await Promise.all([
-    prisma.directMessage.findMany({
-      where,
-      orderBy: { created_at: 'desc' },
-      skip,
-      take: limitNum
-    }),
-    prisma.directMessage.count({ where })
-  ]);
-
-  // Mark messages as read
-  const messageIds = messages.map(m => m.id);
-  // Note: updateMany with array operations may not work for all messages
-  // Mark them as read if needed
-  for (const msg of messages) {
-    if (msg.recipientId === req.user.id && !msg.readBy?.includes(req.user.id)) {
-      await prisma.directMessage.update({
-        where: { id: msg.id },
-        data: {
-          readBy: { push: req.user.id },
-          readAt: new Date()
-        }
-      }).catch(() => {}); // Ignore errors for individual updates
-    }
-  }
-
-  sendPaginatedResponse(res, messages.reverse(), pageNum, limitNum, total, 'Conversation retrieved successfully');
-}));
-
-// @desc    Get project messages
-// @route   GET /api/messages/project/:projectId
-// @access  Private
-router.get('/project/:projectId', authenticateToken, asyncHandler(async (req, res) => {
-  const projectId = req.params.projectId;
-  const { page = 1, limit = 50 } = req.query;
-
-  // Calculate pagination
-  const pageNum = parseInt(page);
-  const limitNum = parseInt(limit);
-  const skip = (pageNum - 1) * limitNum;
-
-  const where = {
-    type: 'PROJECT',
-    projectId
-  };
-
-  const [messages, total] = await Promise.all([
-    prisma.directMessage.findMany({
-      where,
-      orderBy: { created_at: 'desc' },
-      skip,
-      take: limitNum
-    }),
-    prisma.directMessage.count({ where })
-  ]);
-
-  sendPaginatedResponse(res, messages.reverse(), pageNum, limitNum, total, 'Project messages retrieved successfully');
-}));
-
-// @desc    Get unread messages count
-// @route   GET /api/messages/unread/count
-// @access  Private
-router.get('/unread/count', authenticateToken, asyncHandler(async (req, res) => {
-  const unreadCount = await prisma.directMessage.count({
-    where: {
-      OR: [
-        { recipientId: req.user.id },
-        { participants: { has: req.user.id } }
-      ],
-      NOT: {
-        readBy: { has: req.user.id }
-      }
-    }
-  });
-
-  sendSuccess(res, 200, { unreadCount }, 'Unread messages count retrieved successfully');
-}));
-
-// @desc    Get message statistics
-// @route   GET /api/messages/stats/overview
-// @access  Private (Manager and above)
-router.get('/stats/overview', managerAndAbove, asyncHandler(async (req, res) => {
-  const { days = 30 } = req.query;
-
-  const dateThreshold = new Date();
-  dateThreshold.setDate(dateThreshold.getDate() - parseInt(days));
-
-  const stats = await prisma.directMessage.groupBy({
-    by: ['type'],
-    where: {
-      created_at: { gte: dateThreshold }
-    },
-    _count: {
-      id: true
-    }
-  });
-
-  const priorityStats = await prisma.directMessage.groupBy({
-    by: ['priority'],
-    where: {
-      created_at: { gte: dateThreshold }
-    },
-    _count: {
-      id: true
-    }
-  });
-
-  const totalMessages = await prisma.directMessage.count({
-    where: {
-      created_at: { gte: dateThreshold }
-    }
-  });
-
-  const uniqueSenders = await prisma.directMessage.groupBy({
-    by: ['senderId'],
-    where: {
-      created_at: { gte: dateThreshold }
-    },
-    _count: {
-      id: true
-    }
-  });
-
-  const uniqueRecipients = await prisma.directMessage.groupBy({
-    by: ['recipientId'],
-    where: {
-      created_at: { gte: dateThreshold },
-      recipientId: { not: null }
-    },
-    _count: {
-      id: true
-    }
-  });
-
-  const overview = {
-    totalMessages,
-    uniqueSendersCount: uniqueSenders.length,
-    uniqueRecipientsCount: uniqueRecipients.length
-  };
-
-  sendSuccess(res, 200, {
-    overview,
-    byType: stats.map(stat => ({
-      _id: stat.type,
-      count: stat._count.id
-    })),
-    byPriority: priorityStats.map(stat => ({
-      _id: stat.priority,
-      count: stat._count.id
-    }))
-  }, 'Message statistics retrieved successfully');
-}));
-
-// @desc    Search messages
-// @route   GET /api/messages/search/query
-// @access  Private
-router.get('/search/query', authenticateToken, asyncHandler(async (req, res) => {
-  const { q, limit = 10 } = req.query;
-
-  if (!q || q.trim().length < 2) {
-    return res.status(400).json({
-      success: false,
-      message: 'Search query must be at least 2 characters long'
-    });
-  }
-
-  const searchQuery = q.trim();
-  
-  // Only search messages where user is sender or recipient
-  const messages = await prisma.directMessage.findMany({
-    where: {
-      AND: [
-        {
-          OR: [
-            { senderId: req.user.id },
-            { recipientId: req.user.id },
-            { type: 'ANNOUNCEMENT' },
-            { participants: { has: req.user.id } }
-          ]
-        },
-        {
-          OR: [
-            { content: { contains: searchQuery, mode: 'insensitive' } },
-            { senderName: { contains: searchQuery, mode: 'insensitive' } },
-            { recipientName: { contains: searchQuery, mode: 'insensitive' } },
-            { projectName: { contains: searchQuery, mode: 'insensitive' } }
-          ]
-        }
-      ]
-    },
-    take: parseInt(limit),
-    select: {
-      id: true,
-      content: true,
-      type: true,
-      senderName: true,
-      recipientName: true,
-      projectName: true,
-      created_at: true,
-      priority: true
-    }
-  });
-
-  sendSuccess(res, 200, { messages, count: messages.length }, 'Search results retrieved successfully');
 }));
 
 
