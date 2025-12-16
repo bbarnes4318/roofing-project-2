@@ -75,8 +75,12 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     search,
     sortBy = 'newest',
     page = 1,
-    limit = 20
+    limit = 20,
+    excludeArchived = 'false' // New parameter to exclude archived items
   } = req.query;
+
+  // Statuses considered as "archived/completed"
+  const ARCHIVED_STATUSES = ['DONE', 'CLOSED'];
 
   const where = {};
   
@@ -92,8 +96,19 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
     }
   }
   
+  // Handle status filtering including archive functionality
   if (status && status !== 'all') {
-    where.status = status.toUpperCase();
+    if (status === 'archived') {
+      // Special case: fetch only archived (DONE/CLOSED) items
+      where.status = { in: ARCHIVED_STATUSES };
+    } else {
+      where.status = status.toUpperCase();
+    }
+  }
+  
+  // Exclude archived items when requested (for main view tabs)
+  if (excludeArchived === 'true' && !status) {
+    where.status = { notIn: ARCHIVED_STATUSES };
   }
   
   if (severity && severity !== 'all') {
