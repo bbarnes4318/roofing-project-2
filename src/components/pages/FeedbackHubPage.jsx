@@ -7,7 +7,7 @@ import FeedbackCard from '../feedback/FeedbackCard';
 import FeedbackFilters from '../feedback/FeedbackFilters';
 import NotificationBell from '../feedback/NotificationBell';
 import FeedbackDrawer from '../feedback/FeedbackDrawer';
-import { Search, MessageSquare, X, Archive } from 'lucide-react';
+import { Search, MessageSquare, X, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Statuses considered as "completed" for archiving purposes
@@ -15,7 +15,7 @@ const ARCHIVED_STATUSES = ['DONE', 'CLOSED'];
 
 const FeedbackHubPage = ({ colorMode, currentUser }) => {
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('active');
   const [showDrawer, setShowDrawer] = useState(false);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
@@ -34,10 +34,10 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
       // Use real API database
       const params = { ...filters, search: searchQuery };
       
-      // For the archive tab, we fetch only DONE/CLOSED items
-      if (activeTab === 'archive') {
+      // For the completed tab, we fetch only DONE/CLOSED items
+      if (activeTab === 'completed') {
         params.status = 'archived'; // Special status to get DONE + CLOSED
-      } else if (activeTab !== 'all') {
+      } else if (activeTab !== 'active') {
         // Map tab names to correct API type values
         const typeMapping = {
           'bugs': 'BUG',
@@ -49,8 +49,8 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
         params.type = typeMapping[activeTab] || activeTab.toUpperCase();
       }
       
-      // Exclude archived items from non-archive tabs
-      if (activeTab !== 'archive') {
+      // Exclude completed items from non-completed tabs
+      if (activeTab !== 'completed') {
         params.excludeArchived = true;
       }
       
@@ -213,12 +213,19 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
               
               {/* Tabs - moved inline with notification bell */}
               <div className="flex items-center space-x-1">
-                {['all', 'bugs', 'improvements', 'ideas', 'mine', 'following'].map((tab) => (
+                {[
+                  { key: 'active', label: 'Active' },
+                  { key: 'bugs', label: 'Bugs' },
+                  { key: 'improvements', label: 'Improvements' },
+                  { key: 'ideas', label: 'Ideas' },
+                  { key: 'mine', label: 'Mine' },
+                  { key: 'following', label: 'Following' }
+                ].map((tab) => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
+                    key={tab.key}
+                    onClick={() => setActiveTab(tab.key)}
                     className={`px-3 py-1 rounded text-sm font-medium transition-colors ${
-                      activeTab === tab
+                      activeTab === tab.key
                         ? colorMode
                           ? 'bg-blue-600 text-white'
                           : 'bg-blue-500 text-white'
@@ -227,26 +234,26 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                     }`}
                   >
-                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    {tab.label}
                   </button>
                 ))}
                 
-                {/* Archive Tab - Separated with divider */}
+                {/* Completed Tab - Separated with divider */}
                 <div className={`mx-2 h-6 w-px ${colorMode ? 'bg-slate-600' : 'bg-gray-300'}`} />
                 <button
-                  onClick={() => setActiveTab('archive')}
+                  onClick={() => setActiveTab('completed')}
                   className={`px-3 py-1 rounded text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                    activeTab === 'archive'
+                    activeTab === 'completed'
                       ? colorMode
-                        ? 'bg-amber-600 text-white'
-                        : 'bg-amber-500 text-white'
+                        ? 'bg-green-600 text-white'
+                        : 'bg-green-500 text-white'
                       : colorMode
                       ? 'text-gray-300 hover:text-white hover:bg-slate-700'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                   }`}
                 >
-                  <Archive className="h-3.5 w-3.5" />
-                  Archive
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  Completed
                 </button>
               </div>
             </div>
@@ -305,11 +312,11 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
                 </div>
               ) : filteredFeedback.length === 0 ? (
                 <div className={`text-center py-8 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  {activeTab === 'archive' ? (
+                  {activeTab === 'completed' ? (
                     <>
-                      <Archive className="h-8 w-8 mx-auto mb-3 opacity-50" />
-                      <h3 className="text-lg font-medium mb-2">No archived threads</h3>
-                      <p>Completed feedback threads will appear here.</p>
+                      <CheckCircle className="h-8 w-8 mx-auto mb-3 opacity-50" />
+                      <h3 className="text-lg font-medium mb-2">No completed threads</h3>
+                      <p>Threads marked as Done or Closed will appear here.</p>
                     </>
                   ) : (
                     <>

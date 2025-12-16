@@ -107,7 +107,8 @@ router.get('/', authenticateToken, asyncHandler(async (req, res) => {
   }
   
   // Exclude archived items when requested (for main view tabs)
-  if (excludeArchived === 'true' && !status) {
+  // This applies when excludeArchived=true AND no specific status filter is set (status is empty, undefined, or 'all')
+  if (excludeArchived === 'true' && (!status || status === 'all')) {
     where.status = { notIn: ARCHIVED_STATUSES };
   }
   
