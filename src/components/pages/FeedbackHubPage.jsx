@@ -107,9 +107,35 @@ const FeedbackHubPage = ({ colorMode, currentUser }) => {
       const response = await feedbackService.updateStatus(feedbackId, { status, assigneeId, tags });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       queryClient.invalidateQueries(['feedback']);
-      toast.success('Status updated successfully');
+      
+      // Update the selectedFeedback state with the new status
+      if (selectedFeedback && selectedFeedback.id === variables.feedbackId) {
+        const updatedFeedback = {
+          ...selectedFeedback,
+          ...(variables.status && { status: variables.status }),
+          ...(variables.assigneeId !== undefined && { assigneeId: variables.assigneeId }),
+          ...(variables.tags && { tags: variables.tags })
+        };
+        setSelectedFeedback(updatedFeedback);
+        
+        // If the status is now archived (DONE/CLOSED), close the drawer
+        // so the item moves to the archive tab
+        if (variables.status && ARCHIVED_STATUSES.includes(variables.status)) {
+          toast.success(`Thread marked as ${variables.status} and moved to Archive`);
+          setShowDrawer(false);
+          setSelectedFeedback(null);
+        } else {
+          toast.success('Status updated successfully');
+        }
+      } else {
+        toast.success('Status updated successfully');
+      }
+    },
+    onError: (error) => {
+      console.error('Failed to update status:', error);
+      toast.error('Failed to update status. Please try again.');
     }
   });
 

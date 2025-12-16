@@ -329,28 +329,17 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
           />
         </div>
 
-        {/* Page Header */}
-        <div className="mb-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-3xl font-bold ${colorMode ? 'text-white' : 'text-gray-900'} mb-1`}>
-                My Messages
-              </h1>
-              <p className={`text-lg ${colorMode ? 'text-slate-400' : 'text-gray-600'}`}>
-                Direct conversations with team members
-              </p>
-            </div>
-            {/* Real-time connection status */}
-            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
-              socketConnected 
-                ? 'bg-green-100 text-green-700 border border-green-200' 
-                : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
-            }`}>
-              <div className={`w-2 h-2 rounded-full ${
-                socketConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
-              }`}></div>
-              {socketConnected ? 'Live' : 'Connecting...'}
-            </div>
+        {/* Real-time connection status */}
+        <div className="mb-3 flex justify-end">
+          <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
+            socketConnected 
+              ? 'bg-green-100 text-green-700 border border-green-200' 
+              : 'bg-yellow-100 text-yellow-700 border border-yellow-200'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              socketConnected ? 'bg-green-500 animate-pulse' : 'bg-yellow-500'
+            }`}></div>
+            {socketConnected ? 'Live' : 'Connecting...'}
           </div>
         </div>
 
