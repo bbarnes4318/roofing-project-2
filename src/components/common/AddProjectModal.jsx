@@ -352,55 +352,26 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     const newRequirements = [];
 
     if (step === 1) {
-      // Validate primary customer
-      if (!formData.primaryName.trim()) {
-        newErrors.primaryName = 'Primary customer name is required';
-        newRequirements.push('Enter primary customer name');
-      }
-      if (!formData.primaryEmail.trim()) {
-        newErrors.primaryEmail = 'Primary customer email is required';
-        newRequirements.push('Enter primary customer email');
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
-        newErrors.primaryEmail = 'Please enter a valid email address';
-        newRequirements.push('Enter a valid email address');
-      }
-      if (!formData.primaryPhone.trim()) {
-        newErrors.primaryPhone = 'Primary customer phone number is required';
-        newRequirements.push('Enter primary customer phone number');
-      }
+      // Only address is required
       if (!formData.address.trim()) {
         newErrors.address = 'Project address is required';
         newRequirements.push('Enter project address');
       }
 
-      // Validate secondary customer if provided (only when showSecondaryCustomer is true)
-      // Note: secondaryPhone in formData refers to primary customer's secondary phone,
-      // not the secondary customer's phone, so we only check if secondary customer section is shown
-      if (showSecondaryCustomer) {
-        const hasSecondaryInfo = formData.secondaryName || formData.secondaryEmail || formData.secondaryPhone;
-        if (hasSecondaryInfo) {
-          if (!formData.secondaryName.trim()) {
-            newErrors.secondaryName = 'Secondary customer name is required when secondary info is provided';
-            newRequirements.push('Enter secondary customer name');
-          }
-          if (formData.secondaryEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)) {
-            newErrors.secondaryEmail = 'Please enter a valid secondary email address';
-            newRequirements.push('Enter a valid secondary email address');
-          }
-        }
+      // Optional email format validation (only if email is provided)
+      if (formData.primaryEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
+        newErrors.primaryEmail = 'Please enter a valid email address';
+        newRequirements.push('Enter a valid email address');
+      }
+
+      // Optional secondary email format validation
+      if (formData.secondaryEmail && formData.secondaryEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)) {
+        newErrors.secondaryEmail = 'Please enter a valid secondary email address';
+        newRequirements.push('Enter a valid secondary email address');
       }
     }
 
-    if (step === 2) {
-      if (formData.projectTypes.length === 0) {
-        newErrors.projectTypes = 'Please select at least one trade type';
-        newRequirements.push('Select at least one trade type');
-      }
-      if (!formData.projectManagerId) {
-        newErrors.projectManagerId = 'Please select a project manager';
-        newRequirements.push('Select a project manager');
-      }
-    }
+    // Step 2 has no required fields
 
     setErrors(newErrors);
     setValidationRequirements(newRequirements);
@@ -545,10 +516,21 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         let errorMessage = serverError.message || 'Failed to create customer';
         
         if (serverError.errors) {
-          // Format validation errors
-          errorMessage = Object.entries(serverError.errors)
-            .map(([field, msg]) => `${field}: ${msg}`)
-            .join('\n');
+          // Format validation errors - handle both array and object formats
+          if (Array.isArray(serverError.errors)) {
+            // Backend returns array of {field, message, value} objects
+            errorMessage = serverError.errors
+              .map(err => `${err.field || err.path || 'Error'}: ${err.message || err.msg || String(err)}`)
+              .join('\n');
+          } else if (typeof serverError.errors === 'object') {
+            // Handle object format {field: message} or {field: {message: string}}
+            errorMessage = Object.entries(serverError.errors)
+              .map(([field, msg]) => {
+                const message = typeof msg === 'object' ? (msg.message || JSON.stringify(msg)) : msg;
+                return `${field}: ${message}`;
+              })
+              .join('\n');
+          }
         }
         
         alert('Error creating project:\n' + errorMessage);
@@ -665,7 +647,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     {/* Name */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Full Name <span className="text-red-500">*</span>
+                        Full Name
                       </label>
                       <input
                         type="text"
@@ -690,7 +672,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     {/* Email with Type */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Email Address <span className="text-red-500">*</span>
+                        Email Address
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -702,7 +684,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             errors.primaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder="john@email.com"
-                          required
                         />
                         <select
                           name="primaryEmailType"
@@ -727,7 +708,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     {/* Primary Phone */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Primary Phone <span className="text-red-500">*</span>
+                        Primary Phone
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -743,7 +724,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             errors.primaryPhone ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
                           }`}
                           placeholder="(865) 555-1212"
-                          required
                         />
                         <select
                           name="primaryPhoneType"
