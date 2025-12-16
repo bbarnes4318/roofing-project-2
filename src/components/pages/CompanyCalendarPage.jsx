@@ -67,6 +67,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
         type: 'meeting',
         date: new Date().toISOString().split('T')[0],
         time: '09:00',
+        endTime: '10:00',
         description: '',
         projectId: '',
         priority: 'medium'
@@ -100,6 +101,10 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const [showSearchResults, setShowSearchResults] = useState(false);
     const [recentlyAdded, setRecentlyAdded] = useState([]); // Audit trail - last 15 created events
     const [showRecentlyAdded, setShowRecentlyAdded] = useState(false);
+    
+    // Edit Event State
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editEvent, setEditEvent] = useState(null);
 
     // Helper: identify alert-type events that should NOT appear on Company Calendar
     const isAlertEvent = (evt) => {
@@ -763,6 +768,115 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     const closeEventModal = () => {
         setShowEventModal(false);
         setSelectedEvent(null);
+        setIsEditMode(false);
+        setEditEvent(null);
+    };
+
+    // Edit event handler - initialize edit mode with event data
+    const handleEditEvent = () => {
+        if (!selectedEvent) return;
+        
+        // Parse the date and times from the event
+        let eventDate = new Date().toISOString().split('T')[0];
+        let eventStartTime = '09:00';
+        let eventEndTime = '10:00';
+        
+        if (selectedEvent.startTime) {
+            const startTimeDate = new Date(selectedEvent.startTime);
+            eventDate = startTimeDate.toISOString().split('T')[0];
+            eventStartTime = startTimeDate.toTimeString().slice(0, 5);
+        }
+        
+        if (selectedEvent.endTime) {
+            const endTimeDate = new Date(selectedEvent.endTime);
+            eventEndTime = endTimeDate.toTimeString().slice(0, 5);
+        }
+        
+        setEditEvent({
+            id: selectedEvent.id,
+            title: selectedEvent.title || '',
+            type: selectedEvent.type || 'meeting',
+            date: eventDate,
+            time: eventStartTime,
+            endTime: eventEndTime,
+            description: selectedEvent.description || '',
+            projectId: selectedEvent.projectId || ''
+        });
+        setIsEditMode(true);
+    };
+
+    // Handle edit form field changes
+    const handleEditEventChange = (field, value) => {
+        setEditEvent(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    // Update event API call
+    const handleUpdateEvent = async () => {
+        if (!editEvent || !editEvent.title.trim()) {
+            toast.error('Please enter an event title');
+            return;
+        }
+
+        try {
+            const startTime = new Date(`${editEvent.date}T${editEvent.time}:00`);
+            const endTime = new Date(`${editEvent.date}T${editEvent.endTime}:00`);
+            
+            // Validate end time is after start time
+            if (endTime <= startTime) {
+                toast.error('End time must be after start time');
+                return;
+            }
+
+            const eventData = {
+                title: editEvent.title,
+                description: editEvent.description,
+                startTime: startTime.toISOString(),
+                endTime: endTime.toISOString(),
+                eventType: editEvent.type.toUpperCase(),
+                projectId: editEvent.projectId || undefined
+            };
+
+            const token = localStorage.getItem('authToken');
+            const response = await fetch(`/api/calendar-events/${editEvent.id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify(eventData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || 'Failed to update event');
+            }
+
+            const updatedEvent = await response.json();
+            console.log('✅ Calendar event updated:', updatedEvent);
+            
+            // Dispatch custom event for real-time updates
+            window.dispatchEvent(new CustomEvent('calendar:eventUpdated', {
+                detail: { event: updatedEvent.data?.event }
+            }));
+            
+            // Close modal and reset
+            closeEventModal();
+            
+            toast.success('Event updated successfully!', {
+                duration: 3000,
+                icon: '✏️'
+            });
+            
+            // Refresh calendar
+            await fetchCalendarEvents();
+            
+        } catch (error) {
+            console.error('Error updating event:', error);
+            toast.error(`Failed to update event: ${error.message}`);
+        }
     };
 
     const handleAddEvent = () => {
@@ -776,6 +890,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             type: 'meeting',
             date: new Date().toISOString().split('T')[0],
             time: '09:00',
+            endTime: '10:00',
             description: '',
             projectId: '',
             priority: 'medium'
@@ -812,7 +927,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
 
             // Create the event object for API
             const startTime = new Date(`${newEvent.date}T${newEvent.time}:00`);
-            const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Add 1 hour
+            const endTime = new Date(`${newEvent.date}T${newEvent.endTime}:00`);
             
             const eventData = {
                 title: newEvent.title,
@@ -1618,10 +1733,12 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {/* Event Modal */}
             {showEventModal && selectedEvent && (
                 <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
-                    <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
+                    <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
-                                <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Event Details</h3>
+                                <h3 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                    {isEditMode ? 'Edit Event' : 'Event Details'}
+                                </h3>
                                 <button
                                     onClick={closeEventModal}
                                     className={`p-2 rounded-lg transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
@@ -1632,58 +1749,227 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 </button>
                             </div>
                             
-                            <div className="space-y-4">
-                                <div>
-                                    <div className={`inline-block px-3 py-1.5 rounded-lg text-sm font-medium text-white shadow-md ${selectedEvent.color}`}>
-                                        {selectedEvent.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                            {/* Edit Mode Form */}
+                            {isEditMode && editEvent ? (
+                                <div className="space-y-5">
+                                    {/* Event Title */}
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Event Title *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={editEvent.title}
+                                            onChange={(e) => handleEditEventChange('title', e.target.value)}
+                                            className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                colorMode 
+                                                    ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                            } focus:outline-none transition-all duration-200`}
+                                            placeholder="Enter event title"
+                                        />
+                                    </div>
+
+                                    {/* Event Type */}
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Event Type
+                                        </label>
+                                        <select
+                                            value={editEvent.type}
+                                            onChange={(e) => handleEditEventChange('type', e.target.value)}
+                                            className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                colorMode 
+                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                            } focus:outline-none transition-all duration-200`}
+                                        >
+                                            <option value="meeting">Meeting</option>
+                                            <option value="training">Training</option>
+                                            <option value="maintenance">Maintenance</option>
+                                            <option value="inspection">Inspection</option>
+                                            <option value="deadline">Deadline</option>
+                                            <option value="project-start">Project Start</option>
+                                            <option value="project-end">Project End</option>
+                                            <option value="delivery">Delivery</option>
+                                            <option value="labor">Labor</option>
+                                        </select>
+                                    </div>
+
+                                    {/* Date and Time */}
+                                    <div className="grid grid-cols-3 gap-4">
+                                        <div>
+                                            <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Date
+                                            </label>
+                                            <input
+                                                type="date"
+                                                value={editEvent.date}
+                                                onChange={(e) => handleEditEventChange('date', e.target.value)}
+                                                className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                    colorMode 
+                                                        ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                        : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                                } focus:outline-none transition-all duration-200`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                Start Time
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={editEvent.time}
+                                                onChange={(e) => handleEditEventChange('time', e.target.value)}
+                                                className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                    colorMode 
+                                                        ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                        : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                                } focus:outline-none transition-all duration-200`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                                End Time
+                                            </label>
+                                            <input
+                                                type="time"
+                                                value={editEvent.endTime}
+                                                onChange={(e) => handleEditEventChange('endTime', e.target.value)}
+                                                className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                    colorMode 
+                                                        ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                        : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                                } focus:outline-none transition-all duration-200`}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Description */}
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            Description (Optional)
+                                        </label>
+                                        <textarea
+                                            value={editEvent.description}
+                                            onChange={(e) => handleEditEventChange('description', e.target.value)}
+                                            rows={3}
+                                            className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                colorMode 
+                                                    ? 'bg-[#374151] border-gray-600 text-white placeholder-gray-400 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                            } focus:outline-none transition-all duration-200`}
+                                            placeholder="Enter event description..."
+                                        />
+                                    </div>
+
+                                    {/* Edit Mode Buttons */}
+                                    <div className="flex gap-3 mt-8">
+                                        <button
+                                            onClick={() => setIsEditMode(false)}
+                                            className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
+                                                colorMode 
+                                                    ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            onClick={handleUpdateEvent}
+                                            className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
+                                                colorMode 
+                                                    ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
+                                                    : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
+                                            }`}
+                                        >
+                                            Save Changes
+                                        </button>
                                     </div>
                                 </div>
-                                
-                                <div>
-                                    <h4 className={`font-bold text-lg mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>{selectedEvent.title}</h4>
-                                    <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                                        {selectedEvent.time} • {selectedDate.toLocaleDateString()}
-                                    </p>
-                                </div>
-                                
-                                {selectedEvent.project && (
-                                    <div className={`p-4 rounded-lg shadow-sm ${colorMode ? 'bg-[#374151] border border-[#3b82f6]/20' : 'bg-blue-50 border border-blue-200'}`}>
-                                        <p className={`text-sm font-bold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Related Project:</p>
-                                        <p className={`text-sm ${colorMode ? 'text-white' : 'text-gray-800'}`}>{selectedEvent.project.name}</p>
+                            ) : (
+                                /* View Mode */
+                                <>
+                                    <div className="space-y-4">
+                                        <div>
+                                            <div className={`inline-block px-3 py-1.5 rounded-lg text-sm font-medium text-white shadow-md ${selectedEvent.color}`}>
+                                                {selectedEvent.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                            </div>
+                                        </div>
+                                        
+                                        <div>
+                                            <h4 className={`font-bold text-lg mb-2 ${colorMode ? 'text-white' : 'text-gray-800'}`}>{selectedEvent.title}</h4>
+                                            <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                {selectedEvent.time} • {selectedDate.toLocaleDateString()}
+                                            </p>
+                                            {selectedEvent.endTime && (
+                                                <p className={`text-sm mt-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                                    Ends: {new Date(selectedEvent.endTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                                </p>
+                                            )}
+                                        </div>
+                                        
+                                        {selectedEvent.description && (
+                                            <div className={`p-3 rounded-lg ${colorMode ? 'bg-[#374151]' : 'bg-gray-50'}`}>
+                                                <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                                                    {selectedEvent.description}
+                                                </p>
+                                            </div>
+                                        )}
+                                        
+                                        {selectedEvent.project && (
+                                            <div className={`p-4 rounded-lg shadow-sm ${colorMode ? 'bg-[#374151] border border-[#3b82f6]/20' : 'bg-blue-50 border border-blue-200'}`}>
+                                                <p className={`text-sm font-bold mb-1 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>Related Project:</p>
+                                                <p className={`text-sm ${colorMode ? 'text-white' : 'text-gray-800'}`}>{selectedEvent.project.name}</p>
+                                            </div>
+                                        )}
+                                        
                                     </div>
-                                )}
-                                
-                            </div>
-                            
-                            <div className="flex gap-3 mt-8">
-                                <button
-                                    onClick={closeEventModal}
-                                    className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
-                                        colorMode 
-                                            ? 'bg-gray-600 text-white hover:bg-gray-700' 
-                                            : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
-                                    }`}
-                                >
-                                    Close
-                                </button>
-                                {selectedEvent.project && (
-                                    <button
-                                        onClick={() => {
-                                            closeEventModal();
-                                            if (onProjectSelect) {
-                                                onProjectSelect(selectedEvent.project, 'Project Workflow', null, 'Company Calendar');
-                                            }
-                                        }}
-                                        className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
-                                            colorMode 
-                                                ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
-                                                : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
-                                        }`}
-                                    >
-                                        View Project
-                                    </button>
-                                )}
-                            </div>
+                                    
+                                    <div className="flex gap-3 mt-8">
+                                        <button
+                                            onClick={closeEventModal}
+                                            className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
+                                                colorMode 
+                                                    ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                                    : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                            }`}
+                                        >
+                                            Close
+                                        </button>
+                                        {/* Only show Edit button for database events (not mock/project events) */}
+                                        {selectedEvent.id && !selectedEvent.id.startsWith('mock-') && !selectedEvent.id.startsWith('delivery-') && !selectedEvent.id.startsWith('labor-') && (
+                                            <button
+                                                onClick={handleEditEvent}
+                                                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
+                                                    colorMode 
+                                                        ? 'bg-amber-500 text-white hover:bg-amber-600' 
+                                                        : 'bg-amber-500 text-white hover:bg-amber-600'
+                                                }`}
+                                            >
+                                                ✏️ Edit Event
+                                            </button>
+                                        )}
+                                        {selectedEvent.project && (
+                                            <button
+                                                onClick={() => {
+                                                    closeEventModal();
+                                                    if (onProjectSelect) {
+                                                        onProjectSelect(selectedEvent.project, 'Project Workflow', null, 'Company Calendar');
+                                                    }
+                                                }}
+                                                className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
+                                                    colorMode 
+                                                        ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
+                                                        : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
+                                                }`}
+                                            >
+                                                View Project
+                                            </button>
+                                        )}
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -1799,7 +2085,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 </div>
 
                                 {/* Date and Time */}
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-3 gap-4">
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                             Date
@@ -1817,12 +2103,27 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     </div>
                                     <div>
                                         <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            Time
+                                            Start Time
                                         </label>
                                         <input
                                             type="time"
                                             value={newEvent.time}
                                             onChange={(e) => handleNewEventChange('time', e.target.value)}
+                                            className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
+                                                colorMode 
+                                                    ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
+                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20'
+                                            } focus:outline-none transition-all duration-200`}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className={`block text-sm font-bold mb-2 ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                            End Time
+                                        </label>
+                                        <input
+                                            type="time"
+                                            value={newEvent.endTime}
+                                            onChange={(e) => handleNewEventChange('endTime', e.target.value)}
                                             className={`w-full px-4 py-3 rounded-lg border text-sm shadow-sm ${
                                                 colorMode 
                                                     ? 'bg-[#374151] border-gray-600 text-white focus:border-[var(--color-brand-aqua-blue)] focus:ring-2 focus:ring-[var(--color-brand-aqua-blue)]/20' 
