@@ -1,17 +1,7 @@
 const jwt = require('jsonwebtoken');
-const { createClient } = require('@supabase/supabase-js');
 const { prisma } = require('../config/prisma');
 
-// Initialize Supabase client for server-side token validation
-const supabaseUrl = process.env.SUPABASE_URL || process.env.REACT_APP_SUPABASE_URL || '';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.REACT_APP_SUPABASE_ANON_KEY || '';
-
-// Only create Supabase client if config provided; otherwise skip gracefully
-const supabase = (supabaseUrl && supabaseServiceKey)
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null;
-
-// Authenticate JWT token (supports both old JWT and Supabase tokens)
+// Authenticate JWT token
 const authenticateToken = async (req, res, next) => {
   try {
     // Get token from header
@@ -72,117 +62,34 @@ const authenticateToken = async (req, res, next) => {
       return next();
     }
 
-    let user = null;
-    let isSupabaseToken = false;
-
-    // First, try to validate as Supabase token (if configured)
-    try {
-      if (!supabase) throw new Error('Supabase not configured');
-      
-      // Wrap Supabase call with timeout to handle network issues
-      const supabasePromise = supabase.auth.getUser(token);
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Supabase timeout')), 5000)
-      );
-      
-      const { data: supabaseUser, error } = await Promise.race([supabasePromise, timeoutPromise]);
-      
-      if (supabaseUser?.user && !error) {
-        isSupabaseToken = true;
-        // Find or create user in our database based on Supabase user
-        const email = supabaseUser.user.email;
-        const firstName = supabaseUser.user.user_metadata?.firstName || supabaseUser.user.email?.split('@')[0] || 'User';
-        const lastName = supabaseUser.user.user_metadata?.lastName || '';
-        
-        // Try to find existing user by email
-        user = await prisma.user.findUnique({
-          where: { email: email },
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            role: true,
-            permissions: true,
-            isActive: true,
-            theme: true,
-            lastLogin: true,
-            createdAt: true,
-            updatedAt: true
-          }
-        });
-
-        // If user doesn't exist, create them
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              email: email,
-              firstName: firstName,
-              lastName: lastName,
-              password: 'SUPABASE_MANAGED', // Placeholder since Supabase handles authentication
-              role: supabaseUser.user.user_metadata?.role || 'WORKER',
-              isActive: true,
-              theme: 'LIGHT',
-              lastLogin: new Date()
-            },
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true,
-              role: true,
-              permissions: true,
-              isActive: true,
-              theme: true,
-              lastLogin: true,
-              createdAt: true,
-              updatedAt: true
-            }
-          });
-        } else {
-          // Update last login
-          await prisma.user.update({
-            where: { id: user.id },
-            data: { lastLogin: new Date() }
-          });
-        }
-      }
-    } catch (supabaseError) {
-      // If Supabase token validation fails (network error, timeout, invalid token, etc.)
-      // Fall through to try old JWT validation - DO NOT throw or return 500
-      console.log('Supabase validation failed, falling back to JWT:', supabaseError.message || 'Unknown error');
-    }
-
-    // If not a Supabase token, try old JWT validation
-    if (!isSupabaseToken) {
-      const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
-      const decoded = jwt.verify(token, secret);
-      
-      if (!decoded || !decoded.id) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid token structure.'
-        });
-      }
-
-      // Get user from database using old method
-      user = await prisma.user.findUnique({
-        where: { id: decoded.id },
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          email: true,
-          role: true,
-          permissions: true,
-          isActive: true,
-          theme: true,
-          lastLogin: true,
-          createdAt: true,
-          updatedAt: true
-        }
+    // JWT validation
+    const secret = process.env.JWT_SECRET || 'dev-insecure-jwt-secret-change-me';
+    const decoded = jwt.verify(token, secret);
+    
+    if (!decoded || !decoded.id) {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token structure.'
       });
     }
+
+    // Get user from database
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        email: true,
+        role: true,
+        permissions: true,
+        isActive: true,
+        theme: true,
+        lastLogin: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     
     if (!user) {
       return res.status(401).json({
