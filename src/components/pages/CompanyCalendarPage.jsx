@@ -105,6 +105,9 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     // Edit Event State
     const [isEditMode, setIsEditMode] = useState(false);
     const [editEvent, setEditEvent] = useState(null);
+    
+    // Expanded Day Events State (for viewing all events on a day)
+    const [expandedDayEvents, setExpandedDayEvents] = useState(null); // { date: Date, events: [] }
 
     // Helper: identify alert-type events that should NOT appear on Company Calendar
     const isAlertEvent = (evt) => {
@@ -1599,9 +1602,22 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                         );
                                     })}
                                     {getFilteredEvents(day.events).length > 1 && (
-                                        <div className={`text-xs px-1 py-0.5 rounded shadow-sm ${colorMode ? 'bg-gray-600 text-gray-200' : 'bg-gray-200 text-gray-600'}`}>
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setExpandedDayEvents({
+                                                    date: day.date,
+                                                    events: getFilteredEvents(day.events)
+                                                });
+                                            }}
+                                            className={`w-full text-xs px-1 py-0.5 rounded shadow-sm font-medium transition-all duration-200 hover:scale-105 ${
+                                                colorMode 
+                                                    ? 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]' 
+                                                    : 'bg-[var(--color-brand-aqua-blue)] text-white hover:bg-[var(--color-brand-deep-teal)]'
+                                            }`}
+                                        >
                                             +{getFilteredEvents(day.events).length - 1} more
-                                        </div>
+                                        </button>
                                     )}
                                 </div>
                             </div>
@@ -1970,6 +1986,112 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     </div>
                                 </>
                             )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Expanded Day Events Modal - Shows all events for a day */}
+            {expandedDayEvents && (
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                    <div className={`rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
+                        {/* Header */}
+                        <div className={`p-5 ${colorMode ? 'bg-gradient-to-r from-[var(--color-brand-aqua-blue)]/20 to-[var(--color-brand-deep-teal)]/20 border-b border-[#3b82f6]/30' : 'bg-gradient-to-r from-[var(--color-brand-aqua-blue-light-tint)] to-blue-50 border-b border-gray-200'}`}>
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                        📅 Events for {expandedDayEvents.date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+                                    </h3>
+                                    <p className={`text-sm ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                                        {expandedDayEvents.events.length} event{expandedDayEvents.events.length !== 1 ? 's' : ''} scheduled
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => setExpandedDayEvents(null)}
+                                    className={`p-2 rounded-lg transition-all duration-200 ${colorMode ? 'text-gray-300 hover:text-white hover:bg-[#374151]' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'}`}
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        {/* Events List */}
+                        <div className="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                            {expandedDayEvents.events.map((event, idx) => {
+                                const eventStyle = getEventStyle(event);
+                                return (
+                                    <div 
+                                        key={event.id || idx}
+                                        onClick={() => {
+                                            setExpandedDayEvents(null);
+                                            handleEventClick(event);
+                                        }}
+                                        className={`group flex items-start gap-4 p-4 rounded-xl cursor-pointer transition-all duration-300 ${
+                                            colorMode 
+                                                ? 'bg-slate-700/30 hover:bg-slate-700/60 border border-slate-700/50 hover:border-[var(--color-brand-aqua-blue)]/50' 
+                                                : 'bg-white hover:bg-blue-50/50 border border-slate-200/80 hover:border-[var(--color-brand-aqua-blue)]/50 shadow-sm hover:shadow-md'
+                                        }`}
+                                    >
+                                        {/* Color Indicator */}
+                                        <div 
+                                            className="w-1.5 h-full min-h-[48px] rounded-full flex-shrink-0"
+                                            style={eventStyle.style.backgroundColor ? { backgroundColor: eventStyle.style.backgroundColor } : { backgroundColor: '#0089D1' }}
+                                        />
+                                        
+                                        {/* Event Details */}
+                                        <div className="flex-1 min-w-0">
+                                            <div className={`text-sm font-semibold truncate group-hover:text-[var(--color-brand-aqua-blue)] transition-colors ${colorMode ? 'text-white' : 'text-slate-800'}`}>
+                                                {event.title || 'Untitled Event'}
+                                            </div>
+                                            <div className={`flex items-center gap-2 mt-1 text-xs ${colorMode ? 'text-slate-400' : 'text-slate-500'}`}>
+                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                                {event.time || 'All day'}
+                                                {event.endTime && (
+                                                    <>
+                                                        <span className={colorMode ? 'text-slate-600' : 'text-slate-300'}>→</span>
+                                                        {new Date(event.endTime).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+                                                    </>
+                                                )}
+                                            </div>
+                                            {event.description && (
+                                                <div className={`text-xs mt-1.5 line-clamp-2 ${colorMode ? 'text-slate-500' : 'text-slate-400'}`}>
+                                                    {event.description}
+                                                </div>
+                                            )}
+                                        </div>
+                                        
+                                        {/* Event Type Badge */}
+                                        <div className={`px-2.5 py-1 rounded-md text-xs font-medium ${
+                                            colorMode ? 'bg-slate-600/50 text-slate-300' : 'bg-slate-100 text-slate-600'
+                                        }`}>
+                                            {event.type?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Event'}
+                                        </div>
+                                        
+                                        {/* Arrow */}
+                                        <svg className={`w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity ${colorMode ? 'text-[var(--color-brand-aqua-blue)]' : 'text-[var(--color-brand-aqua-blue)]'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className={`p-4 ${colorMode ? 'bg-slate-800/50 border-t border-slate-700/50' : 'bg-gray-50 border-t border-gray-200'}`}>
+                            <button
+                                onClick={() => setExpandedDayEvents(null)}
+                                className={`w-full px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                    colorMode 
+                                        ? 'bg-gray-600 text-white hover:bg-gray-700' 
+                                        : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
+                                }`}
+                            >
+                                Close
+                            </button>
                         </div>
                     </div>
                 </div>
