@@ -7,9 +7,9 @@ class CustomerService {
     try {
       console.log('Creating customer with data:', customerData);
 
-      // Validate required fields
-      if (!customerData.primaryName || !customerData.primaryEmail || !customerData.primaryPhone || !customerData.address) {
-        throw new Error('Primary customer name, email, phone, and address are required');
+      // Validate required fields - only address is truly required
+      if (!customerData.address) {
+        throw new Error('Project address is required');
       }
 
       // If secondary customer info is provided, validate primary contact selection
@@ -32,9 +32,9 @@ class CustomerService {
 
       const customer = await prisma.customer.create({
         data: {
-          primaryName: customerData.primaryName,
-          primaryEmail: customerData.primaryEmail,
-          primaryPhone: customerData.primaryPhone,
+          primaryName: customerData.primaryName || 'Unknown',
+          primaryEmail: customerData.primaryEmail || `noemail-${Date.now()}@placeholder.local`,
+          primaryPhone: customerData.primaryPhone || '',
           secondaryName: customerData.secondaryName || null,
           secondaryEmail: customerData.secondaryEmail || null,
           secondaryPhone: customerData.secondaryPhone || null,

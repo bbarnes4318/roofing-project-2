@@ -78,13 +78,15 @@ const transformCustomerForFrontend = (customer) => {
   };
 };
 
-// Validation rules for creating customers
+// Validation rules for creating customers - only address is required
 const customerValidation = [
   body('primaryName')
+    .optional({ checkFalsy: true })
     .trim()
     .isLength({ min: 2, max: 100 })
     .withMessage('Primary customer name must be between 2 and 100 characters'),
   body('primaryEmail')
+    .optional({ checkFalsy: true })
     .isEmail()
     .normalizeEmail()
     .withMessage('Please provide a valid primary email address'),
@@ -114,7 +116,8 @@ const customerValidation = [
     .withMessage('Primary contact must be PRIMARY or SECONDARY'),
   body('address')
     .trim()
-    .optional({ checkFalsy: true })
+    .notEmpty()
+    .withMessage('Project address is required')
     .isLength({ min: 5, max: 500 })
     .withMessage('Address must be between 5 and 500 characters'),
   body('primaryEmailType')
@@ -386,17 +389,29 @@ router.post('/', asyncHandler(async (req, res, next) => {
     console.log('🔍 CUSTOMER CREATE: Request body:', JSON.stringify(req.body, null, 2));
     let customerData = {};
     
-    if (req.body.primaryName || req.body.primaryEmail) {
+    // Address is the only required field - name/email/phone are optional
+    const address = req.body.address;
+    if (!address || !address.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Project address is required'
+      });
+    }
+    
+    // Generate placeholders for optional fields when not provided
+    const generatePlaceholderEmail = () => `noemail-${Date.now()}-${Math.random().toString(36).slice(2, 8)}@placeholder.local`;
+    
+    if (req.body.primaryName || req.body.primaryEmail || req.body.address) {
       // New format - validation already done by express-validator
       customerData = {
-        primaryName: req.body.primaryName,
-        primaryEmail: req.body.primaryEmail,
-        primaryPhone: req.body.primaryPhone || '555-555-5555', // Default phone if not provided
+        primaryName: req.body.primaryName || 'Unknown',
+        primaryEmail: req.body.primaryEmail || generatePlaceholderEmail(),
+        primaryPhone: req.body.primaryPhone || '',
         secondaryName: req.body.secondaryName || null,
         secondaryEmail: req.body.secondaryEmail || null,
         secondaryPhone: req.body.secondaryPhone || null,
         primaryContact: req.body.primaryContact || 'PRIMARY',
-        address: req.body.address || 'No address provided'
+        address: address.trim()
         // notes field removed - not being sent from frontend
       };
       
@@ -421,31 +436,36 @@ router.post('/', asyncHandler(async (req, res, next) => {
     } else {
       // Legacy format - map to new schema
       customerData = {
-        primaryName: req.body.name,
-        primaryEmail: req.body.email,
-        primaryPhone: req.body.phone || '555-555-5555',
+        primaryName: req.body.name || 'Unknown',
+        primaryEmail: req.body.email || generatePlaceholderEmail(),
+        primaryPhone: req.body.phone || '',
         secondaryName: null,
         secondaryEmail: null,
         secondaryPhone: null,
         primaryContact: 'PRIMARY',
-        address: req.body.address || 'No address provided'
+        address: address.trim()
         // notes field removed - not being sent from frontend
       };
       // Don't include type fields for legacy format - they may not exist in DB
     }
 
-    // Check if customer with this email already exists
-    console.log('🔍 CUSTOMER CREATE: Checking for existing customer with email:', customerData.primaryEmail);
-    const existingCustomer = await prisma.customer.findUnique({
-      where: { primaryEmail: customerData.primaryEmail }
-    });
+    // Only check for existing customer if a real email was provided (not placeholder)
+    let existingCustomer = null;
+    if (req.body.primaryEmail && req.body.primaryEmail.trim() && !req.body.primaryEmail.includes('@placeholder.local')) {
+      console.log('🔍 CUSTOMER CREATE: Checking for existing customer with email:', customerData.primaryEmail);
+      existingCustomer = await prisma.customer.findUnique({
+        where: { primaryEmail: customerData.primaryEmail }
+      });
 
-    console.log('🔍 CUSTOMER CREATE: Existing customer found:', existingCustomer ? 'YES' : 'NO');
-    if (existingCustomer) {
-      console.log('🔍 CUSTOMER CREATE: Returning existing customer:', existingCustomer.id, existingCustomer.primaryName);
-      // Return existing customer instead of throwing error
-      const transformedCustomer = transformCustomerForFrontend(existingCustomer);
-      return sendSuccess(res, 200, transformedCustomer, 'Customer already exists');
+      console.log('🔍 CUSTOMER CREATE: Existing customer found:', existingCustomer ? 'YES' : 'NO');
+      if (existingCustomer) {
+        console.log('🔍 CUSTOMER CREATE: Returning existing customer:', existingCustomer.id, existingCustomer.primaryName);
+        // Return existing customer instead of throwing error
+        const transformedCustomer = transformCustomerForFrontend(existingCustomer);
+        return sendSuccess(res, 200, transformedCustomer, 'Customer already exists');
+      }
+    } else {
+      console.log('🔍 CUSTOMER CREATE: No email provided, skipping duplicate check');
     }
 
     // Create customer with contacts if provided
