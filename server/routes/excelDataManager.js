@@ -111,10 +111,10 @@ const validateProjectData = (data) => {
 
     // Validate project type
     const validTypes = [
-      'ROOF_REPLACEMENT', 'KITCHEN_REMODEL', 'BATHROOM_RENOVATION',
-      'SIDING_INSTALLATION', 'WINDOW_REPLACEMENT', 'FLOORING', 
-      'PAINTING', 'ELECTRICAL_WORK', 'PLUMBING', 'HVAC', 
-      'DECK_CONSTRUCTION', 'LANDSCAPING', 'OTHER'
+      'ROOFING', 'GUTTERS', 'INTERIOR_PAINT', 'WATER_LEAK', 'MOLD', 'DECKS',
+      'REPAIR_EXTERIOR', 'REPAIR_INTERIOR', 'WINDOWS', 'SIDING', 'FENCE',
+      'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'FLOORING', 'PAINTING',
+      'ELECTRICAL_WORK', 'PLUMBING', 'HVAC', 'LANDSCAPING', 'OTHER', 'GENERAL'
     ];
     if (row.projectType && !validTypes.includes(row.projectType.toUpperCase())) {
       errors.push(`Row ${rowNum}: Invalid project type. Must be one of: ${validTypes.join(', ')}`);
@@ -288,7 +288,7 @@ router.get('/template', asyncHandler(async (req, res) => {
     {
       projectNumber: 2025001,
       projectName: "1234 Main Street Roof Replacement", 
-      projectType: "ROOF_REPLACEMENT",
+      projectType: "ROOFING",
       status: "PENDING",
       priority: "MEDIUM",
       budget: 25000.00,

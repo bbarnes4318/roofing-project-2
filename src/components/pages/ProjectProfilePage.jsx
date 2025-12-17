@@ -332,21 +332,11 @@ const ProjectProfilePage = ({
                 if (!customerId) throw new Error('Customer ID not received from server');
             }
 
-            // Map UI jobType to backend enum
+            // Map UI jobType to backend enum - now using direct enum values
             const mapJobTypeToEnum = (jt) => {
-                const map = {
-                    'Residential Roofing': 'ROOF_REPLACEMENT',
-                    'Commercial Roofing': 'ROOF_REPLACEMENT',
-                    'Repair & Maintenance': 'OTHER',
-                    'New Construction': 'OTHER',
-                    'Emergency Repair': 'OTHER',
-                    'Inspection': 'OTHER',
-                    'Gutter Installation': 'SIDING_INSTALLATION',
-                    'Siding': 'SIDING_INSTALLATION',
-                    'Windows': 'WINDOW_REPLACEMENT',
-                    'General': 'OTHER'
-                };
-                return map[jt] || 'OTHER';
+                // Since dropdown values now match backend enum, just return directly
+                // Fall back to 'ROOFING' if empty
+                return jt || 'ROOFING';
             };
 
             // Prepare project payload matching backend validation
@@ -1612,16 +1602,26 @@ const ProjectProfilePage = ({
                                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                             >
                                 <option value="">Select Job Type</option>
-                                <option value="Residential Roofing">Residential Roofing</option>
-                                <option value="Commercial Roofing">Commercial Roofing</option>
-                                <option value="Repair & Maintenance">Repair & Maintenance</option>
-                                <option value="New Construction">New Construction</option>
-                                <option value="Emergency Repair">Emergency Repair</option>
-                                <option value="Inspection">Inspection</option>
-                                <option value="Gutter Installation">Gutter Installation</option>
-                                <option value="Siding">Siding</option>
-                                <option value="Windows">Windows</option>
-                                <option value="General">General</option>
+                                <option value="ROOFING">Roofing</option>
+                                <option value="GUTTERS">Gutters</option>
+                                <option value="INTERIOR_PAINT">Interior Paint</option>
+                                <option value="WATER_LEAK">Water Leak</option>
+                                <option value="MOLD">Mold</option>
+                                <option value="DECKS">Decks</option>
+                                <option value="REPAIR_EXTERIOR">Repair - Exterior</option>
+                                <option value="REPAIR_INTERIOR">Repair - Interior</option>
+                                <option value="WINDOWS">Windows</option>
+                                <option value="SIDING">Siding</option>
+                                <option value="FENCE">Fence</option>
+                                <option value="KITCHEN_REMODEL">Kitchen Remodel</option>
+                                <option value="BATHROOM_RENOVATION">Bathroom Renovation</option>
+                                <option value="FLOORING">Flooring</option>
+                                <option value="PAINTING">Painting</option>
+                                <option value="ELECTRICAL_WORK">Electrical Work</option>
+                                <option value="PLUMBING">Plumbing</option>
+                                <option value="HVAC">HVAC</option>
+                                <option value="LANDSCAPING">Landscaping</option>
+                                <option value="OTHER">Other</option>
                             </select>
                         </div>
                         

@@ -7,23 +7,32 @@ export const formatProjectType = (projectType) => {
   if (!projectType) return 'N/A';
   
   const typeMap = {
-    'ROOF_REPLACEMENT': 'Roof Replacement',
+    // Core project types
+    'ROOFING': 'Roofing',
+    'GUTTERS': 'Gutters',
+    'INTERIOR_PAINT': 'Interior Paint',
+    'WATER_LEAK': 'Water Leak',
+    'MOLD': 'Mold',
+    'DECKS': 'Decks',
+    'REPAIR_EXTERIOR': 'Repair - Exterior',
+    'REPAIR_INTERIOR': 'Repair - Interior',
+    'WINDOWS': 'Windows',
+    'SIDING': 'Siding',
+    'FENCE': 'Fence',
     'KITCHEN_REMODEL': 'Kitchen Remodel',
     'BATHROOM_RENOVATION': 'Bathroom Renovation',
-    'SIDING_INSTALLATION': 'Siding Installation',
-    'WINDOW_REPLACEMENT': 'Window Replacement',
     'FLOORING': 'Flooring',
     'PAINTING': 'Painting',
     'ELECTRICAL_WORK': 'Electrical Work',
     'PLUMBING': 'Plumbing',
     'HVAC': 'HVAC',
-    'DECK_CONSTRUCTION': 'Deck Construction',
     'LANDSCAPING': 'Landscaping',
     'OTHER': 'Other',
-    // Common simple types used across UI
-    'ROOFING': 'Roofing',
-    'GUTTERS': 'Gutters',
-    'INTERIOR_PAINT': 'Interior Paint'
+    // Legacy types for backward compatibility
+    'ROOF_REPLACEMENT': 'Roof Replacement',
+    'SIDING_INSTALLATION': 'Siding Installation',
+    'WINDOW_REPLACEMENT': 'Window Replacement',
+    'DECK_CONSTRUCTION': 'Deck Construction'
   };
   // If we have an exact match, use it
   if (typeMap[projectType]) return typeMap[projectType];

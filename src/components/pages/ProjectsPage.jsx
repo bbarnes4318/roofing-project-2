@@ -1075,17 +1075,24 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             required
                                         >
                                             <option value="">Select project type</option>
-                                            <option value="ROOF_REPLACEMENT">🏠 Roof Replacement</option>
+                                            <option value="ROOFING">🏠 Roofing</option>
+                                            <option value="GUTTERS">🌧️ Gutters</option>
+                                            <option value="INTERIOR_PAINT">🎨 Interior Paint</option>
+                                            <option value="WATER_LEAK">💧 Water Leak</option>
+                                            <option value="MOLD">🦠 Mold</option>
+                                            <option value="DECKS">🪵 Decks</option>
+                                            <option value="REPAIR_EXTERIOR">🔧 Repair - Exterior</option>
+                                            <option value="REPAIR_INTERIOR">🛠️ Repair - Interior</option>
+                                            <option value="WINDOWS">🪟 Windows</option>
+                                            <option value="SIDING">🏗️ Siding</option>
+                                            <option value="FENCE">🚧 Fence</option>
                                             <option value="KITCHEN_REMODEL">🍳 Kitchen Remodel</option>
                                             <option value="BATHROOM_RENOVATION">🚿 Bathroom Renovation</option>
-                                            <option value="SIDING_INSTALLATION">🏗️ Siding Installation</option>
-                                            <option value="WINDOW_REPLACEMENT">🪟 Window Replacement</option>
                                             <option value="FLOORING">🪑 Flooring</option>
-                                            <option value="PAINTING">🎨 Painting</option>
+                                            <option value="PAINTING">🖌️ Painting</option>
                                             <option value="ELECTRICAL_WORK">⚡ Electrical Work</option>
                                             <option value="PLUMBING">🔧 Plumbing</option>
                                             <option value="HVAC">❄️ HVAC</option>
-                                            <option value="DECK_CONSTRUCTION">🌳 Deck Construction</option>
                                             <option value="LANDSCAPING">🌱 Landscaping</option>
                                             <option value="OTHER">📋 Other</option>
                                         </select>

@@ -278,7 +278,12 @@ const projectValidation = [
     .isLength({ min: 2, max: 200 })
     .withMessage('Project name must be between 2 and 200 characters'),
   body('projectType')
-    .isIn(['ROOFING', 'GUTTERS', 'INTERIOR_PAINT'])
+    .isIn([
+      'ROOFING', 'GUTTERS', 'INTERIOR_PAINT', 'WATER_LEAK', 'MOLD', 'DECKS',
+      'REPAIR_EXTERIOR', 'REPAIR_INTERIOR', 'WINDOWS', 'SIDING', 'FENCE',
+      'KITCHEN_REMODEL', 'BATHROOM_RENOVATION', 'FLOORING', 'PAINTING',
+      'ELECTRICAL_WORK', 'PLUMBING', 'HVAC', 'LANDSCAPING', 'OTHER'
+    ])
     .withMessage('Invalid project type'),
   body('status')
     .optional()
