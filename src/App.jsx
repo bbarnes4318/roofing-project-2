@@ -793,7 +793,19 @@ const apiUrl = window.location.hostname === 'localhost'
 
     // Gate the app behind login when unauthenticated, but allow special routes to bypass
     const currentPath = window.location.pathname;
-    const isBypassPath = currentPath === '/auth/callback' || currentPath === '/reset-password' || currentPath.startsWith('/setup-profile');
+    const isBypassPath = currentPath === '/auth/callback' || currentPath === '/auth/error' || currentPath === '/reset-password' || currentPath.startsWith('/setup-profile');
+    
+    // Handle auth error route - clear any stale data and show login
+    if (currentPath === '/auth/error') {
+        // Clear any stale auth data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        // Clear the URL and reload to show clean login
+        window.history.replaceState({}, '', '/');
+        window.location.reload();
+        return null;
+    }
+    
     if (!isAuthenticated && !isBypassPath) {
         return (
             <QueryClientProvider client={queryClient}>
@@ -801,6 +813,7 @@ const apiUrl = window.location.hostname === 'localhost'
             </QueryClientProvider>
         );
     }
+
 
     const navigate = (page) => { 
         console.log('🔍 APP: navigate called with page:', page);
