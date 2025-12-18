@@ -109,6 +109,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
             fromMe: msg.senderId === currentUser?.id,
             text: msg.content,
             timestamp: new Date(msg.created_at).toLocaleString(),
+            createdAt: new Date(msg.created_at), // Added for sorting
             read: msg.readBy?.includes(currentUser?.id) || msg.senderId === currentUser?.id,
             sender: msg.sender
           }))
@@ -245,21 +246,28 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
     return chat.filter(msg => !msg.fromMe && !msg.read).length;
   };
 
-  // Sort team members: those with unread messages first, then alphabetically
-  const sortedTeamMembers = [...teamMembers].sort((a, b) => {
-    const unreadA = getUnreadCount(a.id);
-    const unreadB = getUnreadCount(b.id);
-    
-    // First priority: unread messages (higher count first)
-    if (unreadA > 0 && unreadB === 0) return -1;
-    if (unreadB > 0 && unreadA === 0) return 1;
-    if (unreadA !== unreadB) return unreadB - unreadA;
-    
-    // Second priority: alphabetical by name
-    const nameA = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
-    const nameB = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
-    return nameA.localeCompare(nameB);
-  });
+  // Enrich and sort team members: Unread first, then by Last Message Date
+  const sortedTeamMembers = React.useMemo(() => {
+    return teamMembers.map(member => {
+        const chat = conversations[member.id] || [];
+        const unreadCount = chat.filter(msg => !msg.fromMe && !msg.read).length;
+        const lastMessage = chat.length > 0 ? chat[chat.length - 1] : null;
+        const lastMessageDate = lastMessage ? (lastMessage.createdAt || new Date(0)) : new Date(0);
+        
+        return {
+            ...member,
+            hasUnread: unreadCount > 0,
+            unreadCount,
+            lastMessageDate
+        };
+    }).sort((a, b) => {
+        // 1. Unread messages MUST be first
+        if (a.hasUnread && !b.hasUnread) return -1;
+        if (!a.hasUnread && b.hasUnread) return 1;
+        // 2. Then sort by date (newest first)
+        return b.lastMessageDate - a.lastMessageDate;
+    });
+  }, [teamMembers, conversations]);
 
   // Get user display name
   const getUserDisplayName = (user) => {
@@ -327,9 +335,10 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
   };
 
   return (
-    <div className={`h-[100dvh] flex flex-col overflow-hidden ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      {/* Fixed Header Section */}
-      <div className={`flex-shrink-0 px-4 pt-3 pb-2 ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+    // FIX DOM/LAYOUT: Negative margins used to escape parent padding if necessary, or strict height
+    <div className={`h-[calc(100vh-100px)] w-full flex flex-col overflow-hidden ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+      {/* Fixed Header Section - Reduced Padding */}
+      <div className={`flex-shrink-0 px-2 pt-1 pb-1 ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
         {/* Back Button - Compact */}
         <div className="flex items-center justify-between">
           <ResponsiveBackButton
@@ -399,9 +408,9 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
               </div>
               <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 space-y-2">
                 {sortedTeamMembers.map(member => {
-                  const unreadCount = getUnreadCount(member.id);
+                  const unreadCount = member.unreadCount;
                   const presence = getPresenceStatus(member.id);
-                  const hasUnread = unreadCount > 0;
+                  const hasUnread = member.hasUnread;
                   return (
                     <button
                       key={member.id}
@@ -432,6 +441,14 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                           </div>
                         </div>
                       )}
+                      
+                      {/* Unread Indicator Dot - Explicitly Requested */}
+                      {hasUnread && (
+                          <div className="flex justify-end mb-1">
+                              <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse block ring-2 ring-white dark:ring-gray-900"></span>
+                          </div>
+                      )}
+
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="relative">
