@@ -77,6 +77,7 @@ class SocketService {
     // Real-time event handlers
     this.socket.on('newMessage', (data) => this.emit('message', data));
     this.socket.on('newNotification', (data) => this.emit('notification', data));
+    this.socket.on('newDirectMessage', (data) => this.emit('newDirectMessage', data));
     this.socket.on('projectUpdated', (data) => this.emit('projectUpdate', data));
     this.socket.on('progressUpdated', (data) => this.emit('progressUpdate', data));
     this.socket.on('statusUpdated', (data) => this.emit('statusUpdate', data));

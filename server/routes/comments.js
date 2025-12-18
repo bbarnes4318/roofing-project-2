@@ -238,7 +238,7 @@ router.post(
           `> ${body.length > 150 ? body.substring(0, 150) + "..." : body}\n\n` +
           `[Click here to view the comment](${feedbackLink})`;
 
-        await prisma.directMessage.create({
+        const notificationMessage = await prisma.directMessage.create({
           data: {
             content: messageContent,
             type: "DIRECT",
@@ -257,6 +257,25 @@ router.post(
             },
           },
         });
+
+        // Emit real-time notification via Socket.IO
+        try {
+          const io = req.app.get('io');
+          if (io) {
+            io.to(`user_${feedback.authorId}`).emit('newDirectMessage', {
+              messageId: notificationMessage.id,
+              senderId: userId,
+              senderName: commenterName,
+              senderAvatar: comment.author.avatar || null,
+              content: messageContent.length > 100 ? messageContent.substring(0, 100) + '...' : messageContent,
+              timestamp: notificationMessage.createdAt,
+              type: 'FEEDBACK_COMMENT_NOTIFICATION'
+            });
+            console.log(`📬 Real-time socket notification sent to feedback author ${feedback.authorId}`);
+          }
+        } catch (socketError) {
+          console.error('Failed to emit socket notification:', socketError);
+        }
 
         console.log(
           `📬 Internal notification sent to feedback author ${feedback.authorId} for comment on "${feedback.title}"`

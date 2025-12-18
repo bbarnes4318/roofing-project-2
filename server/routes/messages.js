@@ -546,6 +546,28 @@ router.post('/', authenticateToken, messageValidation, asyncHandler(async (req, 
     data: messageData
   });
 
+  // Emit real-time notification to recipient via Socket.IO
+  if (recipientId) {
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`user_${recipientId}`).emit('newDirectMessage', {
+          messageId: message.id,
+          senderId: req.user.id,
+          senderName: messageData.senderName,
+          senderAvatar: req.user.avatar || null,
+          content: content.length > 100 ? content.substring(0, 100) + '...' : content,
+          timestamp: message.createdAt,
+          type: type
+        });
+        console.log(`📬 Real-time notification sent to user ${recipientId} for new message`);
+      }
+    } catch (socketError) {
+      console.error('Failed to emit socket notification:', socketError);
+      // Don't fail the request if socket emission fails
+    }
+  }
+
   sendSuccess(res, 201, { message }, 'Message sent successfully');
 }));
 

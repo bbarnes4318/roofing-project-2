@@ -32,6 +32,7 @@ import GoogleOAuthCallback from './components/auth/GoogleOAuthCallback';
 
 // Removed mock data import
 import { projectsService, activitiesService, messagesService, API_BASE_URL } from './services/api';
+import socketService from './services/socket';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import AddProjectModal from './components/common/AddProjectModal';
@@ -817,6 +818,39 @@ const apiUrl = window.location.hostname === 'localhost'
         // Poll every 30 seconds to keep indicator updated
         const interval = setInterval(fetchUnreadCount, 30000);
         return () => clearInterval(interval);
+    }, [isAuthenticated]);
+
+    // Real-time socket listener for new direct messages
+    // This updates the sidebar indicator immediately when a message is received
+    useEffect(() => {
+        if (!isAuthenticated) return;
+
+        // Connect to socket if not already connected
+        socketService.connect();
+
+        // Handle new direct message event
+        const handleNewDirectMessage = (data) => {
+            console.log('📬 Real-time: New direct message received', data);
+            // Immediately show the unread indicator
+            setHasUnreadMessages(true);
+            
+            // Optionally show a browser notification
+            if (Notification.permission === 'granted' && document.hidden) {
+                new Notification(`New message from ${data.senderName || 'Team Member'}`, {
+                    body: data.content || 'You have a new message',
+                    icon: '/kenstruction-logo.png',
+                    tag: `message-${data.messageId}`
+                });
+            }
+        };
+
+        // Listen for the newDirectMessage event
+        socketService.on('newDirectMessage', handleNewDirectMessage);
+
+        // Cleanup
+        return () => {
+            socketService.off('newDirectMessage', handleNewDirectMessage);
+        };
     }, [isAuthenticated]);
 
     // Gate the app behind login when unauthenticated, but allow special routes to bypass
