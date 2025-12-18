@@ -741,6 +741,12 @@ export const messagesService = {
   getConversations: async () => {
     const response = await api.get('/messages/conversations');
     return response.data;
+  },
+
+  // Get unread message count for current user
+  getUnreadCount: async () => {
+    const response = await api.get('/messages/unread/count');
+    return response.data;
   }
 };
 

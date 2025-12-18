@@ -31,7 +31,7 @@ import SetupProfilePage from './components/pages/SetupProfilePage';
 import GoogleOAuthCallback from './components/auth/GoogleOAuthCallback';
 
 // Removed mock data import
-import { projectsService, activitiesService, API_BASE_URL } from './services/api';
+import { projectsService, activitiesService, messagesService, API_BASE_URL } from './services/api';
 import AIPoweredBadge from './components/common/AIPoweredBadge';
 import GlobalSearch from './components/common/GlobalSearch';
 import AddProjectModal from './components/common/AddProjectModal';
@@ -155,6 +155,9 @@ export default function App() {
     // Onboarding state
     const [needsOnboarding, setNeedsOnboarding] = useState(false);
     const [onboardingChecked, setOnboardingChecked] = useState(false);
+
+    // Unread messages count for My Messages indicator
+    const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
 
     // On mount, check Supabase auth state and perform token exchange
     useEffect(() => {
@@ -791,6 +794,31 @@ const apiUrl = window.location.hostname === 'localhost'
         }
     }, [isAuthenticated, isLoading]);
 
+    // Fetch unread messages count for My Messages indicator
+    useEffect(() => {
+        const fetchUnreadCount = async () => {
+            if (!isAuthenticated) {
+                setHasUnreadMessages(false);
+                return;
+            }
+            try {
+                const response = await messagesService.getUnreadCount();
+                const count = response?.data?.unreadCount || response?.unreadCount || 0;
+                setHasUnreadMessages(count > 0);
+            } catch (error) {
+                console.error('Failed to fetch unread messages count:', error);
+                setHasUnreadMessages(false);
+            }
+        };
+
+        // Fetch immediately
+        fetchUnreadCount();
+
+        // Poll every 30 seconds to keep indicator updated
+        const interval = setInterval(fetchUnreadCount, 30000);
+        return () => clearInterval(interval);
+    }, [isAuthenticated]);
+
     // Gate the app behind login when unauthenticated, but allow special routes to bypass
     const currentPath = window.location.pathname;
     const isBypassPath = currentPath === '/auth/callback' || currentPath === '/auth/error' || currentPath === '/reset-password' || currentPath.startsWith('/setup-profile');
@@ -840,6 +868,12 @@ const apiUrl = window.location.hostname === 'localhost'
         }));
         setActivePage(page); 
         setSidebarOpen(false); // Close sidebar on mobile after navigation
+        
+        // Clear unread indicator when navigating to My Messages
+        // The messages will be marked as read when viewed, so just hide the dot immediately
+        if (page === 'Project Messages') {
+            setHasUnreadMessages(false);
+        }
     };
     
     // Handle back button click with enhanced logic
@@ -1386,7 +1420,7 @@ const apiUrl = window.location.hostname === 'localhost'
     // Define navigationItems after all state variables are declared
     const navigationItems = [
         { name: 'Dashboard', icon: <ChartPieIcon />, page: 'Overview' },
-        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages' },
+        { name: 'My Messages', icon: <ChatBubbleLeftRightIcon />, page: 'Project Messages', hasUnread: hasUnreadMessages },
         { name: 'Company Calendar', icon: <CalendarIcon />, page: 'Company Calendar' },
         { isSeparator: true },
         { name: 'Bubbles', icon: <SparklesIcon />, page: 'AI Assistant', isAIAssistant: true },
@@ -1743,11 +1777,16 @@ const apiUrl = window.location.hostname === 'localhost'
                             }`}>
                             <span className="w-4 h-4 flex items-center justify-center relative">
                                 {item.icon}
-                                {sidebarCollapsed && item.badge && item.badge > 0 && (
-                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                                {/* Red dot for collapsed sidebar - shows on icon for badges or unread messages */}
+                                {sidebarCollapsed && (item.badge > 0 || item.hasUnread) && (
+                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
                                 )}
                             </span>
                             {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                            {/* Red dot for expanded sidebar - shows when there are unread messages */}
+                            {!sidebarCollapsed && item.hasUnread && (
+                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-lg ml-2" title="New messages"></span>
+                            )}
                             {!sidebarCollapsed && item.badge && item.badge > 0 && (
                                 <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[7px] font-bold rounded-full ml-2 ${
                                     item.page === 'Project Messages' 
