@@ -244,6 +244,81 @@ router.get('/unread/count', authenticateToken, asyncHandler(async (req, res) => 
   sendSuccess(res, 200, { unreadCount }, 'Unread messages count retrieved successfully');
 }));
 
+// @desc    Get unread messages summary grouped by sender (for team member list sorting)
+// @route   GET /api/messages/unread/by-sender
+// @access  Private
+router.get('/unread/by-sender', authenticateToken, asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  
+  // Get all unread messages for this user
+  const unreadMessages = await prisma.directMessage.findMany({
+    where: {
+      OR: [
+        { recipientId: userId },
+        { participants: { has: userId } }
+      ],
+      NOT: {
+        readBy: { has: userId }
+      },
+      senderId: { not: userId } // Exclude messages sent by self
+    },
+    select: {
+      senderId: true,
+      created_at: true
+    },
+    orderBy: {
+      created_at: 'desc'
+    }
+  });
+
+  // Group by sender with count and last message date
+  const senderSummary = {};
+  unreadMessages.forEach(msg => {
+    if (!senderSummary[msg.senderId]) {
+      senderSummary[msg.senderId] = {
+        senderId: msg.senderId,
+        unreadCount: 0,
+        lastMessageAt: msg.created_at // First one is the most recent due to orderBy
+      };
+    }
+    senderSummary[msg.senderId].unreadCount++;
+  });
+
+  // Also get most recent message from each conversation (including read ones) for recency sorting
+  const recentConversations = await prisma.directMessage.findMany({
+    where: {
+      OR: [
+        { senderId: userId },
+        { recipientId: userId },
+        { participants: { has: userId } }
+      ]
+    },
+    select: {
+      senderId: true,
+      recipientId: true,
+      created_at: true
+    },
+    orderBy: {
+      created_at: 'desc'
+    },
+    take: 500 // Limit for performance
+  });
+
+  // Build conversation recency map (other party -> last message date)
+  const conversationRecency = {};
+  recentConversations.forEach(msg => {
+    const otherParty = msg.senderId === userId ? msg.recipientId : msg.senderId;
+    if (otherParty && !conversationRecency[otherParty]) {
+      conversationRecency[otherParty] = msg.created_at;
+    }
+  });
+
+  sendSuccess(res, 200, { 
+    unreadBySender: Object.values(senderSummary),
+    conversationRecency 
+  }, 'Unread messages by sender retrieved successfully');
+}));
+
 // @desc    Get message statistics
 // @route   GET /api/messages/stats/overview
 // @access  Private (Manager and above)

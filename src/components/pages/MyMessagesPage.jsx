@@ -25,6 +25,9 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
   const [dmInput, setDmInput] = useState('');
   const [sendingMessage, setSendingMessage] = useState(false);
   
+  // Unread summary from server (for proper sorting without loading all conversations)
+  const [unreadSummary, setUnreadSummary] = useState({ unreadBySender: [], conversationRecency: {} });
+  
   // New message form state
   const [newMessageProject, setNewMessageProject] = useState('');
   const [newMessageSubject, setNewMessageSubject] = useState('');
@@ -90,6 +93,24 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
       fetchTeamMembers();
     }
   }, [currentUser, selectedUserId]);
+
+  // Fetch unread summary for sorting (runs once on mount and when currentUser is set)
+  useEffect(() => {
+    const fetchUnreadSummary = async () => {
+      try {
+        const response = await api.get('/messages/unread/by-sender');
+        if (response.data?.success && response.data?.data) {
+          setUnreadSummary(response.data.data);
+        }
+      } catch (err) {
+        console.error('Error fetching unread summary:', err);
+      }
+    };
+
+    if (currentUser) {
+      fetchUnreadSummary();
+    }
+  }, [currentUser]);
 
   // Fetch conversation when a user is selected
   const fetchConversation = useCallback(async (userId) => {
@@ -247,28 +268,58 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
     return chat.filter(msg => !msg.fromMe && !msg.read).length;
   };
 
-  // Enrich and sort team members: Unread first, then by Last Message Date
+  // FORCE SORT: Enrich and sort team members using SERVER DATA
+  // Priority 1: Unread status (True moves to top)
+  // Priority 2: Recency (Newest timestamp first)
   const sortedTeamMembers = React.useMemo(() => {
-    return teamMembers.map(member => {
-        const chat = conversations[member.id] || [];
-        const unreadCount = chat.filter(msg => !msg.fromMe && !msg.read).length;
-        const lastMessage = chat.length > 0 ? chat[chat.length - 1] : null;
-        const lastMessageDate = lastMessage ? (lastMessage.createdAt || new Date(0)) : new Date(0);
-        
-        return {
-            ...member,
-            hasUnread: unreadCount > 0,
-            unreadCount,
-            lastMessageDate
-        };
-    }).sort((a, b) => {
-        // 1. Unread messages MUST be first
-        if (a.hasUnread && !b.hasUnread) return -1;
-        if (!a.hasUnread && b.hasUnread) return 1;
-        // 2. Then sort by date (newest first)
-        return b.lastMessageDate - a.lastMessageDate;
+    // Build lookup maps from server data
+    const unreadMap = {};
+    (unreadSummary.unreadBySender || []).forEach(item => {
+      unreadMap[item.senderId] = {
+        unreadCount: item.unreadCount,
+        lastMessageAt: new Date(item.lastMessageAt)
+      };
     });
-  }, [teamMembers, conversations]);
+
+    const recencyMap = unreadSummary.conversationRecency || {};
+
+    return teamMembers.map(member => {
+      // Check server data first, then fall back to local conversation state
+      const serverUnread = unreadMap[member.id];
+      const localChat = conversations[member.id] || [];
+      const localUnreadCount = localChat.filter(msg => !msg.fromMe && !msg.read).length;
+      const localLastMessage = localChat.length > 0 ? localChat[localChat.length - 1] : null;
+      
+      // Use server data if available, otherwise local
+      const hasUnread = serverUnread ? serverUnread.unreadCount > 0 : localUnreadCount > 0;
+      const unreadCount = serverUnread ? serverUnread.unreadCount : localUnreadCount;
+      
+      // Recency: prefer server recency, then local, then epoch
+      let lastMessageAt;
+      if (recencyMap[member.id]) {
+        lastMessageAt = new Date(recencyMap[member.id]);
+      } else if (localLastMessage?.createdAt) {
+        lastMessageAt = localLastMessage.createdAt;
+      } else {
+        lastMessageAt = new Date(0);
+      }
+
+      return {
+        ...member,
+        hasUnread,
+        unreadCount,
+        lastMessageAt
+      };
+    }).sort((a, b) => {
+      // Priority 1: Unread status (True/High count moves to top)
+      const aUnread = a.hasUnread ? 1 : 0;
+      const bUnread = b.hasUnread ? 1 : 0;
+      if (aUnread !== bUnread) return bUnread - aUnread; // Unread first
+
+      // Priority 2: Recency (Newest timestamp first)
+      return b.lastMessageAt - a.lastMessageAt;
+    });
+  }, [teamMembers, conversations, unreadSummary]);
 
   // Get user display name
   const getUserDisplayName = (user) => {
@@ -416,7 +467,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                     <button
                       key={member.id}
                       onClick={() => setSelectedUserId(member.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 relative ${
                         selectedUserId === member.id
                           ? colorMode 
                             ? 'bg-[var(--color-primary-blueprint-blue)]/20 border border-blue-500/30' 
@@ -430,6 +481,11 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                               : 'hover:bg-gray-50 border border-transparent'
                       } ${hasUnread ? 'shadow-md' : ''}`}
                     >
+                      {/* FORCED UI INDICATOR: Absolute positioned red dot */}
+                      {hasUnread && (
+                        <div className="absolute right-2 top-2 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
+                      )}
+                      
                       {/* New Message Banner */}
                       {hasUnread && (
                         <div className="flex items-center gap-1.5 mb-2 -mt-1">
@@ -441,13 +497,6 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                             <span>NEW MESSAGE{unreadCount > 1 ? 'S' : ''}</span>
                           </div>
                         </div>
-                      )}
-                      
-                      {/* Unread Indicator Dot - Explicitly Requested */}
-                      {hasUnread && (
-                          <div className="flex justify-end mb-1">
-                              <span className="h-2.5 w-2.5 rounded-full bg-red-600 animate-pulse block ring-2 ring-white dark:ring-gray-900"></span>
-                          </div>
                       )}
 
                       <div className="flex items-center justify-between">

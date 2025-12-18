@@ -747,6 +747,12 @@ export const messagesService = {
   getUnreadCount: async () => {
     const response = await api.get('/messages/unread/count');
     return response.data;
+  },
+
+  // Get unread message summary grouped by sender (for team member list sorting)
+  getUnreadBySender: async () => {
+    const response = await api.get('/messages/unread/by-sender');
+    return response.data;
   }
 };
 
