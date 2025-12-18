@@ -245,6 +245,22 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
     return chat.filter(msg => !msg.fromMe && !msg.read).length;
   };
 
+  // Sort team members: those with unread messages first, then alphabetically
+  const sortedTeamMembers = [...teamMembers].sort((a, b) => {
+    const unreadA = getUnreadCount(a.id);
+    const unreadB = getUnreadCount(b.id);
+    
+    // First priority: unread messages (higher count first)
+    if (unreadA > 0 && unreadB === 0) return -1;
+    if (unreadB > 0 && unreadA === 0) return 1;
+    if (unreadA !== unreadB) return unreadB - unreadA;
+    
+    // Second priority: alphabetical by name
+    const nameA = `${a.firstName || ''} ${a.lastName || ''}`.trim().toLowerCase();
+    const nameB = `${b.firstName || ''} ${b.lastName || ''}`.trim().toLowerCase();
+    return nameA.localeCompare(nameB);
+  });
+
   // Get user display name
   const getUserDisplayName = (user) => {
     if (!user) return 'Unknown User';
@@ -311,10 +327,11 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
   };
 
   return (
-    <div className={`min-h-screen ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
-      <div className="w-full max-w-6xl mx-auto py-6 px-4">
-        {/* Back Button */}
-        <div className="mb-6">
+    <div className={`h-[100dvh] flex flex-col overflow-hidden ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+      {/* Fixed Header Section */}
+      <div className={`flex-shrink-0 px-4 pt-3 pb-2 ${colorMode ? 'bg-slate-900' : 'bg-gray-50'}`}>
+        {/* Back Button - Compact */}
+        <div className="flex items-center justify-between">
           <ResponsiveBackButton
             colorMode={colorMode}
             variant="secondary"
@@ -327,10 +344,8 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
               previousPage: getPrevious()?.pageName || navigationContext?.fromPage || previousPage || 'Dashboard'
             }}
           />
-        </div>
-
-        {/* Real-time connection status */}
-        <div className="mb-3 flex justify-end">
+          
+          {/* Real-time connection status */}
           <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium ${
             socketConnected 
               ? 'bg-green-100 text-green-700 border border-green-200' 
@@ -345,7 +360,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
 
         {/* Error Message */}
         {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+          <div className="mt-2 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg text-sm">
             {error}
             <button 
               onClick={() => setError(null)} 
@@ -355,47 +370,68 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
             </button>
           </div>
         )}
+      </div>
 
-        {/* Loading State */}
+      {/* Main Content Area - Fills remaining height */}
+      <div className="flex-1 min-h-0 px-4 pb-4">
         {loading ? (
-          <div className="flex items-center justify-center py-12">
+          <div className="flex items-center justify-center h-full">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             <span className={`ml-3 ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
               Loading team members...
             </span>
           </div>
         ) : teamMembers.length === 0 ? (
-          <div className={`text-center py-12 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          <div className={`flex flex-col items-center justify-center h-full ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
             <div className="text-5xl mb-4">👥</div>
             <p className="text-lg font-medium">No team members found</p>
             <p className="text-sm">Add team members to start messaging</p>
           </div>
         ) : (
-          /* Direct Messages Section */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Team Members List */}
-            <div className={`border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] p-4 ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'}`}>
-              <h3 className={`text-sm font-semibold mb-4 ${colorMode ? 'text-white' : 'text-gray-800'}`}>
-                Team Members ({teamMembers.length})
-              </h3>
-              <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                {teamMembers.map(member => {
+          /* Direct Messages Section - Full Height Grid */
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-full">
+            {/* Team Members List - Independent Scroll */}
+            <div className={`flex flex-col border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden`}>
+              <div className={`flex-shrink-0 p-4 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                <h3 className={`text-sm font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                  Team Members ({teamMembers.length})
+                </h3>
+              </div>
+              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4 space-y-2">
+                {sortedTeamMembers.map(member => {
                   const unreadCount = getUnreadCount(member.id);
                   const presence = getPresenceStatus(member.id);
+                  const hasUnread = unreadCount > 0;
                   return (
                     <button
                       key={member.id}
                       onClick={() => setSelectedUserId(member.id)}
-                      className={`w-full text-left p-3 rounded-lg transition-colors ${
+                      className={`w-full text-left p-3 rounded-lg transition-all duration-200 ${
                         selectedUserId === member.id
                           ? colorMode 
                             ? 'bg-[var(--color-primary-blueprint-blue)]/20 border border-blue-500/30' 
                             : 'bg-blue-50 border border-blue-200'
-                          : colorMode 
-                            ? 'hover:bg-gray-700/30' 
-                            : 'hover:bg-gray-50'
-                      }`}
+                          : hasUnread
+                            ? colorMode
+                              ? 'bg-red-500/10 border border-red-500/30 hover:bg-red-500/20'
+                              : 'bg-red-50 border border-red-200 hover:bg-red-100'
+                            : colorMode 
+                              ? 'hover:bg-gray-700/30 border border-transparent' 
+                              : 'hover:bg-gray-50 border border-transparent'
+                      } ${hasUnread ? 'shadow-md' : ''}`}
                     >
+                      {/* New Message Banner */}
+                      {hasUnread && (
+                        <div className="flex items-center gap-1.5 mb-2 -mt-1">
+                          <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-pulse">
+                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                            </svg>
+                            <span>NEW MESSAGE{unreadCount > 1 ? 'S' : ''}</span>
+                          </div>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="relative">
@@ -403,10 +439,10 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                               <img 
                                 src={member.avatar} 
                                 alt={getUserDisplayName(member)}
-                                className="w-8 h-8 rounded-full object-cover"
+                                className={`w-8 h-8 rounded-full object-cover ${hasUnread ? 'ring-2 ring-red-500 ring-offset-1' : ''}`}
                               />
                             ) : (
-                              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                              <div className={`w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium ${hasUnread ? 'ring-2 ring-red-500 ring-offset-1' : ''}`}>
                                 {getUserInitials(member)}
                               </div>
                             )}
@@ -419,7 +455,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                             ></div>
                           </div>
                           <div>
-                            <div className={`font-medium text-sm ${colorMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className={`font-medium text-sm ${hasUnread ? 'font-semibold' : ''} ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                               {getUserDisplayName(member)}
                             </div>
                             <div className={`text-xs flex items-center gap-1 ${colorMode ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -436,8 +472,10 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                           </div>
                         </div>
                         {unreadCount > 0 && (
-                          <div className="bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                            {unreadCount}
+                          <div className="flex flex-col items-center">
+                            <div className="bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center shadow-lg">
+                              {unreadCount > 9 ? '9+' : unreadCount}
+                            </div>
                           </div>
                         )}
                       </div>
@@ -447,10 +485,10 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
               </div>
             </div>
 
-            {/* Chat Area */}
-            <div className={`lg:col-span-2 border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} flex flex-col`}>
-              {/* Chat Header */}
-              <div className={`p-4 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+            {/* Chat Area - Independent Scroll for Messages */}
+            <div className={`lg:col-span-2 flex flex-col border-t-4 border-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.1)] rounded-[8px] ${colorMode ? 'bg-[#232b4d]/80' : 'bg-white'} overflow-hidden`}>
+              {/* Chat Header - Fixed */}
+              <div className={`flex-shrink-0 p-4 border-b ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
                 {selectedUser ? (
                   <div className="flex items-center gap-3">
                     <div className="relative">
@@ -509,14 +547,14 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                 )}
               </div>
 
-              {/* Chat Messages */}
-              <div className="flex-1 p-4 max-h-96 overflow-y-auto custom-scrollbar">
+              {/* Chat Messages - Scrollable, takes remaining space */}
+              <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar p-4">
                 {messagesLoading ? (
-                  <div className="flex items-center justify-center py-8">
+                  <div className="flex items-center justify-center h-full">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                   </div>
                 ) : selectedChat.length === 0 ? (
-                  <div className="text-center py-8">
+                  <div className="flex flex-col items-center justify-center h-full text-center">
                     <div className="text-4xl mb-3">💬</div>
                     <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-2`}>
                       No messages yet
@@ -548,9 +586,9 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                 )}
               </div>
 
-              {/* Message Input Options */}
+              {/* Message Input - Fixed at bottom */}
               {selectedUser && (
-                <div className={`p-4 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
+                <div className={`flex-shrink-0 p-4 border-t ${colorMode ? 'border-gray-600' : 'border-gray-200'}`}>
                   <div className="flex gap-2 mb-3">
                     <button
                       onClick={() => setShowAddMessageForm(false)}

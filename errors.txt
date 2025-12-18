@@ -1,372 +1,322 @@
-Dec 16 21:13:52  GET /api/users/team-members - requested by userId=unknown - found 8 teamMembers
-Dec 16 21:13:52  Sample teamMembers: [
-Dec 16 21:13:52    {
-Dec 16 21:13:52      id: 'cmj7ohubl0002az0de5lq2cen',
-Dec 16 21:13:52      firstName: 'Allen',
-Dec 16 21:13:52      lastName: 'Flores',
-Dec 16 21:13:52      email: 'allenflores@upfrontrnr.com',
-Dec 16 21:13:52      role: 'WORKER'
-Dec 16 21:13:52    },
-Dec 16 21:13:52    {
-Dec 16 21:13:52      id: 'cmfld60ef0000bi0d8ky8hlot',
-Dec 16 21:13:52      firstName: 'James',
-Dec 16 21:13:52      lastName: 'Kelly',
-Dec 16 21:13:52      email: 'jimbosky35@gmail.com',
-Dec 16 21:13:52      role: 'ADMIN'
-Dec 16 21:13:52    },
-Dec 16 21:13:52    {
-Dec 16 21:13:52      id: 'cmj7oh6000004c00d9zb8ftrx',
-Dec 16 21:13:52      firstName: 'Jose',
-Dec 16 21:13:52      lastName: 'Gonzalez',
-Dec 16 21:13:52      email: 'josegonzalez@upfrontrnr.com',
-Dec 16 21:13:52      role: 'WORKER'
-Dec 16 21:13:52    },
-Dec 16 21:13:52    {
-Dec 16 21:13:52      id: 'cmj7o2vku0000az0dp7t9intz',
-Dec 16 21:13:52      firstName: 'Kate',
-Dec 16 21:13:52      lastName: 'the Great',
-Dec 16 21:13:52      email: 'katefoutz@upfrontrnr.com',
-Dec 16 21:13:52      role: 'ADMIN'
-Dec 16 21:13:52    },
-Dec 16 21:13:52    {
-Dec 16 21:13:52      id: 'cmh56k4zi0000500dy5mykbud',
-Dec 16 21:13:52      firstName: 'Ken',
-Dec 16 21:13:52      lastName: 'Hall',
-Dec 16 21:13:52      email: 'khall@dbmgconsulting.com',
-Dec 16 21:13:52      role: 'ADMIN'
-Dec 16 21:13:52    }
-Dec 16 21:13:52  ]
-Dec 16 21:13:52  10.244.30.34 - - [16/Dec/2025:21:13:52 +0000] "GET /api/users/team-members HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
-Dec 16 21:13:52  🔌 User cmfld60ef0000bi0d8ky8hlot connected
-Dec 16 21:13:52  👥 Socket.io project auto-join DISABLED during PostgreSQL migration
-Dec 16 21:13:52  🚨 SERVER ERROR: {
-Dec 16 21:13:52    "timestamp": "2025-12-16T21:13:52.930Z",
-Dec 16 21:13:52    "method": "GET",
-Dec 16 21:13:52    "url": "/api/messages/conversation/cmj7ohubl0002az0de5lq2cen",
-Dec 16 21:13:52    "ip": "10.244.30.34",
-Dec 16 21:13:52    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
-Dec 16 21:13:52    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Dec 16 21:13:52    "error": {
-Dec 16 21:13:52      "message": "Cannot read properties of undefined (reading 'findMany')",
-Dec 16 21:13:52      "statusCode": 500
-Dec 16 21:13:52    }
-Dec 16 21:13:52  }
-Dec 16 21:13:52  ERROR 💥 {
-Dec 16 21:13:52    message: "Cannot read properties of undefined (reading 'findMany')",
-Dec 16 21:13:52    statusCode: 500
-Dec 16 21:13:52  }
-Dec 16 21:13:52  10.244.30.34 - - [16/Dec/2025:21:13:52 +0000] "GET /api/messages/conversation/cmj7ohubl0002az0de5lq2cen HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
-Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:52  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:53  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:54  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:55  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  🚨 SERVER ERROR: {
-Dec 16 21:13:56    "timestamp": "2025-12-16T21:13:56.601Z",
-Dec 16 21:13:56    "method": "GET",
-Dec 16 21:13:56    "url": "/api/messages/conversation/cmj0oyikr0000gb0d7e4gsxl2",
-Dec 16 21:13:56    "ip": "10.244.3.115",
-Dec 16 21:13:56    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
-Dec 16 21:13:56    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Dec 16 21:13:56    "error": {
-Dec 16 21:13:56      "message": "Cannot read properties of undefined (reading 'findMany')",
-Dec 16 21:13:56      "statusCode": 500
-Dec 16 21:13:56    }
-Dec 16 21:13:56  }
-Dec 16 21:13:56  ERROR 💥 {
-Dec 16 21:13:56    message: "Cannot read properties of undefined (reading 'findMany')",
-Dec 16 21:13:56    statusCode: 500
-Dec 16 21:13:56  }
-Dec 16 21:13:56  10.244.3.115 - - [16/Dec/2025:21:13:56 +0000] "GET /api/messages/conversation/cmj0oyikr0000gb0d7e4gsxl2 HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:56  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:57  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:58  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:59  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:13:59  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:00  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:00  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:00  🚨 SERVER ERROR: {
-Dec 16 21:14:00    "timestamp": "2025-12-16T21:14:00.489Z",
-Dec 16 21:14:00    "method": "POST",
-Dec 16 21:14:00    "url": "/api/messages",
-Dec 16 21:14:00    "ip": "10.244.30.34",
-Dec 16 21:14:00    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0",
-Dec 16 21:14:00    "userId": "cmfld60ef0000bi0d8ky8hlot",
-Dec 16 21:14:00    "error": {
-Dec 16 21:14:00      "message": "Cannot read properties of undefined (reading 'create')",
-Dec 16 21:14:00      "statusCode": 500
-Dec 16 21:14:00    }
-Dec 16 21:14:00  }
-Dec 16 21:14:00  ERROR 💥 {
-Dec 16 21:14:00    message: "Cannot read properties of undefined (reading 'create')",
-Dec 16 21:14:00    statusCode: 500
-Dec 16 21:14:00  }
-Dec 16 21:14:00  10.244.30.34 - - [16/Dec/2025:21:14:00 +0000] "POST /api/messages HTTP/1.1" 500 125 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36 Edg/143.0.0.0"
-Dec 16 21:14:01  10.244.22.75 - - [16/Dec/2025:21:14:01 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 16 21:14:02  10.244.19.36 - - [16/Dec/2025:21:14:02 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:03  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:04  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:05  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:07  👤 User cmfld60ef0000bi0d8ky8hlot status updated to online
-Dec 16 21:14:11  10.244.22.75 - - [16/Dec/2025:21:14:11 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 16 21:14:12  10.244.19.36 - - [16/Dec/2025:21:14:12 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Dec 16 21:14:18  📅 CALENDAR: GET /api/calendar-events - Request received
-Dec 16 21:14:18  10.244.30.34 - - [16/Dec/2025:21:14:18 +0000] "GET /api/calendar-events?view=team HTTP/1.1" 304 - "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36"
-Dec 16 21:14:21  10.244.22.75 - - [16/Dec/2025:21:14:21 +0000] "GET /api/health HTTP/1.1" 200 377 "-" "kube-probe/1.31"
-Dec 16 21:14:22  10.244.19.36 - - [16/Dec/2025:21:14:22 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
-Dec 16 21:14:31  10.244.22.75 - - [16/Dec/2025:21:14:31 +0000] "GET /api/health HTTP/1.1" 200 376 "-" "kube-probe/1.31"
-Dec 16 21:14:32  10.244.19.36 - - [16/Dec/2025:21:14:32 +0000] "GET /api/health HTTP/1.1" 200 379 "-" "kube-probe/1.31"
+Dec 18 13:31:21  [34m╭────────────[34m[30m[44m git repo clone [0m[0m[34m───────────╼[0m
+Dec 18 13:31:21  [34m│[0m [34m › fetching app source code[0m
+Dec 18 13:31:21  [34m│[0m => Selecting branch "dec3"
+Dec 18 13:31:27  [34m│[0m => Checking out commit "19432006046df429e1bf1db16bcea0f0f9d9e620"
+Dec 18 13:31:28  [34m│[0m 
+Dec 18 13:31:28  [34m│[0m [32m ✔ cloned repo to [35m/.app_platform_workspace[0m[0m
+Dec 18 13:31:28  [34m╰────────────────────────────────────────╼[0m
+Dec 18 13:31:28  
+Dec 18 13:31:28  [34m › configuring build-time app environment variables:[0m
+Dec 18 13:31:28       REACT_APP_SUPABASE_URL DO_SPACES_NAME FRONTEND_URL SUPABASE_URL RESEND_FROM_NAME GOOGLE_REDIRECT_URI REACT_APP_SUPABASE_ANON_KEY OPENAI_API_KEY REACT_APP_VAPI_PUBLIC_KEY RESEND_API_KEY REACT_APP_VAPI_ASSISTANT_ID ADMIN_EMAILS OPENAI_EMBEDDING_MODEL GOOGLE_CLIENT_SECRET NODE_ENV VAPI_WEBHOOK_SECRET DO_SPACES_KEY DO_SPACES_ENDPOINT SUPABASE_SERVICE_KEY DO_SPACES_CDN_HOST OPENAI_MODEL GOOGLE_CLIENT_ID DO_SPACES_SECRET OPENAI_FALLBACK_MODEL VAPI_INTERNAL_KEY RESEND_FROM_EMAIL DO_SPACES_REGION JWT_SECRET DATABASE_URL REACT_APP_GOOGLE_MAPS_API_KEY
+Dec 18 13:31:28  [34m╭────────────[34m[30m[44m dockerfile build [0m[0m[34m───────────╼[0m
+Dec 18 13:31:28  [34m│[0m [34m › using dockerfile [35m/.app_platform_workspace/Dockerfile[0m[0m
+Dec 18 13:31:28  [34m│[0m [34m › using build context [35m/.app_platform_workspace//[0m[0m
+Dec 18 13:31:28  [34m│[0m 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Resolved base name node:20-alpine to frontend-build 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Resolved base name node:20-alpine to backend 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Using dockerignore file: /.app_platform_workspace/.dockerignore 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image library/node:20-alpine from registry mirror <registry-uri-0> 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Returning cached image manifest              
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Returning cached image manifest              
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Returning cached image manifest              
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Built cross stage deps: map[0:[/app/build]]  
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Returning cached image manifest              
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Retrieving image manifest node:20-alpine     
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Returning cached image manifest              
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Executing 0 build triggers                   
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Building stage 'node:20-alpine' [idx: '0', base-idx: '-1'] 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Resolving srcs [package*.json]...            
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Checking for cached layer <registry-uri-1> 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] No cached layer found for cmd RUN npm install --legacy-peer-deps 
+Dec 18 13:31:28  [34m│[0m [36mINFO[0m[0000] Unpacking rootfs as cmd COPY package*.json ./ requires it. 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0001] Initializing snapshotter ...                 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0001] Taking snapshot of full filesystem...        
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] WORKDIR /app                                 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Cmd: workdir                                 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Changed working directory to /app            
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Creating directory /app with uid -1 and gid -1 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Taking snapshot of files...                  
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Resolving srcs [package*.json]...            
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] COPY package*.json ./                        
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Resolving srcs [package*.json]...            
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Taking snapshot of files...                  
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] RUN npm install --legacy-peer-deps           
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Cmd: /bin/sh                                 
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Args: [-c npm install --legacy-peer-deps]    
+Dec 18 13:31:30  [34m│[0m [36mINFO[0m[0002] Running: [/bin/sh -c npm install --legacy-peer-deps] 
+Dec 18 13:31:39  [34m│[0m npm warn deprecated w3c-hr-time@1.0.2: Use your platform's native performance.now() and performance.timeOrigin.
+Dec 18 13:31:40  [34m│[0m npm warn deprecated stable@0.1.8: Modern JS already guarantees Array#sort() is a stable sort, so this library is deprecated. See the compatibility table on MDN: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort#browser_compatibility
+Dec 18 13:31:40  [34m│[0m npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+Dec 18 13:31:40  [34m│[0m npm warn deprecated rimraf@3.0.2: Rimraf versions prior to v4 are no longer supported
+Dec 18 13:31:40  [34m│[0m npm warn deprecated rollup-plugin-terser@7.0.2: This package has been deprecated and is no longer maintained. Please use @rollup/plugin-terser
+Dec 18 13:31:41  [34m│[0m npm warn deprecated q@1.5.1: You or someone you depend on is using Q, the JavaScript Promise library that gave JavaScript developers strong feelings about promises. They can almost certainly migrate to the native JavaScript promise now. Thank you literally everyone for joining me in this bet against the odds. Be excellent to each other.
+Dec 18 13:31:41  [34m│[0m npm warn deprecated
+Dec 18 13:31:41  [34m│[0m npm warn deprecated (For a CapTP with native promises, see @endo/eventual-send and @endo/captp)
+Dec 18 13:31:41  [34m│[0m npm warn deprecated workbox-cacheable-response@6.6.0: workbox-background-sync@6.6.0
+Dec 18 13:31:42  [34m│[0m npm warn deprecated workbox-google-analytics@6.6.0: It is not compatible with newer versions of GA starting with v4, as long as you are using GAv3 it should be ok, but the package is not longer being maintained
+Dec 18 13:31:44  [34m│[0m npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Dec 18 13:31:44  [34m│[0m npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+Dec 18 13:31:44  [34m│[0m npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+Dec 18 13:31:45  [34m│[0m npm warn deprecated domexception@2.0.1: Use your platform's native DOMException instead
+Dec 18 13:31:46  [34m│[0m npm warn deprecated svgo@1.3.2: This SVGO version is no longer supported. Upgrade to v2.x.x.
+Dec 18 13:31:47  [34m│[0m npm warn deprecated abab@2.0.6: Use your platform's native atob() and btoa() methods instead
+Dec 18 13:31:49  [34m│[0m npm warn deprecated @humanwhocodes/object-schema@2.0.3: Use @eslint/object-schema instead
+Dec 18 13:31:49  [34m│[0m npm warn deprecated @humanwhocodes/config-array@0.13.0: Use @eslint/config-array instead
+Dec 18 13:31:50  [34m│[0m npm warn deprecated @babel/plugin-proposal-private-methods@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-methods instead.
+Dec 18 13:31:50  [34m│[0m npm warn deprecated @babel/plugin-proposal-optional-chaining@7.21.0: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-optional-chaining instead.
+Dec 18 13:31:50  [34m│[0m npm warn deprecated @babel/plugin-proposal-numeric-separator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-numeric-separator instead.
+Dec 18 13:31:50  [34m│[0m npm warn deprecated @babel/plugin-proposal-nullish-coalescing-operator@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-nullish-coalescing-operator instead.
+Dec 18 13:31:50  [34m│[0m npm warn deprecated @babel/plugin-proposal-class-properties@7.18.6: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-class-properties instead.
+Dec 18 13:31:52  [34m│[0m npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+Dec 18 13:31:53  [34m│[0m npm warn deprecated @babel/plugin-proposal-private-property-in-object@7.21.11: This proposal has been merged to the ECMAScript standard and thus this plugin is no longer maintained. Please use @babel/plugin-transform-private-property-in-object instead.
+Dec 18 13:31:53  [34m│[0m npm warn deprecated three-mesh-bvh@0.7.8: Deprecated due to three.js version incompatibility. Please use v0.8.0, instead.
+Dec 18 13:31:57  [34m│[0m npm warn deprecated react-beautiful-dnd@13.1.1: react-beautiful-dnd is now deprecated. Context and options: https://github.com/atlassian/react-beautiful-dnd/issues/2672
+Dec 18 13:32:00  [34m│[0m npm warn deprecated eslint@8.57.1: This version is no longer supported. Please see https://eslint.org/version-support for other options.
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m added 1715 packages, and audited 1716 packages in 49s
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m 296 packages are looking for funding
+Dec 18 13:32:20  [34m│[0m   run `npm fund` for details
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m 15 vulnerabilities (4 moderate, 11 high)
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m To address issues that do not require attention, run:
+Dec 18 13:32:20  [34m│[0m   npm audit fix
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m To address all issues possible (including breaking changes), run:
+Dec 18 13:32:20  [34m│[0m   npm audit fix --force
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m Some issues need review, and may require choosing
+Dec 18 13:32:20  [34m│[0m a different dependency.
+Dec 18 13:32:20  [34m│[0m 
+Dec 18 13:32:20  [34m│[0m Run `npm audit` for details.
+Dec 18 13:32:20  [34m│[0m npm notice
+Dec 18 13:32:20  [34m│[0m npm notice New major version of npm available! 10.8.2 -> 11.7.0
+Dec 18 13:32:20  [34m│[0m npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+Dec 18 13:32:20  [34m│[0m npm notice To update run: npm install -g npm@11.7.0
+Dec 18 13:32:20  [34m│[0m npm notice
+Dec 18 13:32:25  [34m│[0m [36mINFO[0m[0056] Taking snapshot of files...                  
+Dec 18 13:33:10  [34m│[0m [36mINFO[0m[0102] COPY src ./src                               
+Dec 18 13:33:10  [34m│[0m [36mINFO[0m[0102] Taking snapshot of files...                  
+Dec 18 13:33:10  [34m│[0m [36mINFO[0m[0102] COPY public ./public                         
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] Taking snapshot of files...                  
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] COPY tailwind.config.js ./                   
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] Taking snapshot of files...                  
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] COPY postcss.config.js ./                    
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] Taking snapshot of files...                  
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ARG REACT_APP_SUPABASE_URL                   
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ARG REACT_APP_SUPABASE_ANON_KEY              
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ARG REACT_APP_API_URL                        
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ARG REACT_APP_SOCKET_URL                     
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ENV REACT_APP_SUPABASE_URL=$REACT_APP_SUPABASE_URL 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ENV REACT_APP_SUPABASE_ANON_KEY=$REACT_APP_SUPABASE_ANON_KEY 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ENV REACT_APP_API_URL=$REACT_APP_API_URL     
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] ENV REACT_APP_SOCKET_URL=$REACT_APP_SOCKET_URL 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] No files changed in this command, skipping snapshotting. 
+Dec 18 13:33:11  [34m│[0m [36mINFO[0m[0102] RUN npm run build                            
+Dec 18 13:33:12  [34m│[0m [36mINFO[0m[0104] Cmd: /bin/sh                                 
+Dec 18 13:33:12  [34m│[0m [36mINFO[0m[0104] Args: [-c npm run build]                     
+Dec 18 13:33:12  [34m│[0m [36mINFO[0m[0104] Running: [/bin/sh -c npm run build]          
+Dec 18 13:33:13  [34m│[0m 
+Dec 18 13:33:13  [34m│[0m > react-dashboard@0.1.0 build
+Dec 18 13:33:13  [34m│[0m > cross-env DISABLE_ESLINT_PLUGIN=true react-scripts build
+Dec 18 13:33:13  [34m│[0m 
+Dec 18 13:33:15  [34m│[0m Creating an optimized production build...
+Dec 18 13:33:15  [34m│[0m [36mINFO[0m[0106] Pushing layer <registry-uri-2> to cache now 
+Dec 18 13:33:15  [34m│[0m [36mINFO[0m[0106] Pushing image to <registry-uri-3> 
+Dec 18 13:33:50  [34m│[0m [36mINFO[0m[0141] Pushed <registry-uri-4> 
+Dec 18 13:34:25  [34m│[0m Compiled successfully.
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m File sizes after gzip:
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m   573.59 kB  build/static/js/main.95c44c23.js
+Dec 18 13:34:25  [34m│[0m   75.29 kB   build/static/js/841.4aa10d61.chunk.js
+Dec 18 13:34:25  [34m│[0m   46.36 kB   build/static/js/239.382b0bcd.chunk.js
+Dec 18 13:34:25  [34m│[0m   43.26 kB   build/static/js/455.df19cd58.chunk.js
+Dec 18 13:34:25  [34m│[0m   25.47 kB   build/static/css/main.02452bc9.css
+Dec 18 13:34:25  [34m│[0m   8.69 kB    build/static/js/977.4ca11c06.chunk.js
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m The bundle size is significantly larger than recommended.
+Dec 18 13:34:25  [34m│[0m Consider reducing it with code splitting: https://goo.gl/9VhYWB
+Dec 18 13:34:25  [34m│[0m You can also analyze the project dependencies: https://goo.gl/LeUzfb
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m The project was built assuming it is hosted at /.
+Dec 18 13:34:25  [34m│[0m You can control this with the homepage field in your package.json.
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m The build folder is ready to be deployed.
+Dec 18 13:34:25  [34m│[0m You may serve it with a static server:
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m   npm install -g serve
+Dec 18 13:34:25  [34m│[0m   serve -s build
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m Find out more about deployment here:
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:25  [34m│[0m   https://cra.link/deployment
+Dec 18 13:34:25  [34m│[0m 
+Dec 18 13:34:26  [34m│[0m [36mINFO[0m[0178] Taking snapshot of files...                  
+Dec 18 13:34:28  [34m│[0m [36mINFO[0m[0179] Pushing layer <registry-uri-5> to cache now 
+Dec 18 13:34:28  [34m│[0m [36mINFO[0m[0179] Pushing image to <registry-uri-6> 
+Dec 18 13:34:31  [34m│[0m [36mINFO[0m[0182] Pushed <registry-uri-7> 
+Dec 18 13:34:31  [34m│[0m [36mINFO[0m[0182] Saving file app/build for later use          
+Dec 18 13:34:31  [34m│[0m [36mINFO[0m[0182] Deleting filesystem...                       
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Retrieving image manifest node:20-alpine     
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Returning cached image manifest              
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Retrieving image manifest node:20-alpine     
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Returning cached image manifest              
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Executing 0 build triggers                   
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Building stage 'node:20-alpine' [idx: '1', base-idx: '-1'] 
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Checking for cached layer <registry-uri-8> 
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] No cached layer found for cmd RUN apk add --no-cache openssl 
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Resolving srcs [server/package*.json]...     
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Cmd: EXPOSE                                  
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Adding exposed port: 8080/tcp                
+Dec 18 13:34:33  [34m│[0m [36mINFO[0m[0185] Unpacking rootfs as cmd RUN apk add --no-cache openssl requires it. 
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0186] Initializing snapshotter ...                 
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0186] Taking snapshot of full filesystem...        
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0187] RUN apk add --no-cache openssl               
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0187] Cmd: /bin/sh                                 
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0187] Args: [-c apk add --no-cache openssl]        
+Dec 18 13:34:35  [34m│[0m [36mINFO[0m[0187] Running: [/bin/sh -c apk add --no-cache openssl] 
+Dec 18 13:34:36  [34m│[0m (1/1) Installing openssl (3.5.4-r0)
+Dec 18 13:34:36  [34m│[0m Executing busybox-1.37.0-r30.trigger
+Dec 18 13:34:36  [34m│[0m OK: 11.7 MiB in 19 packages
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Taking snapshot of files...                  
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] WORKDIR /app                                 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Cmd: workdir                                 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Changed working directory to /app            
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Creating directory /app with uid -1 and gid -1 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Pushing layer <registry-uri-9> to cache now 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Pushing image to <registry-uri-10> 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Taking snapshot of files...                  
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Resolving srcs [server/package*.json]...     
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] COPY server/package*.json ./                 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Resolving srcs [server/package*.json]...     
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Taking snapshot of files...                  
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] COPY server/prisma ./prisma                  
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Taking snapshot of files...                  
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] RUN npm install --legacy-peer-deps           
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Cmd: /bin/sh                                 
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Args: [-c npm install --legacy-peer-deps]    
+Dec 18 13:34:36  [34m│[0m [36mINFO[0m[0188] Running: [/bin/sh -c npm install --legacy-peer-deps] 
+Dec 18 13:34:38  [34m│[0m [36mINFO[0m[0190] Pushed <registry-uri-11> 
+Dec 18 13:34:46  [34m│[0m npm warn deprecated xss-clean@0.1.4: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+Dec 18 13:34:46  [34m│[0m npm warn deprecated supertest@6.3.4: Please upgrade to supertest v7.1.3+, see release notes at https://github.com/forwardemail/supertest/releases/tag/v7.1.3 - maintenance is supported by Forward Email @ https://forwardemail.net
+Dec 18 13:34:46  [34m│[0m npm warn deprecated rimraf@2.7.1: Rimraf versions prior to v4 are no longer supported
+Dec 18 13:34:47  [34m│[0m npm warn deprecated multer@1.4.5-lts.2: Multer 1.x is impacted by a number of vulnerabilities, which have been patched in 2.x. You should upgrade to the latest 2.x version.
+Dec 18 13:34:47  [34m│[0m npm warn deprecated inflight@1.0.6: This module is not supported, and leaks memory. Do not use it. Check out lru-cache if you want a good and tested way to coalesce async requests by a key value, which is much more comprehensive and powerful.
+Dec 18 13:34:48  [34m│[0m npm warn deprecated glob@7.2.3: Glob versions prior to v9 are no longer supported
+Dec 18 13:34:48  [34m│[0m npm warn deprecated node-domexception@1.0.0: Use your platform's native DOMException instead
+Dec 18 13:34:49  [34m│[0m npm warn deprecated superagent@8.1.2: Please upgrade to superagent v10.2.2+, see release notes at https://github.com/forwardemail/superagent/releases/tag/v10.2.2 - maintenance is supported by Forward Email @ https://forwardemail.net
+Dec 18 13:35:05  [34m│[0m 
+Dec 18 13:35:05  [34m│[0m > kenstruction-server@0.1.0 postinstall
+Dec 18 13:35:05  [34m│[0m > prisma generate
+Dec 18 13:35:05  [34m│[0m 
+Dec 18 13:35:06  [34m│[0m Prisma schema loaded from prisma/schema.prisma
+Dec 18 13:35:08  [34m│[0m ┌─────────────────────────────────────────────────────────┐
+Dec 18 13:35:08  [34m│[0m │  Update available 6.19.1 -> 7.2.0                       │
+Dec 18 13:35:08  [34m│[0m │                                                         │
+Dec 18 13:35:08  [34m│[0m │  This is a major update - please follow the guide at    │
+Dec 18 13:35:08  [34m│[0m │  https://pris.ly/d/major-version-upgrade                │
+Dec 18 13:35:08  [34m│[0m │                                                         │
+Dec 18 13:35:08  [34m│[0m │  Run the following to update                            │
+Dec 18 13:35:08  [34m│[0m │    npm i --save-dev prisma@latest                       │
+Dec 18 13:35:08  [34m│[0m │    npm i @prisma/client@latest                          │
+Dec 18 13:35:08  [34m│[0m └─────────────────────────────────────────────────────────┘
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m ✔ Generated Prisma Client (v6.19.1) to ./node_modules/@prisma/client in 721ms
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m added 745 packages, and audited 746 packages in 32s
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m 81 packages are looking for funding
+Dec 18 13:35:08  [34m│[0m   run `npm fund` for details
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m 5 vulnerabilities (1 moderate, 4 high)
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m To address issues that do not require attention, run:
+Dec 18 13:35:08  [34m│[0m   npm audit fix
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m Some issues need review, and may require choosing
+Dec 18 13:35:08  [34m│[0m a different dependency.
+Dec 18 13:35:08  [34m│[0m 
+Dec 18 13:35:08  [34m│[0m Run `npm audit` for details.
+Dec 18 13:35:08  [34m│[0m npm notice
+Dec 18 13:35:08  [34m│[0m npm notice New major version of npm available! 10.8.2 -> 11.7.0
+Dec 18 13:35:08  [34m│[0m npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.7.0
+Dec 18 13:35:08  [34m│[0m npm notice To update run: npm install -g npm@11.7.0
+Dec 18 13:35:08  [34m│[0m npm notice
+Dec 18 13:35:09  [34m│[0m [36mINFO[0m[0221] Taking snapshot of files...                  
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0240] COPY server ./                               
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0240] Pushing layer <registry-uri-12> to cache now 
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0240] Pushing image to <registry-uri-13> 
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0240] Taking snapshot of files...                  
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0241] COPY --from=frontend-build /app/build ./public 
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0241] Taking snapshot of files...                  
+Dec 18 13:35:29  [34m│[0m [36mINFO[0m[0241] RUN mkdir -p /app/uploads/company-assets /app/uploads/documents 
+Dec 18 13:35:30  [34m│[0m [36mINFO[0m[0241] Cmd: /bin/sh                                 
+Dec 18 13:35:30  [34m│[0m [36mINFO[0m[0241] Args: [-c mkdir -p /app/uploads/company-assets /app/uploads/documents] 
+Dec 18 13:35:30  [34m│[0m [36mINFO[0m[0241] Running: [/bin/sh -c mkdir -p /app/uploads/company-assets /app/uploads/documents] 
+Dec 18 13:35:30  [34m│[0m [36mINFO[0m[0242] No files changed in this command, skipping snapshotting. 
+Dec 18 13:35:30  [34m│[0m [36mINFO[0m[0242] RUN npx prisma generate && npm prune --omit=dev 
+Dec 18 13:35:31  [34m│[0m [36mINFO[0m[0242] Cmd: /bin/sh                                 
+Dec 18 13:35:31  [34m│[0m [36mINFO[0m[0242] Args: [-c npx prisma generate && npm prune --omit=dev] 
+Dec 18 13:35:31  [34m│[0m [36mINFO[0m[0242] Running: [/bin/sh -c npx prisma generate && npm prune --omit=dev] 
+Dec 18 13:35:33  [34m│[0m Prisma schema loaded from prisma/schema.prisma
+Dec 18 13:35:34  [34m│[0m 
+Dec 18 13:35:34  [34m│[0m ✔ Generated Prisma Client (v6.19.1) to ./node_modules/@prisma/client in 722ms
+Dec 18 13:35:34  [34m│[0m 
+Dec 18 13:35:34  [34m│[0m Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+Dec 18 13:35:34  [34m│[0m 
+Dec 18 13:35:34  [34m│[0m Tip: Want to turn off tips and other hints? https://pris.ly/tip-4-nohints
+Dec 18 13:35:34  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m up to date, audited 514 packages in 6s
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m 53 packages are looking for funding
+Dec 18 13:35:40  [34m│[0m   run `npm fund` for details
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m 4 high severity vulnerabilities
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m To address issues that do not require attention, run:
+Dec 18 13:35:40  [34m│[0m   npm audit fix
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m Some issues need review, and may require choosing
+Dec 18 13:35:40  [34m│[0m a different dependency.
+Dec 18 13:35:40  [34m│[0m 
+Dec 18 13:35:40  [34m│[0m Run `npm audit` for details.
+Dec 18 13:35:40  [34m│[0m [36mINFO[0m[0252] Taking snapshot of files...                  
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] Pushing layer <registry-uri-14> to cache now 
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] Pushing image to <registry-uri-15> 
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] EXPOSE 8080                                  
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] Cmd: EXPOSE                                  
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] Adding exposed port: 8080/tcp                
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] No files changed in this command, skipping snapshotting. 
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] CMD ["npm", "start"]                         
+Dec 18 13:35:41  [34m│[0m [36mINFO[0m[0252] No files changed in this command, skipping snapshotting. 
+Dec 18 13:35:44  [34m│[0m [36mINFO[0m[0255] Pushed <registry-uri-16> 
+Dec 18 13:35:57  [34m│[0m [36mINFO[0m[0268] Pushed <registry-uri-17> 
+Dec 18 13:35:57  [34m│[0m [33mWARN[0m[0268] Error uploading layer to cache: open : no such file or directory 
+Dec 18 13:35:57  [34m│[0m [36mINFO[0m[0268] Pushing image to <image-18> 
+Dec 18 13:36:03  [34m│[0m [36mINFO[0m[0275] Pushed <registry-uri-19> 
+Dec 18 13:36:03  [34m│[0m 
+Dec 18 13:36:03  [34m│[0m [32m ✔ built and uploaded app container image to DOCR[0m
+Dec 18 13:36:03  [34m╰──────────────────────────────────────────╼[0m
+Dec 18 13:36:03  
+Dec 18 13:36:03  [32m ✔ [0m[30m[42m build complete [0m[0m
+Dec 18 13:36:03  
