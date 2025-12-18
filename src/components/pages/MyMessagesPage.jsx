@@ -485,19 +485,6 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                       {hasUnread && (
                         <div className="absolute right-2 top-2 w-3 h-3 bg-red-500 rounded-full animate-pulse shadow-lg"></div>
                       )}
-                      
-                      {/* New Message Banner */}
-                      {hasUnread && (
-                        <div className="flex items-center gap-1.5 mb-2 -mt-1">
-                          <div className="flex items-center gap-1 px-2 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full animate-pulse">
-                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                              <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                              <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                            </svg>
-                            <span>NEW MESSAGE{unreadCount > 1 ? 'S' : ''}</span>
-                          </div>
-                        </div>
-                      )}
 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
