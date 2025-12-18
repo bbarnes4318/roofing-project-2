@@ -162,6 +162,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
           fromMe: true,
           text: dmInput.trim(),
           timestamp: new Date().toLocaleString(),
+          createdAt: new Date(), // Critical for sorting: marks conversation as active/recent
           read: true
         };
         
