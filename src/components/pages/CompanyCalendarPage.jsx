@@ -1909,7 +1909,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     <div className="space-y-4">
                                         <div>
                                             <div className={`inline-block px-3 py-1.5 rounded-lg text-sm font-medium text-white shadow-md ${selectedEvent.color}`}>
-                                                {selectedEvent.type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                                                {(selectedEvent.type?.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())) || 'Event'}
                                             </div>
                                         </div>
                                         
