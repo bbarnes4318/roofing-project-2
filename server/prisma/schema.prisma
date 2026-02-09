@@ -197,7 +197,7 @@ model LeadSource {
   description String?
   is_active   Boolean   @default(true)
   created_at  DateTime  @default(now())
-  updated_at  DateTime
+  updated_at  DateTime  @updatedAt
   projects    Project[]
 
   @@map("lead_sources")
