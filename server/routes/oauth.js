@@ -7,13 +7,29 @@ const { prisma } = require("../config/prisma");
 const router = express.Router();
 
 // Initialize Google OAuth client
+const GOOGLE_REDIRECT_URI =
+  process.env.GOOGLE_REDIRECT_URI ||
+  `${process.env.FRONTEND_URL || "https://bubblesai.info"}/api/oauth/google/callback`;
+
+console.log("🔑 Google OAuth Config:");
+console.log(
+  "   Client ID:",
+  process.env.GOOGLE_CLIENT_ID ? "✅ Set" : "❌ MISSING",
+);
+console.log(
+  "   Client Secret:",
+  process.env.GOOGLE_CLIENT_SECRET ? "✅ Set" : "❌ MISSING",
+);
+console.log("   Redirect URI:", GOOGLE_REDIRECT_URI);
+console.log(
+  "   Frontend URL:",
+  process.env.FRONTEND_URL || "(not set, using default)",
+);
+
 const client = new OAuth2Client(
   process.env.GOOGLE_CLIENT_ID,
   process.env.GOOGLE_CLIENT_SECRET,
-  process.env.GOOGLE_REDIRECT_URI ||
-    `${
-      process.env.FRONTEND_URL || "http://localhost:3000"
-    }/auth/google/callback`
+  GOOGLE_REDIRECT_URI,
 );
 
 // @desc    Initiate Google OAuth login
@@ -40,7 +56,7 @@ router.get(
         message: "Failed to initiate Google OAuth",
       });
     }
-  })
+  }),
 );
 
 // @desc    Handle Google OAuth callback
@@ -172,7 +188,7 @@ router.get(
       // Redirect to frontend with token
       const frontendUrl = process.env.FRONTEND_URL || "http://localhost:3000";
       const redirectUrl = `${frontendUrl}/auth/callback?token=${token}&user=${encodeURIComponent(
-        JSON.stringify(user)
+        JSON.stringify(user),
       )}`;
 
       console.log("🎉 OAuth flow completed, redirecting to:", redirectUrl);
@@ -205,7 +221,7 @@ router.get(
       console.log("⚠️ OAuth error, redirecting to clean login:", error.message);
       res.redirect(frontendUrl);
     }
-  })
+  }),
 );
 
 // @desc    Verify Google OAuth token
@@ -271,7 +287,7 @@ router.post(
         message: "Invalid token",
       });
     }
-  })
+  }),
 );
 
 module.exports = router;
