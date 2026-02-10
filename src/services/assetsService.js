@@ -6,8 +6,8 @@ const getApiBaseUrl = () => {
     const host = window.location.host;
     const protocol = window.location.protocol;
     
-    // Check for DigitalOcean App Platform
-    if (host.includes('ondigitalocean.app')) {
+    // If we're NOT on localhost, use same-origin API (production)
+    if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
       return `${protocol}//${host}/api/company-docs-enhanced`;
     }
     

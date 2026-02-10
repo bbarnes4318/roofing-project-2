@@ -2,12 +2,12 @@ import axios from 'axios';
 
 // Use the same API configuration as the main app
 const getApiBaseUrl = () => {
-  // FORCE production URL for DigitalOcean to override any caching issues
   if (typeof window !== 'undefined') {
     const host = window.location.host;
     console.log('🔍 DOCUMENT SERVICE API CONFIG: Current host:', host);
     
-    if (host.includes('ondigitalocean.app')) {
+    // If we're NOT on localhost, use same-origin API (production)
+    if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
       const apiUrl = `${window.location.protocol}//${host}/api`;
       console.log('🔍 DOCUMENT SERVICE API CONFIG: Using production API:', apiUrl);
       return apiUrl;

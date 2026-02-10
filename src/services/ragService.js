@@ -3,7 +3,7 @@ import axios from 'axios';
 const getApiBaseUrl = () => {
   if (typeof window !== 'undefined') {
     const host = window.location.host;
-    if (host.includes('ondigitalocean.app')) {
+    if (!host.includes('localhost') && !host.includes('127.0.0.1')) {
       return `${window.location.protocol}//${host}/api`;
     }
   }
