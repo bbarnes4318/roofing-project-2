@@ -1637,7 +1637,7 @@ const apiUrl = window.location.hostname === 'localhost'
         return (
             <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center">
+                    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
                         <div className="text-center">
                             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
@@ -1656,10 +1656,8 @@ const apiUrl = window.location.hostname === 'localhost'
             <NavigationProvider>
             <SubjectsProvider>
             <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
-                ? 'bg-gradient-to-br from-[#e3edf7] via-[#c7d2fe] to-[#e0f2fe] text-gray-900' 
-                : activePage === 'Overview' 
-                    ? 'bg-gradient-to-br from-green-50 via-white to-green-50 text-gray-900'
-                    : 'bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 text-gray-900'}`}>
+                ? 'bg-[#1e293b] text-gray-100' 
+                : 'bg-[#F8FAFC] text-gray-900'}`}>
             {/* Mobile menu overlay */}
             {sidebarOpen && (
                 <div 
@@ -1672,8 +1670,8 @@ const apiUrl = window.location.hostname === 'localhost'
             <aside 
                 className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out
                 ${colorMode 
-                    ? 'bg-gradient-to-b from-neutral-900 via-neutral-800 to-neutral-900 border-r-2 border-brand-500 text-white' 
-                    : 'bg-white/90 backdrop-blur-md shadow-strong border-r border-white/20 text-gray-900'}
+                    ? 'bg-neutral-900 border-r border-neutral-700 text-white' 
+                    : 'bg-white shadow-soft border-r border-[#E2E8F0] text-gray-900'}
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 mobile-safe-area`}
                 style={{
@@ -1683,7 +1681,7 @@ const apiUrl = window.location.hostname === 'localhost'
                 onMouseLeave={() => !sidebarPinned && setTimeout(() => setSidebarCollapsed(true), 300)}
             > 
                 {/* Sidebar header (logo) */}
-                <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-brand-500 bg-gradient-to-r from-neutral-800 to-neutral-900' : 'border-neutral-200 bg-gradient-to-r from-white to-neutral-50'}`}>
+                <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-neutral-700 bg-neutral-900' : 'border-[#E2E8F0] bg-white'}`}>
                     {!sidebarCollapsed ? (
                         <>
                             <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2 ${colorMode ? 'bg-neutral-800 border-brand-500' : 'bg-white border-neutral-200'}`}>
@@ -1842,9 +1840,9 @@ const apiUrl = window.location.hostname === 'localhost'
             </aside>
             
             {/* Main content */}
-            <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 text-white' : ''}`} style={{ minWidth: 0, fontSize: '12px' }}>
+            <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-neutral-900 text-white' : 'bg-[#F8FAFC]'}`} style={{ minWidth: 0, fontSize: '12px' }}>
                 {/* Desktop header with user profile */}
-                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-all duration-300 z-[9999] ${colorMode ? 'bg-neutral-800/80 backdrop-blur-sm border-brand-500/40 text-white' : 'bg-white/95 backdrop-blur-sm border-neutral-200 shadow-sm'}`}>
+                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-all duration-300 z-[9999] ${colorMode ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-[#E2E8F0] shadow-soft'}`}>
                     <div className="flex items-center flex-1 min-w-0">
                         {activePage !== 'Overview' && (
                             <div className="flex-shrink-0">
@@ -1896,7 +1894,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         {/* Add Project Button */}
                         <button
                             onClick={() => setShowAddProjectModal(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-blue-500/20"
+                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#0089D1] text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-[#0089D1]/20"
                         >
                             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -1975,7 +1973,7 @@ const apiUrl = window.location.hostname === 'localhost'
                 </header>
                 
                 {/* Mobile header */}
-                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-brand-500 text-white' : 'bg-white/80 backdrop-blur-sm border-neutral-200'}`}>
+                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-[#E2E8F0]'}`}>
                     <button 
                         onClick={() => setSidebarOpen(true)}
                         className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#232b4d] hover:bg-[#1e293b] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}

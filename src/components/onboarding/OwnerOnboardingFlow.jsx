@@ -310,7 +310,7 @@ const OwnerOnboardingFlow = ({ onComplete, onBack, currentUser }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 py-8 px-4">
+    <div className="min-h-screen bg-[#F8FAFC] py-8 px-4">
       {/* Progress Bar */}
       <div className="max-w-2xl mx-auto mb-8">
         <div className="flex items-center space-x-4">

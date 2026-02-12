@@ -142,9 +142,9 @@ module.exports = {
         },
       },
       boxShadow: {
-        'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',
-        'medium': '0 4px 25px -5px rgba(15, 23, 42, 0.1), 0 10px 10px -5px rgba(15, 23, 42, 0.04)',
-        'strong': '0 10px 40px -10px rgba(0, 0, 0, 0.25), 0 2px 10px -2px rgba(0, 0, 0, 0.1)',
+        'soft': '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)',
+        'medium': '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)',
+        'strong': '0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)',
       },
       backgroundImage: {
         // Blueprint grid pattern
@@ -156,12 +156,6 @@ module.exports = {
       animation: {
         'fade-in': 'fadeIn 0.5s ease-in-out',
         'slide-up': 'slideUp 0.3s ease-out',
-        'pulse-glow': 'pulseGlow 4s ease-in-out infinite',
-        'grid-move': 'gridMove 30s linear infinite',
-        'shimmer': 'shimmer 3s infinite',
-        'scan': 'scan 8s linear infinite',
-        'float': 'float 20s infinite',
-        'border-glow': 'borderGlow 3s ease-in-out infinite',
         'shake': 'shake 0.5s',
       },
       keyframes: {
@@ -172,33 +166,6 @@ module.exports = {
         slideUp: {
           '0%': { transform: 'translateY(30px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        pulseGlow: {
-          '0%, 100%': { transform: 'scale(1)', opacity: '0.3' },
-          '50%': { transform: 'scale(1.05)', opacity: '0.6' },
-        },
-        gridMove: {
-          '0%': { transform: 'translate(0, 0)' },
-          '100%': { transform: 'translate(60px, 60px)' },
-        },
-        shimmer: {
-          '0%': { transform: 'rotate(0deg)' },
-          '100%': { transform: 'rotate(360deg)' },
-        },
-        scan: {
-          '0%': { left: '-100px', opacity: '0' },
-          '10%': { opacity: '1' },
-          '90%': { opacity: '1' },
-          '100%': { left: '100%', opacity: '0' },
-        },
-        float: {
-          '0%, 100%': { opacity: '0', transform: 'translateY(100vh) translateX(0) rotate(0deg)' },
-          '10%': { opacity: '0.4', transform: 'translateY(90vh) translateX(10px) rotate(90deg)' },
-          '90%': { opacity: '0.4', transform: 'translateY(10vh) translateX(-10px) rotate(450deg)' },
-        },
-        borderGlow: {
-          '0%, 100%': { opacity: '0' },
-          '50%': { opacity: '0.3' },
         },
         shake: {
           '0%, 100%': { transform: 'translateX(0)' },
