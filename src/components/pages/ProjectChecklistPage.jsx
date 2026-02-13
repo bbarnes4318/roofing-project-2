@@ -885,6 +885,44 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     }
   };
   
+  // Delete a custom workflow
+  const handleDeleteCustomWorkflow = async (customWorkflowId, workflowName) => {
+    if (!window.confirm(`Are you sure you want to delete the workflow "${workflowName}"?\n\nThis will permanently delete all phases, sections, and line items in this workflow. This cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      await api.delete(`/workflows/custom/${customWorkflowId}`);
+      
+      // Refresh workflow data
+      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+      if (workflowResponse.data.success) {
+        const newData = workflowResponse.data.data;
+        setWorkflowData(newData);
+        
+        const tabs = newData.map((workflow) => ({
+          id: workflow.customWorkflowId || workflow.workflowType,
+          name: workflow.tradeName,
+          isMainWorkflow: workflow.isMainWorkflow,
+          isCustom: workflow.workflowType === 'CUSTOM',
+          customWorkflowId: workflow.customWorkflowId || null,
+          completedCount: workflow.completedCount,
+          totalCount: workflow.totalCount,
+          progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
+        }));
+        setWorkflowTabs(tabs);
+        setActiveWorkflowIndex(0);
+      }
+      
+      setShowEditWorkflowModal(false);
+      setEditWorkflowData(null);
+      console.log(`✅ Custom workflow "${workflowName}" deleted`);
+    } catch (error) {
+      console.error('❌ Error deleting custom workflow:', error);
+      alert(error?.response?.data?.message || 'Failed to delete workflow.');
+    }
+  };
+  
   const isItemChecked = (stepId) => {
     // Check immediate state first (highest priority)
     const immediateCheck = immediateState.has(stepId);
@@ -2562,24 +2600,33 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   </div>
                 </div>
                 
-                <div className="flex justify-end space-x-3 pt-2">
+                <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      setShowEditWorkflowModal(false);
-                      setEditWorkflowData(null);
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    onClick={() => handleDeleteCustomWorkflow(editWorkflowData.customWorkflowId, editWorkflowData.name)}
+                    className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 hover:text-red-700 transition-colors"
                   >
-                    Cancel
+                    Delete Workflow
                   </button>
-                  <button
-                    type="submit"
-                    disabled={savingWorkflowEdit || !editWorkflowData.name.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {savingWorkflowEdit ? 'Saving...' : 'Save Changes'}
-                  </button>
+                  <div className="flex space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowEditWorkflowModal(false);
+                        setEditWorkflowData(null);
+                      }}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingWorkflowEdit || !editWorkflowData.name.trim()}
+                      className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {savingWorkflowEdit ? 'Saving...' : 'Save Changes'}
+                    </button>
+                  </div>
                 </div>
               </form>
             </div>
