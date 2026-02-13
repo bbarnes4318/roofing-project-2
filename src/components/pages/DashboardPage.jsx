@@ -169,17 +169,12 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
         return;
       }
       try {
-        // Only enrich projects that do not have a reliable phase
-        const headers = {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-        };
         const enriched = await Promise.all(projects.map(async (p) => {
           const existingPhase = WorkflowProgressService.getProjectPhase(p);
           if (existingPhase && existingPhase !== 'LEAD') return p;
           try {
-            const resp = await fetch(`/api/workflow-data/project-position/${p.id}`, { headers });
-            if (!resp.ok) return p;
-            const result = await resp.json();
+            const resp = await api.get(`/workflow-data/project-position/${p.id}`);
+            const result = resp.data;
             if (result?.success && result.data) {
               const pos = result.data;
               return {
@@ -451,14 +446,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
     setLoadingComments(prev => ({ ...prev, [taskId]: true }));
     
     try {
-      const response = await fetch(`/api/tasks/${taskId}/comments`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-        }
-      });
+      const response = await api.get(`/tasks/${taskId}/comments`);
       
-      if (response.ok) {
-        const data = await response.json();
+      if (response.data) {
+        const data = response.data;
         if (data.success && data.data) {
           // Update state with fetched comments
           setTaskComments(prev => ({
@@ -472,9 +463,6 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
             }))
           }));
         }
-      } else if (response.status === 404) {
-        // Task not found - silently handle this case
-        console.log(`Task ${taskId} not found, skipping comment fetch`);
       }
     } catch (error) {
       console.error('Error fetching comments:', error);
@@ -1417,18 +1405,10 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       console.log(`🚀 Initializing workflow for project ${projectId} from phase ${startingPhase}`);
       
       // Get the complete workflow structure
-      const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-        }
-      });
+      const workflowResponse = await api.get('/workflow-data/full-structure');
       
-      if (!workflowResponse.ok) {
-        throw new Error('Failed to fetch workflow structure');
-      }
-      
-      const workflowResult = await workflowResponse.json();
-      if (!workflowResult.success || !workflowResult.data) {
+      const workflowResult = workflowResponse.data;
+      if (!workflowResult?.success || !workflowResult?.data) {
         throw new Error('Invalid workflow structure response');
       }
       
@@ -1466,21 +1446,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       
       // Batch create all completed workflow items
       if (completedItems.length > 0) {
-        const batchResponse = await fetch('/api/workflow/batch-complete', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          },
-          body: JSON.stringify({
-            items: completedItems
-          })
-        });
-        
-        if (batchResponse.ok) {
+        try {
+          await api.post('/workflow/batch-complete', { items: completedItems });
           console.log(`✅ Successfully marked ${completedItems.length} items as completed`);
-        } else {
-          console.warn('⚠️ Failed to batch complete workflow items, but project was created');
+        } catch (batchErr) {
+          console.warn('⚠️ Failed to batch complete workflow items, but project was created', batchErr);
         }
       }
       
@@ -1488,18 +1458,11 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       const startingPhaseData = phases[startingPhaseIndex];
       if (startingPhaseData.items && startingPhaseData.items.length > 0) {
         const firstSection = startingPhaseData.items[0];
-        await fetch('/api/workflow/set-position', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          },
-          body: JSON.stringify({
-            projectId: projectId,
-            currentPhase: startingPhase,
-            currentSection: firstSection.id,
-            currentLineItem: `${startingPhase}-${firstSection.id}-0`
-          })
+        await api.post('/workflow/set-position', {
+          projectId: projectId,
+          currentPhase: startingPhase,
+          currentSection: firstSection.id,
+          currentLineItem: `${startingPhase}-${firstSection.id}-0`
         });
         console.log(`📍 Set current position to first item in ${startingPhase} phase`);
       }

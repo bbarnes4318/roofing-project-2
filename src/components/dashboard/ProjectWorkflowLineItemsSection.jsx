@@ -573,14 +573,10 @@ const ProjectWorkflowLineItemsSection = ({
                                       
                                       const getSubtaskIndex = async () => {
                                         try {
-                                          const workflowResponse = await fetch('/api/workflow-data/full-structure', {
-                                            headers: {
-                                              'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-                                            }
-                                          });
+                                          const workflowResponse = await api.get('/workflow-data/full-structure');
                                           
-                                          if (workflowResponse.ok) {
-                                            const workflowResult = await workflowResponse.json();
+                                          if (workflowResponse.data) {
+                                            const workflowResult = workflowResponse.data;
                                             if (workflowResult.success && workflowResult.data) {
                                               const currentPhaseData = workflowResult.data.find(phase => phase.id === position.currentPhase);
                                               if (currentPhaseData) {
