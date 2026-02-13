@@ -106,13 +106,31 @@ router.get('/full-structure', async (req, res) => {
 });
 
 /**
- * Get all workflows for a specific project (NEW - supports multiple workflows)
+ * Get all workflows for a specific project (supports system + custom workflows)
  */
 router.get('/project-workflows/:projectId', async (req, res) => {
   try {
     const { projectId } = req.params;
     console.log('🚀 API: Loading all workflows for project:', projectId);
     
+    // Build a recursive include for N-level deep children (practical limit: 10 levels)
+    const buildChildrenInclude = (depth) => {
+      if (depth <= 0) return {};
+      return {
+        children: {
+          where: { isActive: true },
+          orderBy: { displayOrder: 'asc' },
+          include: buildChildrenInclude(depth - 1)
+        }
+      };
+    };
+
+    const lineItemInclude = {
+      where: { isActive: true, parentId: null }, // Only top-level items; children loaded recursively
+      orderBy: { displayOrder: 'asc' },
+      include: buildChildrenInclude(10)
+    };
+
     // Get all workflow trackers for this project
     const trackers = await prisma.projectWorkflowTracker.findMany({
       where: { projectId },
@@ -141,62 +159,93 @@ router.get('/project-workflows/:projectId', async (req, res) => {
       });
     }
 
-    // Get workflow structures for each type
-    const workflowTypes = [...new Set(trackers.map(t => t.workflowType))];
     const workflows = [];
 
-    for (const workflowType of workflowTypes) {
-      const phases = await prisma.workflowPhase.findMany({
-        where: { workflowType },
-        orderBy: { displayOrder: 'asc' },
-        include: {
-          sections: {
-            where: { workflowType },
-            orderBy: { displayOrder: 'asc' },
-            include: {
-              lineItems: {
-                where: { isActive: true, workflowType },
-                orderBy: { displayOrder: 'asc' }
-              }
+    // Helper to recursively format line items with children
+    const formatSubtasks = (items, completedItemIds) => {
+      if (!items) return [];
+      return items.map(item => ({
+        id: item.id,
+        label: item.itemName,
+        isCompleted: completedItemIds.has(item.id),
+        parentId: item.parentId || null,
+        children: formatSubtasks(item.children, completedItemIds)
+      }));
+    };
+
+    // Helper to count all items recursively (for progress)
+    const countItemsRecursive = (items) => {
+      if (!items) return 0;
+      return items.reduce((acc, item) => acc + 1 + countItemsRecursive(item.children), 0);
+    };
+
+    for (const tracker of trackers) {
+      let phases;
+
+      if (tracker.workflowType === 'CUSTOM' && tracker.customWorkflowId) {
+        // Custom workflow: load phases linked to custom workflow definition
+        phases = await prisma.workflowPhase.findMany({
+          where: { customWorkflowId: tracker.customWorkflowId, isActive: true },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { isActive: true },
+              orderBy: { displayOrder: 'asc' },
+              include: { lineItems: lineItemInclude }
             }
           }
-        }
-      });
+        });
+      } else {
+        // System workflow: load phases by workflowType (existing behavior)
+        phases = await prisma.workflowPhase.findMany({
+          where: { workflowType: tracker.workflowType, customWorkflowId: null },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { workflowType: tracker.workflowType },
+              orderBy: { displayOrder: 'asc' },
+              include: { lineItems: lineItemInclude }
+            }
+          }
+        });
+      }
 
-      const tracker = trackers.find(t => t.workflowType === workflowType);
       const completedItemIds = new Set(tracker.completedItems.map(item => item.lineItemId));
 
       // Convert to React format
       const reactFormat = phases.map(phase => ({
-        id: phase.phaseType,
+        id: phase.phaseType || phase.id, // Custom phases use id, system phases use phaseType
         label: phase.phaseName,
+        phaseId: phase.id,
+        isCustom: tracker.workflowType === 'CUSTOM',
         items: phase.sections.map(section => ({
           id: section.id,
           label: section.displayName || section.sectionName,
-          subtasks: section.lineItems.map(item => ({
-            id: item.id,
-            label: item.itemName,
-            isCompleted: completedItemIds.has(item.id)
-          }))
+          subtasks: formatSubtasks(section.lineItems, completedItemIds)
         }))
       }));
 
+      const totalCount = phases.reduce((acc, p) => acc + p.sections.reduce(
+        (acc2, s) => acc2 + countItemsRecursive(s.lineItems), 0
+      ), 0);
+
       workflows.push({
-        workflowType,
-        tradeName: tracker.tradeName || getWorkflowDisplayName(workflowType),
+        workflowType: tracker.workflowType,
+        customWorkflowId: tracker.customWorkflowId || null,
+        tradeName: tracker.tradeName || getWorkflowDisplayName(tracker.workflowType),
         isMainWorkflow: tracker.isMainWorkflow,
         trackerId: tracker.id,
-        currentPhase: tracker.currentPhase?.phaseType,
+        currentPhase: tracker.currentPhase?.phaseType || tracker.currentPhase?.id,
         currentSection: tracker.currentSection?.id,
         currentLineItem: tracker.currentLineItem?.id,
         phases: reactFormat,
         completedCount: tracker.completedItems.length,
-        totalCount: phases.reduce((acc, p) => acc + p.sections.reduce((acc2, s) => acc2 + s.lineItems.length, 0), 0)
+        totalCount
       });
     }
 
     console.log(`📊 API: Loaded ${workflows.length} workflows for project ${projectId}`);
-    workflows.forEach(w => console.log(`  - ${w.workflowType}: ${w.completedCount}/${w.totalCount} completed`));
+    workflows.forEach(w => console.log(`  - ${w.workflowType}${w.customWorkflowId ? ` (custom: ${w.tradeName})` : ''}: ${w.completedCount}/${w.totalCount} completed`));
     
     res.json({
       success: true,

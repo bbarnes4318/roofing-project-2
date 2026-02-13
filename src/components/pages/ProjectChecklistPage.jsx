@@ -123,6 +123,152 @@ const loadCheckboxState = (projectId) => {
 
 // Workflow data will be loaded from database API
 
+// Recursive sub-item renderer for N-level nesting
+const RecursiveSubItems = ({ 
+  children, depth, phase, item, projectId, 
+  isItemChecked, handleCheckboxToggle, projectPosition, 
+  highlightedLineItemId, api, setWorkflowData,
+  inlineNewSubItem, setInlineNewSubItem 
+}) => {
+  if (!children || children.length === 0) return null;
+  const marginLeft = `${depth * 1.5}rem`;
+  
+  return (
+    <div style={{ marginLeft }} className="mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+      {children.map((child, idx) => {
+        const childId = child.id;
+        const childLabel = child.label;
+        const isChecked = isItemChecked(childId);
+        const hasGrandchildren = child.children && child.children.length > 0;
+        
+        return (
+          <React.Fragment key={childId || idx}>
+            <div className="workflow-line-item group flex items-start space-x-2 py-0.5">
+              {/* Checkbox */}
+              <div className="relative flex-shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={isChecked}
+                  onChange={() => handleCheckboxToggle(childId, phase.id, item.id, idx, child)}
+                  className="h-3.5 w-3.5 rounded border-2 border-gray-300 text-blue-600 focus:ring-1 focus:ring-blue-500 checked:bg-[var(--color-primary-blueprint-blue)] checked:border-blue-600"
+                />
+              </div>
+              {/* Label */}
+              <span className={`flex-1 text-xs cursor-pointer select-none ${
+                isChecked ? 'text-gray-400 line-through' : 'text-gray-700 hover:text-blue-600'
+              }`}>
+                {childLabel}
+                {hasGrandchildren && (
+                  <span className="ml-1 text-gray-400">({child.children.length})</span>
+                )}
+              </span>
+              {/* Delete */}
+              {childId && (
+                <button
+                  onClick={async (e) => {
+                    e.stopPropagation();
+                    if (!window.confirm('Delete this sub-item?')) return;
+                    try {
+                      let resp;
+                      try { resp = await api.delete(`/workflows/line-items/${childId}`); }
+                      catch (e) { resp = await api.post(`/workflows/line-items/${childId}/delete`); }
+                      if (resp.data?.success) {
+                        const wr = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                        if (wr.data.success) setWorkflowData(wr.data.data);
+                      }
+                    } catch (err) { alert('Failed to delete'); }
+                  }}
+                  className="p-0.5 rounded text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                  title="Delete"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
+                  </svg>
+                </button>
+              )}
+              {/* Add sub-item */}
+              {childId && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setInlineNewSubItem(prev => ({
+                      ...prev,
+                      [childId]: prev[childId] ? undefined : { name: '', sectionId: item.id, saving: false }
+                    }));
+                  }}
+                  className="p-0.5 rounded text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition"
+                  title="Add sub-item"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3 h-3">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+              )}
+            </div>
+            {/* Inline sub-item form */}
+            {childId && inlineNewSubItem[childId] && (
+              <div style={{ marginLeft: '1.5rem' }} className="mt-0.5">
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const val = inlineNewSubItem[childId]?.name?.trim();
+                    if (!val) return;
+                    setInlineNewSubItem(prev => ({ ...prev, [childId]: { ...prev[childId], saving: true } }));
+                    try {
+                      const resp = await api.post('/workflows/line-items', {
+                        sectionId: item.id, itemName: val, responsibleRole: 'PROJECT_MANAGER', parentId: childId
+                      });
+                      if (resp.data?.success) {
+                        const wr = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                        if (wr.data.success) setWorkflowData(wr.data.data);
+                        setInlineNewSubItem(prev => ({ ...prev, [childId]: undefined }));
+                      }
+                    } catch (err) {
+                      alert('Failed to add sub-item');
+                      setInlineNewSubItem(prev => ({ ...prev, [childId]: { ...prev[childId], saving: false } }));
+                    }
+                  }}
+                  className="flex items-center gap-1"
+                >
+                  <input
+                    autoFocus type="text"
+                    value={inlineNewSubItem[childId]?.name || ''}
+                    onChange={(e) => setInlineNewSubItem(prev => ({ ...prev, [childId]: { ...prev[childId], name: e.target.value } }))}
+                    className="px-1 py-0.5 border border-gray-300 rounded text-xs w-32"
+                    placeholder="Sub-item name"
+                  />
+                  <button type="submit" disabled={inlineNewSubItem[childId]?.saving} className="px-1.5 py-0.5 text-xs text-white bg-blue-500 rounded disabled:opacity-50">
+                    {inlineNewSubItem[childId]?.saving ? '...' : 'Add'}
+                  </button>
+                  <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [childId]: undefined }))} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+                </form>
+              </div>
+            )}
+            {/* Recurse into grandchildren */}
+            {hasGrandchildren && (
+              <RecursiveSubItems
+                children={child.children}
+                depth={depth + 1}
+                phase={phase}
+                item={item}
+                projectId={projectId}
+                isItemChecked={isItemChecked}
+                handleCheckboxToggle={handleCheckboxToggle}
+                projectPosition={projectPosition}
+                highlightedLineItemId={highlightedLineItemId}
+                api={api}
+                setWorkflowData={setWorkflowData}
+                inlineNewSubItem={inlineNewSubItem}
+                setInlineNewSubItem={setInlineNewSubItem}
+              />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce, onBack, colorMode, projectSourceSection, onProjectSelect }) => {
   const projectId = project?._id || project?.id;
   const normalizeRoleForServer = () => 'PROJECT_MANAGER';
@@ -227,11 +373,23 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   const [selectedSectionForLineItem, setSelectedSectionForLineItem] = useState(null);
   const [creatingLineItem, setCreatingLineItem] = useState(false);
   
+  // Custom workflow creation states
+  const [showCreateWorkflowModal, setShowCreateWorkflowModal] = useState(false);
+  const [createWorkflowData, setCreateWorkflowData] = useState({
+    name: '',
+    description: '',
+    phases: [{ phaseName: '' }]
+  });
+  const [creatingWorkflow, setCreatingWorkflow] = useState(false);
+  
+  // Sub-item inline creation state { [parentLineItemId]: { name, sectionId, saving } }
+  const [inlineNewSubItem, setInlineNewSubItem] = useState({});
+  
   // =================================================================
   // CHECKBOX HANDLERS
   // =================================================================
   
-  const handleCheckboxToggle = (stepId, phaseId, itemId, subIdx) => {
+  const handleCheckboxToggle = (stepId, phaseId, itemId, subIdx, subtaskData) => {
     console.log(`Checkbox clicked: ${stepId}`);
     
     // Get current state
@@ -239,6 +397,68 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     const newState = !isCurrentlyChecked;
     
     console.log(`Toggle: ${stepId} from ${isCurrentlyChecked} to ${newState}`);
+    
+    // =================================================================
+    // PARENT/CHILD COMPLETION LOGIC
+    // =================================================================
+    
+    // Helper to collect ALL descendant IDs recursively
+    const collectChildIds = (children) => {
+      if (!children || children.length === 0) return [];
+      const ids = [];
+      for (const child of children) {
+        const childId = child.id || child;
+        ids.push(childId);
+        if (child.children) ids.push(...collectChildIds(child.children));
+      }
+      return ids;
+    };
+    
+    // Helper to check if ALL children are completed
+    const allChildrenCompleted = (children) => {
+      if (!children || children.length === 0) return true;
+      return children.every(child => {
+        const childId = child.id || child;
+        const isChildChecked = immediateState.has(childId) || persistentState.has(childId);
+        return isChildChecked && allChildrenCompleted(child.children);
+      });
+    };
+    
+    // If the item has children and user is trying to CHECK it
+    const hasChildren = subtaskData?.children && subtaskData.children.length > 0;
+    if (hasChildren && newState === true) {
+      // Can't check parent until all children are done
+      if (!allChildrenCompleted(subtaskData.children)) {
+        const autoComplete = window.confirm(
+          'This item has sub-items that are not yet completed. \n\nWould you like to auto-complete all sub-items?'
+        );
+        if (!autoComplete) return; // User cancelled
+        // Auto-complete all children then the parent
+        const childIds = collectChildIds(subtaskData.children);
+        batchUpdateStates([stepId, ...childIds], true);
+        // Server sync for each
+        setTimeout(() => {
+          [stepId, ...childIds].forEach(id => {
+            workflowService.updateStep(projectId, id, true).catch(e => console.error('Sync fail:', id, e));
+          });
+          if (onUpdate) onUpdate();
+        }, 10);
+        return;
+      }
+    }
+    
+    // If user is UNCHECKING a parent, also uncheck all children
+    if (hasChildren && newState === false) {
+      const childIds = collectChildIds(subtaskData.children);
+      batchUpdateStates([stepId, ...childIds], false);
+      setTimeout(() => {
+        [stepId, ...childIds].forEach(id => {
+          workflowService.updateStep(projectId, id, false).catch(e => console.error('Sync fail:', id, e));
+        });
+        if (onUpdate) onUpdate();
+      }, 10);
+      return;
+    }
     
     // =================================================================
     // IMMEDIATE STATE UPDATE
@@ -303,6 +523,29 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     
     // Prevent any event bubbling or default behavior
     return false;
+  };
+  
+  // Batch update states for parent/child auto-complete
+  const batchUpdateStates = (ids, checked) => {
+    const newImmediate = new Set(immediateState);
+    const newPersistent = new Set(persistentState);
+    const newBackup = new Set(backupState);
+    for (const id of ids) {
+      if (checked) {
+        newImmediate.add(id);
+        newPersistent.add(id);
+        newBackup.add(id);
+      } else {
+        newImmediate.delete(id);
+        newPersistent.delete(id);
+        newBackup.delete(id);
+      }
+    }
+    setImmediateState(newImmediate);
+    setPersistentState(newPersistent);
+    setBackupState(newBackup);
+    setRenderCounter(prev => prev + 1);
+    saveCheckboxState(projectId, newPersistent);
   };
   
   const handleLegacyCheckbox = (phaseId, itemId, subIdx) => {
@@ -496,6 +739,49 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       }
     } finally {
       setCreatingLineItem(false);
+    }
+  };
+  
+  // =================================================================
+  // CREATE CUSTOM WORKFLOW HANDLER
+  // =================================================================
+  
+  const handleCreateCustomWorkflow = async (e) => {
+    e.preventDefault();
+    if (!createWorkflowData.name.trim()) {
+      alert('Please enter a workflow name.');
+      return;
+    }
+    setCreatingWorkflow(true);
+    try {
+      const validPhases = createWorkflowData.phases
+        .filter(p => p.phaseName.trim())
+        .map(p => ({ phaseName: p.phaseName.trim() }));
+      
+      const requestData = {
+        projectId,
+        name: createWorkflowData.name.trim(),
+        description: createWorkflowData.description.trim() || undefined,
+        phases: validPhases.length > 0 ? validPhases : undefined
+      };
+      
+      const response = await api.post('/workflows/custom', requestData);
+      if (response.data.success) {
+        // Refresh workflow data
+        const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+        if (workflowResponse.data.success) {
+          setWorkflowData(workflowResponse.data.data);
+        }
+        // Reset and close
+        setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] });
+        setShowCreateWorkflowModal(false);
+        console.log('✅ Custom workflow created:', response.data.data);
+      }
+    } catch (error) {
+      console.error('❌ Error creating custom workflow:', error);
+      alert(error?.response?.data?.message || 'Failed to create workflow.');
+    } finally {
+      setCreatingWorkflow(false);
     }
   };
   
@@ -1156,14 +1442,26 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   Main Workflow
                 </span>
               )}
+              {currentWorkflow?.workflowType === 'CUSTOM' && (
+                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                  Custom
+                </span>
+              )}
             </h2>
             <p className="text-sm text-gray-500 mt-1">
               {currentWorkflow?.completedCount || 0} of {currentWorkflow?.totalCount || 0} items completed 
               ({currentWorkflow?.totalCount > 0 ? Math.round((currentWorkflow.completedCount / currentWorkflow.totalCount) * 100) : 0}%)
             </p>
           </div>
-          
-
+          <button
+            onClick={() => setShowCreateWorkflowModal(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all shadow-sm"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Workflow
+          </button>
         </div>
       </div>
 
@@ -1351,8 +1649,8 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                               const isTargetedLineItem = highlightedLineItemId && highlightedLineItemId === lineItemId;
                               
                               return (
+                                <React.Fragment key={subIdx}>
                                 <div 
-                                  key={subIdx} 
                                   id={`lineitem-${lineItemId}`}
                                   className={`workflow-line-item group flex items-start space-x-3 ${
                                     isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : 
@@ -1367,7 +1665,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       checked={isChecked}
                                       onChange={() => {
                                         console.log(`Checkbox onChange: ${stepId}, Database ID: ${subtaskId}`);
-                                        handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx);
+                                        handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx, subtask);
                                       }}
                                       onClick={(e) => {
                                         console.log(`Checkbox onClick: ${stepId}`);
@@ -1409,13 +1707,16 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                     {isCurrentLineItem && <span className="text-blue-500">👈 </span>}
                                     {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
                                     {subtaskLabel}
+                                    {subtask.children && subtask.children.length > 0 && (
+                                      <span className="ml-1 text-xs text-gray-400">({subtask.children.length} sub-items)</span>
+                                    )}
                                   </label>
                                   {/* Delete line item (subtle icon on hover) */}
                                   {subtaskId && (
                                     <button
                                       onClick={async (e) => {
                                         e.stopPropagation();
-        									if (!window.confirm('Delete this line item?')) return;
+        										if (!window.confirm('Delete this line item?')) return;
                                         try {
                                           let resp;
                                           try {
@@ -1443,7 +1744,91 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       </svg>
                                     </button>
                                   )}
+                                  {/* Add Sub-Item button */}
+                                  {subtaskId && (
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setInlineNewSubItem(prev => ({
+                                          ...prev,
+                                          [subtaskId]: prev[subtaskId] ? undefined : { name: '', sectionId: item.id, saving: false }
+                                        }));
+                                      }}
+                                      className="p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition ml-1"
+                                      title="Add sub-item"
+                                      aria-label="Add sub-item"
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                      </svg>
+                                    </button>
+                                  )}
                                 </div>
+                                {/* Inline sub-item creation form */}
+                                {subtaskId && inlineNewSubItem[subtaskId] && (
+                                  <div className="ml-7 mt-1">
+                                    <form
+                                      onSubmit={async (e) => {
+                                        e.preventDefault();
+                                        const val = inlineNewSubItem[subtaskId]?.name?.trim();
+                                        if (!val) return;
+                                        setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: { ...prev[subtaskId], saving: true } }));
+                                        try {
+                                          const payload = {
+                                            sectionId: item.id,
+                                            itemName: val,
+                                            responsibleRole: 'PROJECT_MANAGER',
+                                            parentId: subtaskId
+                                          };
+                                          const resp = await api.post('/workflows/line-items', payload);
+                                          if (resp.data?.success) {
+                                            const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                            if (workflowResponse.data.success) setWorkflowData(workflowResponse.data.data);
+                                            setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: undefined }));
+                                          }
+                                        } catch (err) {
+                                          alert(err?.response?.data?.message || 'Failed to add sub-item');
+                                          setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: { ...prev[subtaskId], saving: false } }));
+                                        }
+                                      }}
+                                      className="flex items-center gap-2"
+                                    >
+                                      <input
+                                        autoFocus
+                                        type="text"
+                                        value={inlineNewSubItem[subtaskId]?.name || ''}
+                                        onChange={(e) => setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: { ...prev[subtaskId], name: e.target.value } }))}
+                                        className="px-2 py-1 border border-gray-300 rounded-md text-xs"
+                                        placeholder="Sub-item name"
+                                      />
+                                      <button type="submit" disabled={inlineNewSubItem[subtaskId]?.saving} className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md disabled:opacity-50">
+                                        {inlineNewSubItem[subtaskId]?.saving ? '...' : 'Add'}
+                                      </button>
+                                      <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: undefined }))} className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700">
+                                        ✕
+                                      </button>
+                                    </form>
+                                  </div>
+                                )}
+                                {/* Recursive children rendering */}
+                                {subtask.children && subtask.children.length > 0 && (
+                                  <RecursiveSubItems
+                                    children={subtask.children}
+                                    depth={1}
+                                    phase={phase}
+                                    item={item}
+                                    projectId={projectId}
+                                    isItemChecked={isItemChecked}
+                                    handleCheckboxToggle={handleCheckboxToggle}
+                                    projectPosition={projectPosition}
+                                    highlightedLineItemId={highlightedLineItemId}
+                                    api={api}
+                                    setWorkflowData={setWorkflowData}
+                                    inlineNewSubItem={inlineNewSubItem}
+                                    setInlineNewSubItem={setInlineNewSubItem}
+                                  />
+                                )}
+                                </React.Fragment>
                               );
                             })}
                           </div>
@@ -1807,6 +2192,122 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-success-green)] rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {creatingLineItem ? 'Creating...' : 'Create Line Item'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Create Custom Workflow Modal */}
+      {showCreateWorkflowModal && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                </span>
+                Create Custom Workflow
+              </h3>
+              <form onSubmit={handleCreateCustomWorkflow}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Workflow Name *
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={createWorkflowData.name}
+                    onChange={(e) => setCreateWorkflowData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="e.g. Solar Panel Installation"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={createWorkflowData.description}
+                    onChange={(e) => setCreateWorkflowData(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Describe this workflow (optional)"
+                    rows="2"
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phases
+                  </label>
+                  <p className="text-xs text-gray-500 mb-2">
+                    Define the phases for this workflow. Leave empty to use default phases.
+                  </p>
+                  <div className="space-y-2">
+                    {createWorkflowData.phases.map((phase, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400 w-5">{idx + 1}.</span>
+                        <input
+                          type="text"
+                          value={phase.phaseName}
+                          onChange={(e) => {
+                            const newPhases = [...createWorkflowData.phases];
+                            newPhases[idx] = { phaseName: e.target.value };
+                            setCreateWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                          }}
+                          className="flex-1 px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          placeholder={`Phase ${idx + 1} name`}
+                        />
+                        {createWorkflowData.phases.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newPhases = createWorkflowData.phases.filter((_, i) => i !== idx);
+                              setCreateWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-500"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setCreateWorkflowData(prev => ({ ...prev, phases: [...prev.phases, { phaseName: '' }] }))}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Phase
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCreateWorkflowModal(false);
+                      setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] });
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={creatingWorkflow || !createWorkflowData.name.trim()}
+                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {creatingWorkflow ? 'Creating...' : 'Create Workflow'}
                   </button>
                 </div>
               </form>

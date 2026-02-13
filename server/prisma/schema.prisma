@@ -86,6 +86,7 @@ model User {
   webauthnCredentials      WebAuthnCredential[]      @relation("UserWebAuthn")
   assignedAlerts           WorkflowAlert[]           @relation("AlertAssignedTo")
   createdAlerts            WorkflowAlert[]           @relation("AlertCreatedBy")
+  customWorkflows          CustomWorkflow[]          @relation("CustomWorkflowCreator")
   followUpSettings         FollowUpSettings?
   followUpTracking         FollowUpTracking[]
   feedbackFollows          FeedbackFollower[]        @relation("UserFeedbackFollows")
@@ -617,24 +618,43 @@ model RoleAssignment {
   @@map("role_assignments")
 }
 
-model WorkflowPhase {
+model CustomWorkflow {
   id              String                   @id @default(cuid())
   createdAt       DateTime                 @default(now())
   updatedAt       DateTime                 @updatedAt
-  phaseName       String                   @db.VarChar(255)
-  phaseType       ProjectPhase
-  displayOrder    Int
+  name            String                   @db.VarChar(255)
   description     String?                  @db.VarChar(500)
+  createdById     String?                  @map("created_by_id")
   isActive        Boolean                  @default(true)
-  isCurrent       Boolean                  @default(true)
-  version         Int                      @default(1)
-  workflowType    WorkflowType             @default(ROOFING)
-  projectTrackers ProjectWorkflowTracker[]
-  alerts          WorkflowAlert[]
-  sections        WorkflowSection[]
+  createdBy       User?                    @relation("CustomWorkflowCreator", fields: [createdById], references: [id])
+  phases          WorkflowPhase[]
+  trackers        ProjectWorkflowTracker[]
+
+  @@index([createdById])
+  @@map("custom_workflows")
+}
+
+model WorkflowPhase {
+  id                String                   @id @default(cuid())
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  phaseName         String                   @db.VarChar(255)
+  phaseType         ProjectPhase?
+  displayOrder      Int
+  description       String?                  @db.VarChar(500)
+  isActive          Boolean                  @default(true)
+  isCurrent         Boolean                  @default(true)
+  version           Int                      @default(1)
+  workflowType      WorkflowType             @default(ROOFING)
+  customWorkflowId  String?                  @map("custom_workflow_id")
+  customWorkflow    CustomWorkflow?          @relation(fields: [customWorkflowId], references: [id], onDelete: Cascade)
+  projectTrackers   ProjectWorkflowTracker[]
+  alerts            WorkflowAlert[]
+  sections          WorkflowSection[]
 
   @@unique([phaseType, workflowType])
   @@index([workflowType])
+  @@index([customWorkflowId])
   @@map("workflow_phases")
 }
 
@@ -681,6 +701,9 @@ model WorkflowLineItem {
   version          Int                      @default(1)
   daysToComplete   Int                      @default(1) @map("days_to_complete")
   workflowType     WorkflowType             @default(ROOFING)
+  parentId         String?                  @map("parent_id")
+  parent           WorkflowLineItem?        @relation("SubItems", fields: [parentId], references: [id], onDelete: Cascade)
+  children         WorkflowLineItem[]       @relation("SubItems")
   progressTrackers ProjectWorkflowTracker[]
   alerts           WorkflowAlert[]
   section          WorkflowSection          @relation(fields: [sectionId], references: [id], onDelete: Cascade)
@@ -690,6 +713,7 @@ model WorkflowLineItem {
   @@index([sectionId, displayOrder])
   @@index([isActive, displayOrder])
   @@index([workflowType])
+  @@index([parentId])
   @@map("workflow_line_items")
 }
 
@@ -708,17 +732,20 @@ model ProjectWorkflowTracker {
   isMainWorkflow      Boolean                 @default(true) @map("is_main_workflow")
   tradeName           String?                 @map("trade_name") @db.VarChar(100)
   workflowType        WorkflowType            @default(ROOFING)
+  customWorkflowId    String?                 @map("custom_workflow_id")
   totalLineItems      Int?                    @default(0)
   completedItems      CompletedWorkflowItem[]
+  customWorkflow      CustomWorkflow?         @relation(fields: [customWorkflowId], references: [id], onDelete: Cascade)
   currentLineItem     WorkflowLineItem?       @relation(fields: [currentLineItemId], references: [id])
   currentPhase        WorkflowPhase?          @relation(fields: [currentPhaseId], references: [id])
   currentSection      WorkflowSection?        @relation(fields: [currentSectionId], references: [id])
   project             Project                 @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  @@unique([projectId, workflowType])
+  @@unique([projectId, workflowType, customWorkflowId])
   @@index([currentLineItemId])
   @@index([projectId, currentPhaseId])
   @@index([projectId, isMainWorkflow])
+  @@index([customWorkflowId])
   @@map("project_workflow_trackers")
 }
 
@@ -1302,6 +1329,7 @@ enum WorkflowType {
   GENERAL
   GUTTERS
   INTERIOR_PAINT
+  CUSTOM
 
   @@map("workflow_types")
 }

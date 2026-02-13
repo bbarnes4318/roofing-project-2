@@ -1203,7 +1203,8 @@ router.post('/line-items',
     body('displayOrder').optional().isInt({ min: 0 }).withMessage('Display order must be a positive integer'),
     body('estimatedMinutes').optional().isInt({ min: 1 }).withMessage('Estimated minutes must be a positive integer'),
     body('alertDays').optional().isInt({ min: 1 }).withMessage('Alert days must be a positive integer'),
-    body('addToAllWorkflows').optional().isBoolean().withMessage('Add to all workflows must be a boolean')
+    body('addToAllWorkflows').optional().isBoolean().withMessage('Add to all workflows must be a boolean'),
+    body('parentId').optional().isString().withMessage('Parent ID must be a string')
   ],
   asyncHandler(async (req, res) => {
     const errors = validationResult(req);
@@ -1215,7 +1216,7 @@ router.post('/line-items',
       });
     }
 
-    const { sectionId, itemName, responsibleRole, description, displayOrder, estimatedMinutes, alertDays, addToAllWorkflows } = req.body;
+    const { sectionId, itemName, responsibleRole, description, displayOrder, estimatedMinutes, alertDays, addToAllWorkflows, parentId } = req.body;
     
     console.log(`📝 WORKFLOW: Creating new line item "${itemName}" for section ${sectionId}`);
     
@@ -1294,7 +1295,8 @@ router.post('/line-items',
               alertDays: alertDays || 1,
               isActive: true,
               isCurrent: true,
-              version: 1
+              version: 1,
+              parentId: parentId || null
             },
             include: {
               section: {
@@ -1502,4 +1504,237 @@ router.post('/line-items/:id/delete', asyncHandler(async (req, res) => {
   }
 }));
 
-module.exports = router; 
+// ============================================================
+// CUSTOM WORKFLOW CRUD ROUTES
+// ============================================================
+
+// @desc    Create a new custom workflow with custom phases
+// @route   POST /api/workflows/custom
+// @access  Private
+router.post('/custom',
+  [
+    body('projectId').isString().withMessage('Project ID is required'),
+    body('name').isString().isLength({ min: 1, max: 255 }).withMessage('Workflow name is required'),
+    body('description').optional().isString().isLength({ max: 500 }),
+    body('phases').optional().isArray().withMessage('Phases must be an array'),
+    body('phases.*.phaseName').optional().isString().isLength({ min: 1, max: 255 })
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { projectId, name, description, phases } = req.body;
+    const userId = req.user?.id || null;
+
+    console.log(`📝 WORKFLOW: Creating custom workflow "${name}" for project ${projectId}`);
+
+    try {
+      // Verify the project exists
+      const project = await prisma.project.findUnique({ where: { id: projectId } });
+      if (!project) {
+        return res.status(404).json({ success: false, message: 'Project not found' });
+      }
+
+      // Create the custom workflow definition
+      const customWorkflow = await prisma.customWorkflow.create({
+        data: {
+          name,
+          description: description || null,
+          createdById: userId,
+          isActive: true,
+          updatedAt: new Date()
+        }
+      });
+
+      // Create phases — use user-provided phases or default starter phase
+      const phaseList = (phases && phases.length > 0)
+        ? phases.map((p, i) => ({ phaseName: p.phaseName, displayOrder: i + 1, description: p.description || null }))
+        : [{ phaseName: 'Phase 1', displayOrder: 1, description: null }];
+
+      const createdPhases = [];
+      for (const phaseData of phaseList) {
+        const phase = await prisma.workflowPhase.create({
+          data: {
+            phaseName: phaseData.phaseName,
+            phaseType: null, // Custom phases don't use the enum
+            displayOrder: phaseData.displayOrder,
+            description: phaseData.description,
+            isActive: true,
+            isCurrent: true,
+            workflowType: 'CUSTOM',
+            customWorkflowId: customWorkflow.id,
+            version: 1
+          }
+        });
+        createdPhases.push(phase);
+        console.log(`✅ Created custom phase: ${phase.phaseName}`);
+      }
+
+      // Create a tracker linking this project to the custom workflow
+      const tracker = await prisma.projectWorkflowTracker.create({
+        data: {
+          projectId,
+          workflowType: 'CUSTOM',
+          customWorkflowId: customWorkflow.id,
+          isMainWorkflow: false,
+          tradeName: name,
+          currentPhaseId: createdPhases[0]?.id || null,
+          totalLineItems: 0,
+          updatedAt: new Date()
+        }
+      });
+
+      console.log(`✅ WORKFLOW: Custom workflow "${name}" created (id: ${customWorkflow.id})`);
+
+      res.status(201).json({
+        success: true,
+        data: {
+          id: customWorkflow.id,
+          name: customWorkflow.name,
+          description: customWorkflow.description,
+          trackerId: tracker.id,
+          phases: createdPhases.map(p => ({
+            id: p.id,
+            phaseName: p.phaseName,
+            displayOrder: p.displayOrder
+          }))
+        },
+        message: 'Custom workflow created successfully'
+      });
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error creating custom workflow:', error);
+      throw new AppError('Failed to create custom workflow', 500);
+    }
+  })
+);
+
+// @desc    Add a phase to a custom workflow
+// @route   POST /api/workflows/custom/:customWorkflowId/phases
+// @access  Private
+router.post('/custom/:customWorkflowId/phases',
+  [
+    body('phaseName').isString().isLength({ min: 1, max: 255 }).withMessage('Phase name is required'),
+    body('description').optional().isString().isLength({ max: 500 })
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { customWorkflowId } = req.params;
+    const { phaseName, description } = req.body;
+
+    try {
+      const customWorkflow = await prisma.customWorkflow.findUnique({
+        where: { id: customWorkflowId },
+        include: { phases: { orderBy: { displayOrder: 'desc' }, take: 1 } }
+      });
+
+      if (!customWorkflow) {
+        return res.status(404).json({ success: false, message: 'Custom workflow not found' });
+      }
+
+      const nextOrder = (customWorkflow.phases[0]?.displayOrder || 0) + 1;
+
+      const phase = await prisma.workflowPhase.create({
+        data: {
+          phaseName,
+          phaseType: null,
+          displayOrder: nextOrder,
+          description: description || null,
+          isActive: true,
+          isCurrent: true,
+          workflowType: 'CUSTOM',
+          customWorkflowId,
+          version: 1
+        }
+      });
+
+      console.log(`✅ WORKFLOW: Added phase "${phaseName}" to custom workflow ${customWorkflowId}`);
+
+      res.status(201).json({
+        success: true,
+        data: { id: phase.id, phaseName: phase.phaseName, displayOrder: phase.displayOrder },
+        message: 'Phase added successfully'
+      });
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error adding phase:', error);
+      throw new AppError('Failed to add phase', 500);
+    }
+  })
+);
+
+// @desc    Delete a custom workflow (cascade deletes phases, sections, items, tracker)
+// @route   DELETE /api/workflows/custom/:customWorkflowId
+// @access  Private (Admin)
+router.delete('/custom/:customWorkflowId', asyncHandler(async (req, res) => {
+  const { customWorkflowId } = req.params;
+
+  try {
+    const customWorkflow = await prisma.customWorkflow.findUnique({ where: { id: customWorkflowId } });
+    if (!customWorkflow) {
+      return res.status(404).json({ success: false, message: 'Custom workflow not found' });
+    }
+
+    // Cascade delete handles phases -> sections -> line items and trackers
+    await prisma.customWorkflow.delete({ where: { id: customWorkflowId } });
+
+    console.log(`✅ WORKFLOW: Deleted custom workflow ${customWorkflowId} ("${customWorkflow.name}")`);
+
+    res.status(200).json({
+      success: true,
+      data: { id: customWorkflowId },
+      message: 'Custom workflow deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting custom workflow:', error);
+    throw new AppError('Failed to delete custom workflow', 500);
+  }
+}));
+
+module.exports = router;
+
+// Helper: Recursive CTE to fetch all nested line items for a section
+async function fetchLineItemsRecursive(sectionId) {
+  const items = await prisma.$queryRaw`
+    WITH RECURSIVE item_tree AS (
+      SELECT id, "itemLetter", "itemName", "responsibleRole", "displayOrder",
+             description, "isActive", "estimatedMinutes", "alertDays",
+             section_id, parent_id, 0 AS depth
+      FROM workflow_line_items
+      WHERE section_id = ${sectionId} AND parent_id IS NULL AND "isActive" = true
+      UNION ALL
+      SELECT c.id, c."itemLetter", c."itemName", c."responsibleRole", c."displayOrder",
+             c.description, c."isActive", c."estimatedMinutes", c."alertDays",
+             c.section_id, c.parent_id, t.depth + 1
+      FROM workflow_line_items c
+      INNER JOIN item_tree t ON c.parent_id = t.id
+      WHERE c."isActive" = true
+    )
+    SELECT * FROM item_tree ORDER BY depth, "displayOrder"
+  `;
+  return buildItemTree(items);
+}
+
+function buildItemTree(flatItems) {
+  const map = {};
+  const roots = [];
+  for (const item of flatItems) {
+    map[item.id] = { ...item, children: [] };
+  }
+  for (const item of flatItems) {
+    if (item.parent_id && map[item.parent_id]) {
+      map[item.parent_id].children.push(map[item.id]);
+    } else {
+      roots.push(map[item.id]);
+    }
+  }
+  return roots;
+}
+
+// Export helpers for use in workflow-data.js
+module.exports.fetchLineItemsRecursive = fetchLineItemsRecursive;
+module.exports.buildItemTree = buildItemTree;
