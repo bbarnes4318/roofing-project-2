@@ -1695,6 +1695,142 @@ router.delete('/custom/:customWorkflowId', asyncHandler(async (req, res) => {
   }
 }));
 
+// @desc    Update a custom workflow (name, description)
+// @route   PUT /api/workflows/custom/:customWorkflowId
+// @access  Private
+router.put('/custom/:customWorkflowId',
+  [
+    body('name').optional().isString().isLength({ min: 1, max: 255 }),
+    body('description').optional().isString().isLength({ max: 500 })
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { customWorkflowId } = req.params;
+    const { name, description } = req.body;
+
+    try {
+      const customWorkflow = await prisma.customWorkflow.findUnique({ where: { id: customWorkflowId } });
+      if (!customWorkflow) {
+        return res.status(404).json({ success: false, message: 'Custom workflow not found' });
+      }
+
+      const updateData = { updatedAt: new Date() };
+      if (name !== undefined) updateData.name = name.trim();
+      if (description !== undefined) updateData.description = description.trim() || null;
+
+      const updated = await prisma.customWorkflow.update({
+        where: { id: customWorkflowId },
+        data: updateData
+      });
+
+      // Also update tradeName on the tracker so tabs reflect the new name
+      if (name !== undefined) {
+        await prisma.projectWorkflowTracker.updateMany({
+          where: { customWorkflowId },
+          data: { tradeName: name.trim() }
+        });
+      }
+
+      console.log(`✅ WORKFLOW: Updated custom workflow ${customWorkflowId} ("${updated.name}")`);
+
+      res.json({
+        success: true,
+        data: { id: updated.id, name: updated.name, description: updated.description },
+        message: 'Custom workflow updated successfully'
+      });
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error updating custom workflow:', error);
+      throw new AppError('Failed to update custom workflow', 500);
+    }
+  })
+);
+
+// @desc    Update a phase in a custom workflow
+// @route   PUT /api/workflows/custom/:customWorkflowId/phases/:phaseId
+// @access  Private
+router.put('/custom/:customWorkflowId/phases/:phaseId',
+  [
+    body('phaseName').optional().isString().isLength({ min: 1, max: 255 }),
+    body('description').optional().isString().isLength({ max: 500 }),
+    body('displayOrder').optional().isInt({ min: 1 })
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { customWorkflowId, phaseId } = req.params;
+    const { phaseName, description, displayOrder } = req.body;
+
+    try {
+      const phase = await prisma.workflowPhase.findFirst({
+        where: { id: phaseId, customWorkflowId }
+      });
+
+      if (!phase) {
+        return res.status(404).json({ success: false, message: 'Phase not found in this custom workflow' });
+      }
+
+      const updateData = { updatedAt: new Date() };
+      if (phaseName !== undefined) updateData.phaseName = phaseName.trim();
+      if (description !== undefined) updateData.description = description.trim() || null;
+      if (displayOrder !== undefined) updateData.displayOrder = displayOrder;
+
+      const updated = await prisma.workflowPhase.update({
+        where: { id: phaseId },
+        data: updateData
+      });
+
+      console.log(`✅ WORKFLOW: Updated phase "${updated.phaseName}" in custom workflow ${customWorkflowId}`);
+
+      res.json({
+        success: true,
+        data: { id: updated.id, phaseName: updated.phaseName, displayOrder: updated.displayOrder },
+        message: 'Phase updated successfully'
+      });
+    } catch (error) {
+      console.error('❌ WORKFLOW: Error updating phase:', error);
+      throw new AppError('Failed to update phase', 500);
+    }
+  })
+);
+
+// @desc    Delete a phase from a custom workflow
+// @route   DELETE /api/workflows/custom/:customWorkflowId/phases/:phaseId
+// @access  Private
+router.delete('/custom/:customWorkflowId/phases/:phaseId', asyncHandler(async (req, res) => {
+  const { customWorkflowId, phaseId } = req.params;
+
+  try {
+    const phase = await prisma.workflowPhase.findFirst({
+      where: { id: phaseId, customWorkflowId }
+    });
+
+    if (!phase) {
+      return res.status(404).json({ success: false, message: 'Phase not found in this custom workflow' });
+    }
+
+    // Cascade delete handles sections -> line items
+    await prisma.workflowPhase.delete({ where: { id: phaseId } });
+
+    console.log(`✅ WORKFLOW: Deleted phase "${phase.phaseName}" from custom workflow ${customWorkflowId}`);
+
+    res.json({
+      success: true,
+      data: { id: phaseId },
+      message: 'Phase deleted successfully'
+    });
+  } catch (error) {
+    console.error('❌ WORKFLOW: Error deleting phase:', error);
+    throw new AppError('Failed to delete phase', 500);
+  }
+}));
+
 module.exports = router;
 
 // Helper: Recursive CTE to fetch all nested line items for a section

@@ -382,6 +382,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   });
   const [creatingWorkflow, setCreatingWorkflow] = useState(false);
   
+  // Custom workflow edit states
+  const [showEditWorkflowModal, setShowEditWorkflowModal] = useState(false);
+  const [editWorkflowData, setEditWorkflowData] = useState(null); // { customWorkflowId, name, description, phases: [{ id, phaseName, isNew, isDeleted }] }
+  const [savingWorkflowEdit, setSavingWorkflowEdit] = useState(false);
+  
   // Sub-item inline creation state { [parentLineItemId]: { name, sectionId, saving } }
   const [inlineNewSubItem, setInlineNewSubItem] = useState({});
   
@@ -800,6 +805,86 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     }
   };
   
+  // Open edit modal for existing custom workflow
+  const openEditWorkflowModal = (workflowIndex) => {
+    const workflow = workflowData[workflowIndex];
+    if (!workflow || !workflow.customWorkflowId) return;
+    
+    setEditWorkflowData({
+      customWorkflowId: workflow.customWorkflowId,
+      name: workflow.tradeName || '',
+      description: '', // We don't store description in the tab data; user can update if needed
+      phases: workflow.phases.map(phase => ({
+        id: phase.phaseId,
+        phaseName: phase.label,
+        isNew: false,
+        isDeleted: false
+      }))
+    });
+    setShowEditWorkflowModal(true);
+  };
+  
+  // Save edits to custom workflow (name, phases)
+  const handleSaveWorkflowEdits = async (e) => {
+    e.preventDefault();
+    if (!editWorkflowData) return;
+    
+    setSavingWorkflowEdit(true);
+    try {
+      const { customWorkflowId, name, description, phases } = editWorkflowData;
+      
+      // 1. Update workflow name/description
+      await api.put(`/workflows/custom/${customWorkflowId}`, {
+        name: name.trim(),
+        description: description?.trim() || undefined
+      });
+      
+      // 2. Process phase changes
+      for (const phase of phases) {
+        if (phase.isDeleted && !phase.isNew) {
+          // Delete existing phase
+          await api.delete(`/workflows/custom/${customWorkflowId}/phases/${phase.id}`);
+        } else if (phase.isNew && !phase.isDeleted && phase.phaseName.trim()) {
+          // Create new phase
+          await api.post(`/workflows/custom/${customWorkflowId}/phases`, {
+            phaseName: phase.phaseName.trim()
+          });
+        } else if (!phase.isNew && !phase.isDeleted) {
+          // Update existing phase name if changed
+          await api.put(`/workflows/custom/${customWorkflowId}/phases/${phase.id}`, {
+            phaseName: phase.phaseName.trim()
+          });
+        }
+      }
+      
+      // 3. Refresh workflow data
+      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+      if (workflowResponse.data.success) {
+        const newData = workflowResponse.data.data;
+        setWorkflowData(newData);
+        
+        const tabs = newData.map((workflow) => ({
+          id: workflow.customWorkflowId || workflow.workflowType,
+          name: workflow.tradeName,
+          isMainWorkflow: workflow.isMainWorkflow,
+          completedCount: workflow.completedCount,
+          totalCount: workflow.totalCount,
+          progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
+        }));
+        setWorkflowTabs(tabs);
+      }
+      
+      setShowEditWorkflowModal(false);
+      setEditWorkflowData(null);
+      console.log('✅ Custom workflow updated successfully');
+    } catch (error) {
+      console.error('❌ Error updating custom workflow:', error);
+      alert(error?.response?.data?.message || 'Failed to update workflow.');
+    } finally {
+      setSavingWorkflowEdit(false);
+    }
+  };
+  
   const isItemChecked = (stepId) => {
     // Check immediate state first (highest priority)
     const immediateCheck = immediateState.has(stepId);
@@ -840,9 +925,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           
           // Set up workflow tabs
           const tabs = workflowResult.data.map((workflow, index) => ({
-            id: workflow.workflowType,
+            id: workflow.customWorkflowId || workflow.workflowType,
             name: workflow.tradeName,
             isMainWorkflow: workflow.isMainWorkflow,
+            isCustom: workflow.workflowType === 'CUSTOM',
+            customWorkflowId: workflow.customWorkflowId || null,
             completedCount: workflow.completedCount,
             totalCount: workflow.totalCount,
             progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
@@ -1430,6 +1517,11 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                       Main
                     </span>
                   )}
+                  {tab.isCustom && (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                      Custom
+                    </span>
+                  )}
                   <span className="text-xs text-gray-400">
                     {tab.completedCount}/{tab.totalCount}
                   </span>
@@ -1439,6 +1531,21 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                       style={{ width: `${tab.progress}%` }}
                     ></div>
                   </div>
+                  {tab.isCustom && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openEditWorkflowModal(index);
+                      }}
+                      className="ml-1 p-1 text-gray-400 hover:text-purple-600 rounded hover:bg-purple-50 transition-colors"
+                      title="Edit workflow"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </button>
             ))}
@@ -2323,6 +2430,155 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {creatingWorkflow ? 'Creating...' : 'Create Workflow'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Edit Custom Workflow Modal */}
+      {showEditWorkflowModal && editWorkflowData && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-white">
+            <div className="mt-3">
+              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
+                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </span>
+                Edit Custom Workflow
+              </h3>
+              <form onSubmit={handleSaveWorkflowEdits}>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Workflow Name *
+                  </label>
+                  <input
+                    type="text"
+                    autoFocus
+                    value={editWorkflowData.name}
+                    onChange={(e) => setEditWorkflowData(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Workflow name"
+                    required
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    value={editWorkflowData.description}
+                    onChange={(e) => setEditWorkflowData(prev => ({ ...prev, description: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="Update description (optional)"
+                    rows="2"
+                  />
+                </div>
+                
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Phases
+                  </label>
+                  <div className="space-y-2">
+                    {editWorkflowData.phases.map((phase, idx) => (
+                      <div 
+                        key={phase.id || `new-${idx}`} 
+                        className={`flex items-center gap-2 ${phase.isDeleted ? 'opacity-40' : ''}`}
+                      >
+                        <span className="text-xs text-gray-400 w-5">{idx + 1}.</span>
+                        <input
+                          type="text"
+                          value={phase.phaseName}
+                          disabled={phase.isDeleted}
+                          onChange={(e) => {
+                            const newPhases = [...editWorkflowData.phases];
+                            newPhases[idx] = { ...newPhases[idx], phaseName: e.target.value };
+                            setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                          }}
+                          className={`flex-1 px-2 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                            phase.isDeleted ? 'line-through bg-red-50 border-red-200' : 
+                            phase.isNew ? 'border-green-300 bg-green-50' : 'border-gray-300'
+                          }`}
+                          placeholder={`Phase ${idx + 1} name`}
+                        />
+                        {phase.isNew && !phase.isDeleted && (
+                          <span className="text-xs text-green-600 font-medium">NEW</span>
+                        )}
+                        {phase.isDeleted ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newPhases = [...editWorkflowData.phases];
+                              newPhases[idx] = { ...newPhases[idx], isDeleted: false };
+                              setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                            }}
+                            className="p-1 text-green-500 hover:text-green-700 text-xs font-medium"
+                            title="Undo delete"
+                          >
+                            Undo
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (phase.isNew) {
+                                // Just remove new phases immediately
+                                const newPhases = editWorkflowData.phases.filter((_, i) => i !== idx);
+                                setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                              } else {
+                                // Mark existing phases for deletion
+                                const activePhases = editWorkflowData.phases.filter(p => !p.isDeleted && p !== phase);
+                                if (activePhases.length === 0) {
+                                  alert('A workflow must have at least one phase.');
+                                  return;
+                                }
+                                const newPhases = [...editWorkflowData.phases];
+                                newPhases[idx] = { ...newPhases[idx], isDeleted: true };
+                                setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
+                              }
+                            }}
+                            className="p-1 text-gray-400 hover:text-red-500"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setEditWorkflowData(prev => ({ ...prev, phases: [...prev.phases, { id: null, phaseName: '', isNew: true, isDeleted: false }] }))}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-800 hover:bg-purple-50 rounded"
+                    >
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      </svg>
+                      Add Phase
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEditWorkflowModal(false);
+                      setEditWorkflowData(null);
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingWorkflowEdit || !editWorkflowData.name.trim()}
+                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {savingWorkflowEdit ? 'Saving...' : 'Save Changes'}
                   </button>
                 </div>
               </form>
