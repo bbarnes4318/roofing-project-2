@@ -1729,8 +1729,8 @@ const apiUrl = window.location.hostname === 'localhost'
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
                                     ? colorMode 
-                                        ? 'bg-[#F8FAFC] text-white shadow-md' 
-                                        : 'bg-[#F8FAFC] text-white shadow-md'
+                                        ? 'bg-neutral-700 text-white shadow-md' 
+                                        : 'bg-blue-50 text-blue-700 shadow-md'
                                     : colorMode 
                                         ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
                                 : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
@@ -1774,8 +1774,8 @@ const apiUrl = window.location.hostname === 'localhost'
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 ml-4 text-[9px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
                                     ? colorMode 
-                                        ? 'bg-[#F8FAFC] text-white shadow-md' 
-                                        : 'bg-[#F8FAFC] text-white shadow-md'
+                                        ? 'bg-neutral-700 text-white shadow-md' 
+                                        : 'bg-blue-50 text-blue-700 shadow-md'
                                     : colorMode 
                                         ? 'text-[#f2fcfe] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
                                         : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
@@ -1801,8 +1801,8 @@ const apiUrl = window.location.hostname === 'localhost'
                                         : 'text-gray-400 cursor-not-allowed opacity-50'
                                     : activePage === item.page && !navigationState.selectedProject 
                                         ? colorMode 
-                                            ? 'bg-[#F8FAFC] text-white shadow-md' 
-                                            : 'bg-[#F8FAFC] text-white shadow-md'
+                                            ? 'bg-neutral-700 text-white shadow-md' 
+                                            : 'bg-blue-50 text-blue-700 shadow-md'
                                         : colorMode 
                                             ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
                                     : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
