@@ -1613,15 +1613,28 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               ({currentWorkflow?.totalCount > 0 ? Math.round((currentWorkflow.completedCount / currentWorkflow.totalCount) * 100) : 0}%)
             </p>
           </div>
-          <button
-            onClick={() => setShowCreateWorkflowModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all shadow-sm"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            New Workflow
-          </button>
+          <div className="flex items-center gap-2">
+            {currentWorkflow?.workflowType === 'CUSTOM' && currentWorkflow?.customWorkflowId && (
+              <button
+                onClick={() => openEditWorkflowModal(activeWorkflowIndex)}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 hover:border-purple-300 transition-all shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Edit Workflow
+              </button>
+            )}
+            <button
+              onClick={() => setShowCreateWorkflowModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-all shadow-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Workflow
+            </button>
+          </div>
         </div>
       </div>
 
