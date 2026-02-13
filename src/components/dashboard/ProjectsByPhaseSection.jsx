@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSectionNavigation } from '../../contexts/NavigationContext';
 import BackButton from '../common/BackButton';
 import WorkflowProgressService from '../../services/workflowProgress';
+import api from '../../services/api';
 
 const ProjectsByPhaseSection = ({ 
   projectsByPhase, 
@@ -238,14 +239,10 @@ const ProjectsByPhaseSection = ({
         
         // Get project position data for proper targeting
         const projectId = project.id || project._id;
-        const positionResponse = await fetch(`/api/workflow-data/project-position/${projectId}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('authToken') || 'demo-sarah-owner-token-fixed-12345'}`
-          }
-        });
+        const positionResponse = await api.get(`/workflow-data/project-position/${projectId}`);
         
-        if (positionResponse.ok) {
-          const positionResult = await positionResponse.json();
+        if (positionResponse.data) {
+          const positionResult = positionResponse.data;
           if (positionResult.success && positionResult.data) {
             const position = positionResult.data;
             console.log('🎯 PROJECTS BY PHASE: Project position data:', position);
