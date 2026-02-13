@@ -483,7 +483,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
     return (
         <div className="animate-fade-in w-full max-w-full">
             {/* Header Section */}
-            <div className={`mb-4 p-4 rounded-xl shadow-lg ${colorMode ? 'bg-gradient-to-r from-[#1e293b] to-[#334155] border border-[#3b82f6]/20' : 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200'}`}>
+            <div className={`mb-4 p-4 rounded-xl shadow-lg ${colorMode ? 'bg-[#F8FAFC] border border-[#3b82f6]/20' : 'bg-[#F8FAFC] border border-blue-200'}`}>
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-3">
                     <div className="flex-1">
                         <p className={`text-sm ${colorMode ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -513,8 +513,8 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
                             onClick={handleAddEvent}
                             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 shadow-lg ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
-                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                                    ? 'bg-[#F8FAFC] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
+                                    : 'bg-[#F8FAFC] text-white hover:from-blue-700 hover:to-indigo-700'
                             }`}
                         >
                             <PlusCircleIcon className="w-3 h-3" />
@@ -588,7 +588,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
             {/* Calendar Grid */}
             <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                 {/* Day Headers */}
-                <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                <div className={`grid grid-cols-7 ${colorMode ? 'bg-[#F8FAFC] border-b border-[#3b82f6]/40' : 'bg-[#F8FAFC] border-b border-gray-200'}`}>
                     {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                         <div key={day} className={`p-2 text-center text-xs font-bold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                             {day}
@@ -611,7 +611,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
                             {/* Date Number */}
                             <div className={`text-xs font-bold mb-1 ${
                                 isToday(day.date) 
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
+                                    ? 'bg-[#F8FAFC] text-white rounded-full w-5 h-5 flex items-center justify-center shadow-md' 
                                     : isSelected(day.date)
                                         ? `${colorMode ? 'text-blue-400' : 'text-blue-600'} font-bold`
                                         : day.isCurrentMonth 
@@ -650,7 +650,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
 
             {/* Event Modal */}
             {showEventModal && selectedEvent && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
                     <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
@@ -715,8 +715,8 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
                                         }}
                                         className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
                                             colorMode 
-                                                ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
-                                                : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                                                ? 'bg-[#F8FAFC] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
+                                                : 'bg-[#F8FAFC] text-white hover:from-blue-700 hover:to-indigo-700'
                                         }`}
                                     >
                                         View Project
@@ -730,7 +730,7 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
 
             {/* Add Event Modal */}
             {showAddEventModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
                     <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
@@ -902,8 +902,8 @@ const AlertsCalendarPage = ({ projects, tasks, activities, colorMode, onProjectS
                                     onClick={handleSubmitNewEvent}
                                     className={`flex-1 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 shadow-md ${
                                         colorMode 
-                                            ? 'bg-gradient-to-r from-[#3b82f6] to-[#2563eb] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
-                                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                                            ? 'bg-[#F8FAFC] text-white hover:from-[#2563eb] hover:to-[#1d4ed8]' 
+                                            : 'bg-[#F8FAFC] text-white hover:from-blue-700 hover:to-indigo-700'
                                     }`}
                                 >
                                     Create Event

@@ -991,23 +991,23 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
     return (
         <div className="animate-fade-in w-full max-w-full">
             {/* Premium Header Section */}
-            <div className={`mb-4 rounded-2xl overflow-hidden ${colorMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-white via-slate-50 to-white'} shadow-xl border ${colorMode ? 'border-white/10' : 'border-slate-200'}`}>
+            <div className={`mb-4 rounded-2xl overflow-hidden ${colorMode ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'} shadow-xl border ${colorMode ? 'border-white/10' : 'border-slate-200'}`}>
                 
                 {/* Top Bar: Actions & Controls */}
-                <div className={`px-6 py-4 ${colorMode ? 'bg-gradient-to-r from-blue-600/10 via-purple-600/5 to-blue-600/10' : 'bg-gradient-to-r from-blue-50 via-white to-indigo-50'}`}>
+                <div className={`px-6 py-4 ${colorMode ? 'bg-gradient-to-r from-blue-600/10 via-purple-600/5 to-blue-600/10' : 'bg-[#F8FAFC]'}`}>
                     <div className="flex items-center justify-between gap-6">
                         
                         {/* Left Section: View Controls & Quick Actions */}
                         <div className="flex items-center gap-4">
                             {/* View Mode Selector */}
-                            <div className={`flex items-center rounded-xl p-1 ${colorMode ? 'bg-slate-800/80 backdrop-blur-sm' : 'bg-white shadow-sm border border-slate-200'}`}>
+                            <div className={`flex items-center rounded-xl p-1 ${colorMode ? 'bg-slate-800/80' : 'bg-white shadow-sm border border-slate-200'}`}>
                                 {['month', 'week', 'day'].map(mode => (
                                     <button
                                         key={mode}
                                         onClick={() => setViewMode(mode)}
                                         className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all duration-300 ${
                                             viewMode === mode
-                                                ? `${colorMode ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg shadow-blue-500/25' : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-600/25'}`
+                                                ? `${colorMode ? 'bg-[#F8FAFC] text-white shadow-lg shadow-blue-500/25' : 'bg-[#F8FAFC] text-white shadow-lg shadow-blue-600/25'}`
                                                 : `${colorMode ? 'text-slate-400 hover:text-white hover:bg-slate-700/50' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'}`
                                         }`}
                                     >
@@ -1031,7 +1031,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 </button>
 
                                 {/* View Toggle - Segmented Control */}
-                                <div className={`flex items-center rounded-xl p-1 ${colorMode ? 'bg-slate-800/80 backdrop-blur-sm' : 'bg-white shadow-sm border border-slate-200'}`}>
+                                <div className={`flex items-center rounded-xl p-1 ${colorMode ? 'bg-slate-800/80' : 'bg-white shadow-sm border border-slate-200'}`}>
                                     <button
                                         onClick={() => setCalendarView('team')}
                                         className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${
@@ -1093,7 +1093,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 className={`relative flex items-center gap-3 px-5 py-3 rounded-2xl transition-all duration-300 ${
                                     colorMode 
                                         ? 'bg-gradient-to-r from-slate-800/90 to-slate-700/90 border border-slate-600/50 shadow-lg shadow-slate-900/30 hover:shadow-xl hover:shadow-slate-900/40 hover:border-slate-500/50' 
-                                        : 'bg-gradient-to-r from-white to-slate-50 border border-slate-200/80 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-slate-300/50 hover:border-blue-200'
+                                        : 'bg-[#F8FAFC] border border-slate-200/80 shadow-lg shadow-slate-200/50 hover:shadow-xl hover:shadow-slate-300/50 hover:border-blue-200'
                                 }`}
                                 style={{ minWidth: '380px' }}
                             >
@@ -1101,7 +1101,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 <div className={`flex items-center justify-center w-10 h-10 rounded-xl transition-all duration-300 ${
                                     colorMode 
                                         ? 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-500/30' 
-                                        : 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100'
+                                        : 'bg-[#F8FAFC] border border-blue-100'
                                 }`}>
                                     <svg className={`w-5 h-5 ${colorMode ? 'text-blue-400' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -1131,7 +1131,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                 <div className={`flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 cursor-pointer ${
                                     colorMode 
                                         ? 'bg-slate-700/60 border border-slate-600/50 hover:bg-slate-600/60' 
-                                        : 'bg-gradient-to-r from-slate-50 to-slate-100 border border-slate-200 hover:from-[var(--color-brand-aqua-blue-light-tint)] hover:to-[var(--color-brand-aqua-blue-light-tint)] hover:border-[var(--color-brand-aqua-blue)]'
+                                        : 'bg-[#F8FAFC] border border-slate-200 hover:from-[var(--color-brand-aqua-blue-light-tint)] hover:to-[var(--color-brand-aqua-blue-light-tint)] hover:border-[var(--color-brand-aqua-blue)]'
                                 }`}>
                                     <svg className={`w-4 h-4 ${colorMode ? 'text-slate-400' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -1192,7 +1192,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     className={`flex items-center gap-2 px-4 py-3 rounded-xl font-semibold text-sm transition-all duration-300 ${
                                         colorMode 
                                             ? 'bg-gradient-to-r from-red-500/20 to-rose-500/20 text-red-300 border border-red-500/30 hover:from-red-500/30 hover:to-rose-500/30 hover:border-red-400/50' 
-                                            : 'bg-gradient-to-r from-red-50 to-rose-50 text-red-600 border border-red-200 hover:from-red-100 hover:to-rose-100 hover:border-red-300'
+                                            : 'bg-[#F8FAFC] text-red-600 border border-red-200 hover:from-red-100 hover:to-rose-100 hover:border-red-300'
                                     }`}
                                 >
                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1396,14 +1396,14 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {showSearchResults && searchResults.length > 0 && (
                 <div className={`mb-4 rounded-2xl overflow-hidden shadow-xl ${
                     colorMode 
-                        ? 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 border border-[var(--color-brand-aqua-blue)]/20' 
-                        : 'bg-gradient-to-br from-white via-slate-50 to-[var(--color-brand-aqua-blue-light-tint)] border border-[var(--color-brand-aqua-blue)]/30'
+                        ? 'bg-[#F8FAFC] border border-[var(--color-brand-aqua-blue)]/20' 
+                        : 'bg-[#F8FAFC] border border-[var(--color-brand-aqua-blue)]/30'
                 }`}>
                     {/* Header */}
                     <div className={`px-5 py-4 flex items-center justify-between ${
                         colorMode 
                             ? 'bg-[var(--color-brand-aqua-blue)]/10 border-b border-slate-700/50' 
-                            : 'bg-gradient-to-r from-[var(--color-brand-aqua-blue-light-tint)] via-white to-[var(--color-brand-aqua-blue-light-tint)] border-b border-slate-200'
+                            : 'bg-[#F8FAFC] border-b border-slate-200'
                     }`}>
                         <div className="flex items-center gap-3">
                             <div className={`flex items-center justify-center w-9 h-9 rounded-xl ${
@@ -1504,7 +1504,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
                                     <div className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold ${
                                         colorMode 
                                             ? 'bg-slate-800 text-slate-300 border border-slate-700' 
-                                            : 'bg-gradient-to-r from-slate-100 to-slate-50 text-slate-600 border border-slate-200'
+                                            : 'bg-[#F8FAFC] text-slate-600 border border-slate-200'
                                     }`}>
                                         {event.eventType || 'Event'}
                                     </div>
@@ -1548,7 +1548,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {viewMode === 'month' && (
                 <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                     {/* Day Headers */}
-                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-[#F8FAFC] border-b border-[#3b82f6]/40' : 'bg-[#F8FAFC] border-b border-gray-200'}`}>
                         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
                             <div key={day} className={`p-2 text-center text-xs font-bold ${colorMode ? 'text-gray-300' : 'text-gray-700'}`}>
                                 {day}
@@ -1630,7 +1630,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {viewMode === 'week' && (
                 <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                     {/* Day Headers with Dates */}
-                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                    <div className={`grid grid-cols-7 ${colorMode ? 'bg-[#F8FAFC] border-b border-[#3b82f6]/40' : 'bg-[#F8FAFC] border-b border-gray-200'}`}>
                         {getDaysInWeek(selectedDate).map((day, index) => (
                             <div 
                                 key={index} 
@@ -1686,7 +1686,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
             {viewMode === 'day' && (
                 <div className={`rounded-lg shadow-lg border overflow-hidden ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                     {/* Day Header */}
-                    <div className={`p-4 text-center ${colorMode ? 'bg-gradient-to-r from-[#0f172a] to-[#1e293b] border-b border-[#3b82f6]/40' : 'bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200'}`}>
+                    <div className={`p-4 text-center ${colorMode ? 'bg-[#F8FAFC] border-b border-[#3b82f6]/40' : 'bg-[#F8FAFC] border-b border-gray-200'}`}>
                         <div className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-900'}`}>
                             {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
                         </div>
@@ -1748,7 +1748,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
 
             {/* Event Modal */}
             {showEventModal && selectedEvent && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
                     <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">
@@ -1993,10 +1993,10 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
 
             {/* Expanded Day Events Modal - Shows all events for a day */}
             {expandedDayEvents && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
                     <div className={`rounded-xl shadow-2xl max-w-lg w-full mx-4 max-h-[80vh] overflow-hidden border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         {/* Header */}
-                        <div className={`p-5 ${colorMode ? 'bg-gradient-to-r from-[var(--color-brand-aqua-blue)]/20 to-[var(--color-brand-deep-teal)]/20 border-b border-[#3b82f6]/30' : 'bg-gradient-to-r from-[var(--color-brand-aqua-blue-light-tint)] to-blue-50 border-b border-gray-200'}`}>
+                        <div className={`p-5 ${colorMode ? 'bg-gradient-to-r from-[var(--color-brand-aqua-blue)]/20 to-[var(--color-brand-deep-teal)]/20 border-b border-[#3b82f6]/30' : 'bg-[#F8FAFC] border-b border-gray-200'}`}>
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className={`text-lg font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
@@ -2099,7 +2099,7 @@ const CompanyCalendarPage = ({ projects, tasks, activities, colorMode, onProject
 
             {/* Add Event Modal */}
             {showAddEventModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] backdrop-blur-sm">
+                <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999]">
                     <div className={`rounded-xl shadow-2xl max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto border ${colorMode ? 'bg-[#1e293b] border-[#3b82f6]/30' : 'bg-white border-gray-200'}`}>
                         <div className="p-6">
                             <div className="flex items-center justify-between mb-6">

@@ -313,7 +313,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
 
             {/* Project Messages Tab */}
             {tab === 'project' && (
-                <div className={`w-full rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
+                <div className={`w-full rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-[#F8FAFC] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
                     <div className="flex flex-col h-full">
                         {/* Header with Add Message Dropdown */}
                         <div className={`p-4 border-b ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-200 bg-gray-50'}`}>
@@ -330,7 +330,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                                     className={`w-full px-2 py-1.5 text-xs font-medium border rounded-lg transition-all duration-300 flex items-center justify-between ${
                                         showMessageDropdown
                                             ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-soft' 
-                                            : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
+                                            : 'border-gray-200 bg-white text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
                                     }`}
                                 >
                                     <span>+ Add Message</span>
@@ -578,7 +578,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
 
             {/* Direct Messages Tab */}
             {tab === 'dm' && (
-            <div className={`w-full flex rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-gradient-to-br from-[#232b4d] via-[#181f3a] to-[#232b4d] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
+            <div className={`w-full flex rounded-2xl shadow-lg border overflow-hidden h-[calc(100vh-300px)] ${colorMode ? 'bg-[#F8FAFC] border-[#3b82f6]/40' : 'bg-white border-gray-200'}`}> 
                 {/* Coworker sidebar */}
                 <div className={`w-44 flex-shrink-0 border-r ${colorMode ? 'border-[#3b82f6]/30 bg-[#181f3a]' : 'border-gray-100 bg-gray-50'} py-3 px-2 flex flex-col`}> 
                   <div className="font-bold text-xs mb-2 px-2 text-gray-400 uppercase tracking-wider">Coworkers</div>
@@ -615,7 +615,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                   </div>
                   
                   {/* Messages - condensed content area */}
-                  <div className={`flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-2 custom-scrollbar ${colorMode ? 'bg-gradient-to-br from-[#312e81] to-[#0e7490]' : 'bg-gradient-to-br from-[#fdf6e3] to-[#e0f2fe]'}`}>
+                  <div className={`flex-1 overflow-y-auto px-4 py-2 flex flex-col gap-2 custom-scrollbar ${colorMode ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'}`}>
                     {(chats[selectedCoworkerId] || []).length === 0 ? (
                       <div className="text-xs text-gray-400 text-center mt-4">No messages yet. Start the conversation below!</div>
                     ) : (
@@ -631,11 +631,11 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                               <div className={`px-3 py-1.5 rounded-xl shadow-md border font-medium whitespace-pre-line transition-all duration-200
                                 ${isMe
                                   ? (colorMode
-                                      ? 'bg-gradient-to-r from-[#3b82f6] to-[#1e293b] text-white border-transparent'
+                                      ? 'bg-[#F8FAFC] text-white border-transparent'
                                       : 'bg-[var(--color-primary-blueprint-blue)] text-white border-transparent')
                                   : (colorMode
-                                      ? 'bg-gradient-to-r from-[#a78bfa] to-[#38bdf8] text-white border-[#f472b6]/40'
-                                      : 'bg-gradient-to-r from-[#ede9fe] to-[#a7f3d0] text-gray-900 border-[#a78bfa]/40')
+                                      ? 'bg-[#F8FAFC] text-white border-[#f472b6]/40'
+                                      : 'bg-[#F8FAFC] text-gray-900 border-[#a78bfa]/40')
                                 }`}>
                                 {msg.text}
                               </div>
@@ -663,7 +663,7 @@ const ProjectMessagesPage = ({ project, activities, onAddActivity, colorMode, pr
                     />
                     <button
                       type="submit"
-                      className="bg-gradient-to-r from-[#3b82f6] to-[#1e293b] text-white font-bold py-1 px-4 rounded-xl text-xs shadow-md hover:from-[#1e293b] hover:to-[#3b82f6] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      className="bg-[#F8FAFC] text-white font-bold py-1 px-4 rounded-xl text-xs shadow-md hover:from-[#1e293b] hover:to-[#3b82f6] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       aria-label="Send message"
                     >
                       Send

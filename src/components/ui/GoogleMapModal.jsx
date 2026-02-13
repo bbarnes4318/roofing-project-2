@@ -99,10 +99,10 @@ const GoogleMapModal = ({ isOpen, onClose, address }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex-shrink-0 rounded-t-2xl">
+        <div className="bg-[#F8FAFC] text-white px-6 py-4 flex-shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Project Location</h2>
@@ -110,7 +110,7 @@ const GoogleMapModal = ({ isOpen, onClose, address }) => {
             </div>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-white/20 transition-colors"
+              className="p-2 rounded-lg hover:bg-white transition-colors"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

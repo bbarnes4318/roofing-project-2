@@ -84,7 +84,7 @@ const EmailHistoryList = ({ emails, onEmailClick, loading, emptyMessage }) => {
                       className="w-10 h-10 rounded-full"
                     />
                   ) : (
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-aqua-blue to-accent-vibrant-green flex items-center justify-center text-white font-semibold">
+                    <div className="w-10 h-10 rounded-full bg-[#F8FAFC] flex items-center justify-center text-white font-semibold">
                       {email.senderName?.charAt(0) || email.senderEmail?.charAt(0) || 'U'}
                     </div>
                   )}

@@ -16,7 +16,7 @@ const ProjectCard = ({ project, className = '' }) => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-blue-50 to-blue-100">
+          <div className="w-full h-full flex items-center justify-center bg-[#F8FAFC]">
             <span className="text-gray-400 text-sm">Project Image</span>
           </div>
         )}

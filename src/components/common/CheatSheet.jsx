@@ -127,8 +127,8 @@ export function CheatSheetModal({ visible, onClose = () => {}, colorMode = false
                 rel="noreferrer"
                 className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-center ${
                   colorMode 
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500' 
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500'
+                    ? 'bg-[#F8FAFC] text-white hover:from-blue-500 hover:to-purple-500' 
+                    : 'bg-[#F8FAFC] text-white hover:from-blue-500 hover:to-purple-500'
                 } transition shadow-md`}
               >
                 🚀 Advanced Features

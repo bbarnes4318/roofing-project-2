@@ -178,7 +178,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
             <div className="bg-white shadow-md rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between mb-3 p-4">
                     <div>
-                        <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+                        <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
                             Messages, Tasks, & Reminders
                         </h2>
                         {expandedMessages.size > 0 && (
@@ -195,7 +195,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                             className={`px-2 py-1 text-xs font-medium rounded-md border transition-all duration-300 ${
                                 expandedMessages.size === getCurrentItems().length && getCurrentItems().length > 0
                                     ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                                    : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
+                                    : 'bg-white text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
                             }`}
                             title="Expand all"
                             disabled={getCurrentItems().length === 0 || expandedMessages.size === getCurrentItems().length}
@@ -210,7 +210,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                             className={`px-2 py-1 text-xs font-medium rounded-md border transition-all duration-300 ${
                                 expandedMessages.size === 0
                                     ? 'bg-gray-500 text-white border-gray-500'
-                                    : 'bg-white/80 text-gray-600 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                                    : 'bg-white text-gray-600 border-gray-200 hover:bg-white hover:border-gray-300 hover:shadow-soft'
                             }`}
                             title="Collapse all"
                             disabled={expandedMessages.size === 0}
@@ -279,7 +279,7 @@ const ActivityFeedPage = ({ activities, projects, onProjectSelect, onAddActivity
                     <div className="space-y-2">
                         {getCurrentItems().length === 0 ? (
                             <div className="text-center py-16">
-                                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center">
+                                <div className="w-20 h-20 mx-auto mb-6 bg-[#F8FAFC] rounded-full flex items-center justify-center">
                                     <svg className="w-10 h-10 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                                     </svg>

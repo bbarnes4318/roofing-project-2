@@ -642,7 +642,7 @@ const ProjectProfilePage = ({
     }
 
     return (
-        <div className={`min-h-screen ${colorMode ? 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900' : 'bg-gradient-to-br from-gray-50 via-white to-gray-100'}`}>
+        <div className={`min-h-screen ${colorMode ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'}`}>
             {/* Header Section */}
             <div className="p-6">
                 <div className="flex items-center justify-between mb-6">
@@ -655,7 +655,7 @@ const ProjectProfilePage = ({
                             />
                         )}
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                            <h1 className="text-3xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-2">
                                 Project Profile
                             </h1>
                             <p className="text-gray-600">
@@ -752,7 +752,7 @@ const ProjectProfilePage = ({
                             setNewProject({...defaultNewProject, ...defaultRoles});
                             setIsModalOpen(true);
                         }}
-                        className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
+                        className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#F8FAFC] text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                     >
                         <span className="text-lg">+</span>
                         <span>Add New Project</span>
@@ -761,7 +761,7 @@ const ProjectProfilePage = ({
                 
                 {/* Selected Project Information - Complete View */}
                 {selectedProject && (
-                    <div className={`${colorMode ? 'bg-slate-800/90' : 'bg-white/90'} backdrop-blur-sm border ${colorMode ? 'border-slate-600/50' : 'border-gray-200/50'} shadow-soft rounded-2xl p-6 mb-6`}>
+                    <div className={`${colorMode ? 'bg-slate-800/90' : 'bg-white'} border ${colorMode ? 'border-slate-600/50' : 'border-gray-200/50'} shadow-soft rounded-2xl p-6 mb-6`}>
                         {/* Project Header */}
                         <div className="flex items-center justify-between mb-6">
                             <div>
@@ -888,7 +888,7 @@ const ProjectProfilePage = ({
                                         <div className="md:col-span-2">
                                             <div className={`text-sm font-medium ${colorMode ? 'text-gray-300' : 'text-gray-600'} mb-1`}>Lead Source</div>
                                             <div className={`flex items-center gap-3 p-3 rounded-md ${colorMode ? 'bg-slate-700/40' : 'bg-white'} border ${colorMode ? 'border-slate-600' : 'border-gray-100'}`}>
-                                                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gradient-to-br from-blue-50 to-blue-100 text-blue-700 font-semibold">
+                                                <div className="flex items-center justify-center w-10 h-10 rounded-md bg-[#F8FAFC] text-blue-700 font-semibold">
                                                     🔎
                                                 </div>
                                                 <div className="flex-1">
@@ -1334,8 +1334,8 @@ const ProjectProfilePage = ({
                                         <div 
                                             className={`h-full rounded-full transition-all duration-500 ease-out ${
                                                 getProjectProgress(selectedProject) === 100 
-                                                    ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
-                                                    : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                                                    ? 'bg-[#F8FAFC]' 
+                                                    : 'bg-[#F8FAFC]'
                                             }`}
                                             style={{ width: `${getProjectProgress(selectedProject)}%` }}
                                         >
@@ -1356,7 +1356,7 @@ const ProjectProfilePage = ({
             {/* Project Listings Section */}
             <div className="px-6 pb-6">
                 {/* Filter and Search Controls */}
-                <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-4 mb-6">
+                <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-4 mb-6">
                     <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
                         <div className="flex flex-col md:flex-row gap-4 items-center">
                             <input
@@ -1393,7 +1393,7 @@ const ProjectProfilePage = ({
                 </div>
                 
                 {/* Current Projects */}
-                <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 mb-6">
+                <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6 mb-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-bold text-gray-900">Current Projects</h2>
                         {getTotalPages(currentProjects) > 1 && (
@@ -1447,7 +1447,7 @@ const ProjectProfilePage = ({
                 </div>
                 
                 {/* Past Projects */}
-                <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6">
+                <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-xl font-bold text-gray-900">Past Projects</h2>
                         {getTotalPages(pastProjects) > 1 && (
@@ -1959,7 +1959,7 @@ const ProjectListCard = ({
                     </div>
                     <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
                         <div 
-                            className="h-full bg-gradient-to-r from-brand-500 to-red-500 rounded-full transition-all duration-300"
+                            className="h-full bg-[#F8FAFC] rounded-full transition-all duration-300"
                             style={{ width: `${getProjectProgress(project)}%` }}
                         ></div>
                     </div>

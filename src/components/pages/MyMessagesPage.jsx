@@ -496,7 +496,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                                 className={`w-8 h-8 rounded-full object-cover ${hasUnread ? 'ring-2 ring-red-500 ring-offset-1' : ''}`}
                               />
                             ) : (
-                              <div className={`w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium ${hasUnread ? 'ring-2 ring-red-500 ring-offset-1' : ''}`}>
+                              <div className={`w-8 h-8 bg-[#F8FAFC] rounded-full flex items-center justify-center text-white text-sm font-medium ${hasUnread ? 'ring-2 ring-red-500 ring-offset-1' : ''}`}>
                                 {getUserInitials(member)}
                               </div>
                             )}
@@ -553,7 +553,7 @@ const MyMessagesPage = ({ colorMode, projects, onProjectSelect, navigationContex
                           className="w-10 h-10 rounded-full object-cover"
                         />
                       ) : (
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center text-white font-medium">
+                        <div className="w-10 h-10 bg-[#F8FAFC] rounded-full flex items-center justify-center text-white font-medium">
                           {getUserInitials(selectedUser)}
                         </div>
                       )}

@@ -71,7 +71,7 @@ const MTRFilters = ({
                                  activityFeedItems.filter(i => i.type === 'reminder').length;
               return expandedMessages.size === currentCount && currentCount > 0
                 ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
+                : 'bg-white text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
             })()
           }`}
           title="Expand all alert details"
@@ -99,7 +99,7 @@ const MTRFilters = ({
                                     activityFeedItems.filter(i => i.type === 'reminder' && expandedMessages.has(i.id)).length;
               return currentExpanded === 0
                 ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
-                : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft';
+                : 'bg-white text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft';
             })()
           }`}
           title="Collapse all alert details"

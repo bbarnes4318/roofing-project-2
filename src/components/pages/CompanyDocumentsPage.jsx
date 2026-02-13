@@ -383,7 +383,7 @@ const DraggableItem = ({
           <div className="mb-6 relative">
             {isFolder ? (
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl flex items-center justify-center">
+                <div className="w-20 h-20 bg-[#F8FAFC] rounded-2xl flex items-center justify-center">
                   {isExpanded ? (
                     <FolderOpenIcon className="w-10 h-10 text-blue-600" />
                   ) : (
@@ -396,7 +396,7 @@ const DraggableItem = ({
               </div>
             ) : (
               <div className="relative">
-                <div className="w-20 h-20 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl flex items-center justify-center">
+                <div className="w-20 h-20 bg-[#F8FAFC] rounded-2xl flex items-center justify-center">
                   <div className="scale-125">
                     {getFileIcon(item.mimeType, item.title)}
                   </div>
@@ -556,7 +556,7 @@ const DraggableItem = ({
         <div className="relative">
           <div className="w-10 h-10 rounded-lg flex items-center justify-center">
             {isFolder ? (
-              <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-[#F8FAFC] rounded-lg flex items-center justify-center">
                 {isExpanded ? (
                   <FolderOpenIcon className="w-6 h-6 text-blue-600" />
                 ) : (
@@ -564,7 +564,7 @@ const DraggableItem = ({
                 )}
               </div>
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-gray-50 to-gray-100 rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-[#F8FAFC] rounded-lg flex items-center justify-center">
                 <div className="scale-110">
                   {getFileIcon(item.mimeType, item.title)}
                 </div>
@@ -1280,7 +1280,7 @@ const CompanyDocumentsPage = ({ colorMode }) => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3 mb-2">
                     <div className="flex-shrink-0">
-                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-[#F8FAFC] rounded-lg flex items-center justify-center">
                         <FolderIcon className="w-4 h-4 text-white" />
                       </div>
                     </div>

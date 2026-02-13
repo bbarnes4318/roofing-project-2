@@ -123,7 +123,7 @@ const EstimateComparisonTool = ({ onBack }) => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-12 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <div className="max-w-7xl mx-auto px-6 py-12 bg-[#F8FAFC] min-h-screen">
       {/* Upload & Control Area */}
       <div className="bg-white rounded-2xl shadow-xl p-10 border border-gray-200 mb-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">

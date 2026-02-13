@@ -350,10 +350,10 @@ const ProjectsByPhaseSection = ({
   };
 
   return (
-    <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="project-phases">
+    <div className="mb-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="project-phases">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+          <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
             Current Projects by Phase
           </h2>
           <p className="text-sm text-gray-600 font-medium">
@@ -438,7 +438,7 @@ const ProjectsByPhaseSection = ({
               {/* Phase Header */}
               <button
                 onClick={() => togglePhaseExpansion(phase.id)}
-                className="w-full px-6 py-4 bg-gradient-to-r from-gray-50 to-white hover:from-gray-100 hover:to-gray-50 transition-colors duration-200 text-left"
+                className="w-full px-6 py-4 bg-[#F8FAFC] hover:from-gray-100 hover:to-gray-50 transition-colors duration-200 text-left"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">

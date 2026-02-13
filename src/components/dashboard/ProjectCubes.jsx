@@ -179,7 +179,7 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
 
   if (allProjects.length === 0) {
     return (
-      <div className={`rounded-2xl shadow-lg p-8 ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'}`}>
+      <div className={`rounded-2xl shadow-lg p-8 ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-[#F8FAFC] border border-gray-200'}`}>
         <div className="text-center">
           <div className="text-5xl mb-4 opacity-60">📋</div>
           <h3 className={`text-xl font-semibold mb-3 ${colorMode ? 'text-white' : 'text-gray-800'}`}>No Projects Available</h3>
@@ -192,12 +192,12 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
   }
 
   return (
-    <div className={`rounded-2xl shadow-lg overflow-hidden ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-gradient-to-br from-white to-gray-50 border border-gray-200'}`}>
+    <div className={`rounded-2xl shadow-lg overflow-hidden ${colorMode ? 'bg-gradient-to-br from-slate-800/90 to-slate-900/90 border border-slate-700/50' : 'bg-[#F8FAFC] border border-gray-200'}`}>
       {/* Header Section */}
-      <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white/80'} rounded-t-2xl`}>
+      <div className={`px-6 py-5 border-b ${colorMode ? 'border-slate-700/50 bg-slate-800/50' : 'border-gray-200 bg-white'} rounded-t-2xl`}>
         <div className="flex items-center justify-between">
           <div className="flex-1">
-            <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">Current Project Access</h2>
+            <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">Current Project Access</h2>
             {/* Subtitle removed per request */}
           </div>
           
@@ -750,20 +750,20 @@ const ProjectCubes = ({ projects, onProjectSelect, colorMode }) => {
           onClick={() => setShowProjectDropdown(false)}
         >
           {/* Backdrop */}
-          <div className="fixed inset-0 bg-blue-950/95 backdrop-blur-sm"></div>
+          <div className="fixed inset-0 bg-blue-950/95"></div>
           
           {/* Modal */}
           <div 
             className={`relative z-10 w-80 max-w-[85vw] max-h-[70vh] rounded-2xl shadow-2xl border-0 transition-all duration-300 overflow-hidden ${
-              colorMode ? 'bg-slate-800/95 border-slate-600/50' : 'bg-white/95 border-gray-200/50'
+              colorMode ? 'bg-slate-800/95 border-slate-600/50' : 'bg-white border-gray-200/50'
             }`}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={`px-6 py-4 border-b ${colorMode ? 'border-slate-600/50 bg-gradient-to-r from-slate-800 to-slate-700' : 'border-gray-200/50 bg-gradient-to-r from-gray-50 to-white'}`}>
+            <div className={`px-6 py-4 border-b ${colorMode ? 'border-slate-600/50 bg-[#F8FAFC]' : 'border-gray-200/50 bg-[#F8FAFC]'}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`p-2.5 rounded-xl bg-gradient-to-br from-brand-500 to-brand-600 shadow-lg`}>
+                  <div className={`p-2.5 rounded-xl bg-[#F8FAFC] shadow-lg`}>
                     <span className="text-white text-lg">📄</span>
                   </div>
                   <div>

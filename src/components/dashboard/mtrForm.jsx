@@ -79,7 +79,7 @@ const MTRForm = ({
         className={`w-full px-2 py-1.5 text-xs font-medium border rounded-lg transition-all duration-300 flex items-center justify-between ${
           showMessageDropdown
             ? 'border-brand-400 bg-brand-50 text-brand-700 shadow-soft' 
-            : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
+            : 'border-gray-200 bg-white text-gray-700 hover:bg-white hover:border-brand-400 hover:text-brand-600'
         }`}
       >
         <span>{activeCommTab === 'messages' ? '+ Add Message' : activeCommTab === 'tasks' ? '+ Add Task' : '+ Add Reminder'}</span>

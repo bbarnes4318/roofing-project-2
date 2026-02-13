@@ -139,10 +139,10 @@ const AIToolsPage = ({ colorMode }) => {
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
               <div className="absolute top-2 right-2">
-                <span className={`text-xs font-semibold px-2 py-1 rounded-full border backdrop-blur-sm ${
+                <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${
                   colorMode 
                     ? 'bg-[#1e293b]/80 text-gray-300 border-[#3b82f6]/30' 
-                    : 'bg-white/80 text-gray-700 border-gray-200'
+                    : 'bg-white text-gray-700 border-gray-200'
                 }`}>
                   {tool.category}
                 </span>

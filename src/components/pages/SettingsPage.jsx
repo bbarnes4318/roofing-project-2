@@ -871,7 +871,7 @@ const SettingsPage = ({ colorMode, setColorMode, currentUser, onUserUpdated }) =
               />
             </div>
           ) : (
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white' : 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'}`}>
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold ${colorMode ? 'bg-[#F8FAFC] text-white' : 'bg-[#F8FAFC] text-white'}`}>
               {`${(currentUser?.firstName || 'U').charAt(0).toUpperCase()}${(currentUser?.lastName || '').charAt(0).toUpperCase()}`}
             </div>
           )}

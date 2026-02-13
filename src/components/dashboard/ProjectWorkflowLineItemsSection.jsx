@@ -166,11 +166,11 @@ const ProjectWorkflowLineItemsSection = ({
   return (
     <div className="w-full" data-section="project-workflow-tasks">
       {/* Beautiful original alerts UI with new functionality */}
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
+      <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
         <div className="mb-4">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+              <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
                 Project Workflow Line Items
               </h2>
               {expandedAlerts.size > 0 && (
@@ -188,7 +188,7 @@ const ProjectWorkflowLineItemsSection = ({
               <select 
                 value={alertProjectFilter} 
                 onChange={(e) => setAlertProjectFilter(e.target.value)} 
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
               >
                 <option value="all">All Projects</option>
                 <option value="general">General</option>
@@ -200,7 +200,7 @@ const ProjectWorkflowLineItemsSection = ({
               <select 
                 value={alertUserGroupFilter} 
                 onChange={(e) => setAlertUserGroupFilter(e.target.value)} 
-                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
+                className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
               >
                 <option value="all">All Roles</option>
                 <option value="PM">Project Manager</option>
@@ -224,7 +224,7 @@ const ProjectWorkflowLineItemsSection = ({
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                 expandedAlerts.size === getPaginatedAlerts().length && getPaginatedAlerts().length > 0
                   ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                  : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
+                  : 'bg-white text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft'
               }`}
                 title="Expand all alert details"
                 disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === getPaginatedAlerts().length}
@@ -239,7 +239,7 @@ const ProjectWorkflowLineItemsSection = ({
                 className={`px-1.5 py-1.5 text-xs font-medium rounded-md border transition-all duration-300 ${
                 expandedAlerts.size === 0 || getPaginatedAlerts().length === 0
                   ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
-                  : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
+                  : 'bg-white text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
               }`}
                 title="Collapse all alert details"
                 disabled={getPaginatedAlerts().length === 0 || expandedAlerts.size === 0}
@@ -683,7 +683,7 @@ const ProjectWorkflowLineItemsSection = ({
                           className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
                             actionLoading[`${alertId}-complete`] 
                               ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed' 
-                              : 'bg-gradient-to-r from-green-500 to-green-600 text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
+                              : 'bg-[#F8FAFC] text-white border-green-500 hover:from-green-600 hover:to-green-700 hover:border-green-600 shadow-sm hover:shadow-md'
                           }`}
                         >
                           {actionLoading[`${alertId}-complete`] ? (
@@ -714,7 +714,7 @@ const ProjectWorkflowLineItemsSection = ({
                           className={`flex-1 px-2 py-1 text-[9px] font-semibold rounded border transition-all duration-200 ${
                             actionLoading[`${alertId}-assign`]
                               ? 'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed'
-                              : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white border-brand-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
+                              : 'bg-[#F8FAFC] text-white border-brand-500 hover:from-blue-600 hover:to-blue-700 hover:border-blue-600 shadow-sm hover:shadow-md'
                           }`}
                         >
                           <span className="flex items-center justify-center">

@@ -45,7 +45,7 @@ const BubblesButton = ({ currentProject = null, colorMode = false, className = "
         <button
           onClick={handleToggleChat}
           className={`group relative w-16 h-16 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 flex items-center justify-center
-            ${colorMode ? 'bg-gradient-to-r from-blue-600 to-purple-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'}
+            ${colorMode ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'}
             ${isChatOpen ? 'rotate-12' : ''}`}
         >
           <SparklesIcon className="w-8 h-8 text-white transition-transform group-hover:scale-110" />

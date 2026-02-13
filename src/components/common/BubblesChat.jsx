@@ -851,7 +851,7 @@ const BubblesChat = ({
 
   return (
     <div className={`fixed bottom-4 right-4 z-50 ${className}`} style={{ paddingRight: 'env(safe-area-inset-right)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
-      <div className={`rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 backdrop-blur-xl ${
+      <div className={`rounded-2xl shadow-2xl border flex flex-col transition-all duration-300 ${
         colorMode
           ? 'bg-white border-blue-400/30 text-gray-900 shadow-blue-500/20'
           : 'bg-white border-gray-200/80 text-gray-900 shadow-blue-200/40'
@@ -861,7 +861,7 @@ const BubblesChat = ({
           colorMode ? 'border-blue-400/20 bg-white' : 'border-gray-200/80 bg-white'
         }`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-gradient-to-br from-[#0089D1] to-[#0069B5]">
+            <div className="w-10 h-10 rounded-full flex items-center justify-center shadow-lg bg-[#F8FAFC]">
               <SparklesIcon className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -886,7 +886,7 @@ const BubblesChat = ({
             <div className="relative">
               <button
                 onClick={() => setShowCheatSheet(prev => !prev)}
-                className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`}
                 title="Quick help"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 9h.01M12 5a4 4 0 10-4 4m0 0v1a3 3 0 006 0V9a3 3 0 00-3-3"/></svg>
@@ -899,8 +899,8 @@ const BubblesChat = ({
             </div>
             <button 
               onClick={() => setShowChatHistory(!showChatHistory)} 
-              className={`p-2 rounded-full transition-colors relative ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'} ${
-                showChatHistory ? (colorMode ? 'bg-white/20' : 'bg-blue-100') : ''
+              className={`p-2 rounded-full transition-colors relative ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'} ${
+                showChatHistory ? (colorMode ? 'bg-white' : 'bg-blue-100') : ''
               }`} 
               title="Chat History"
             >
@@ -911,10 +911,10 @@ const BubblesChat = ({
                 </span>
               )}
             </button>
-            <button onClick={handleClearChat} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Clear Chat"><TrashIcon className="w-5 h-5" /></button>
-            <button onClick={handleResetConversation} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Reset Conversation"><ClockIcon className="w-5 h-5" /></button>
-            {onMinimize && <button onClick={onMinimize} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Minimize"><ChevronDownIcon className="w-5 h-5" /></button>}
-            <button onClick={onClose} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`} title="Close"><XCircleIcon className="w-5 h-5" /></button>
+            <button onClick={handleClearChat} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`} title="Clear Chat"><TrashIcon className="w-5 h-5" /></button>
+            <button onClick={handleResetConversation} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`} title="Reset Conversation"><ClockIcon className="w-5 h-5" /></button>
+            {onMinimize && <button onClick={onMinimize} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`} title="Minimize"><ChevronDownIcon className="w-5 h-5" /></button>}
+            <button onClick={onClose} className={`p-2 rounded-full transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`} title="Close"><XCircleIcon className="w-5 h-5" /></button>
           </div>
         </div>
 
@@ -924,8 +924,8 @@ const BubblesChat = ({
         {/* Chat History Panel */}
         {showChatHistory && (
           <div className={`absolute top-0 left-0 w-full h-full z-20 rounded-2xl overflow-hidden ${
-            colorMode ? 'bg-slate-900/95' : 'bg-white/95'
-          } backdrop-blur-xl flex flex-col`}>
+            colorMode ? 'bg-slate-900/95' : 'bg-white'
+          } flex flex-col`}>
             {/* History Header */}
             <div className={`flex items-center justify-between p-4 border-b sticky top-0 z-30 ${
               colorMode ? 'border-slate-700 bg-slate-800/50' : 'border-gray-200 bg-gray-50/50'
@@ -1099,7 +1099,7 @@ const BubblesChat = ({
           )}
           {!isLoading && messages.length === 0 && (
             <div className="flex flex-col justify-center items-center h-full text-center p-8">
-              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 mb-4">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center bg-[#F8FAFC] mb-4">
                 <SparklesIcon className="w-8 h-8 text-[#0089D1]" />
               </div>
               <h3 className={`text-lg font-semibold mb-2 ${colorMode ? 'text-white' : 'text-gray-900'}`}>
@@ -1242,7 +1242,7 @@ const BubblesChat = ({
 
         {/* Composer Modal */}
         {isComposerOpen && (
-          <div className={`px-4 pb-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/40' : 'border-gray-200/80 bg-white/70'}`}>
+          <div className={`px-4 pb-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/40' : 'border-gray-200/80 bg-white'}`}>
             <div className="mb-2 text-sm font-semibold flex items-center gap-2"><ChatBubbleLeftRightIcon className="w-4 h-4" /> Send Project Message</div>
             <div className="grid grid-cols-1 gap-2">
               <div>
@@ -1272,7 +1272,7 @@ const BubblesChat = ({
                 <textarea value={composerBody} onChange={e => setComposerBody(e.target.value)} rows={3} className={`w-full text-sm rounded-md border px-2 py-1 resize-none ${colorMode ? 'bg-slate-800 border-slate-600' : 'bg-white border-gray-300'}`} placeholder="Type your message..." />
               </div>
               <div className="flex items-center justify-end gap-2 mt-1">
-                <button onClick={() => setIsComposerOpen(false)} className={`text-xs px-3 py-1 rounded-md border ${colorMode ? 'border-slate-600 hover:bg-white/10' : 'border-gray-300 hover:bg-gray-50'}`}>Cancel</button>
+                <button onClick={() => setIsComposerOpen(false)} className={`text-xs px-3 py-1 rounded-md border ${colorMode ? 'border-slate-600 hover:bg-white' : 'border-gray-300 hover:bg-gray-50'}`}>Cancel</button>
                 <button onClick={submitProjectMessage} disabled={isSendingMessage || !composerBody.trim()} className={`text-xs px-3 py-1 rounded-md text-white flex items-center gap-1 ${isSendingMessage || !composerBody.trim() ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#7ED242] hover:bg-[#6BC22E]'}`}>
                   <ChatBubbleLeftRightIcon className="w-4 h-4" />
                   {isSendingMessage ? 'Sending...' : 'Send'}
@@ -1283,7 +1283,7 @@ const BubblesChat = ({
         )}
 
         {/* Input */}
-        <div className={`p-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/50' : 'border-gray-200/80 bg-white/50'}`}>
+        <div className={`p-3 border-t ${colorMode ? 'border-blue-400/20 bg-slate-900/50' : 'border-gray-200/80 bg-white'}`}>
           <div className="flex items-center gap-2">
             <input
               ref={inputRef}

@@ -35,7 +35,7 @@ const ProjectProgressPanel = ({
           </div>
           <button
             onClick={onClose}
-            className={`p-2 rounded-lg hover:bg-opacity-10 transition-colors ${colorMode ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+            className={`p-2 rounded-lg hover:bg-opacity-10 transition-colors ${colorMode ? 'hover:bg-white' : 'hover:bg-gray-100'}`}
             aria-label="Close Progress Panel"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,7 +67,7 @@ const ProjectProgressPanel = ({
             <div className={`w-full h-3 rounded-full overflow-hidden shadow-inner ${colorMode ? 'bg-slate-700' : 'bg-gray-200'}`}>
               <div
                 className={`h-full rounded-full transition-all duration-700 ease-out ${
-                  overallProgress === 100 ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                  overallProgress === 100 ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'
                 }`}
                 style={{ width: `${Math.min(overallProgress || 0, 100)}%` }}
               >
@@ -119,7 +119,7 @@ const ProjectProgressPanel = ({
             </div>
             <div className={`${colorMode ? 'bg-slate-700' : 'bg-gray-200'} w-full h-2 rounded-full overflow-hidden shadow-inner`}>
               <div
-                className="h-full rounded-full bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-500 ease-out"
+                className="h-full rounded-full bg-[#F8FAFC] transition-all duration-500 ease-out"
                 style={{ width: `${getProjectProgress(project)}%` }}
               >
                 {getProjectProgress(project) > 15 && (
@@ -140,7 +140,7 @@ const ProjectProgressPanel = ({
             </div>
             <div className={`${colorMode ? 'bg-slate-700' : 'bg-gray-200'} w-full h-2 rounded-full overflow-hidden shadow-inner`}>
               <div
-                className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-500 ease-out"
+                className="h-full rounded-full bg-[#F8FAFC] transition-all duration-500 ease-out"
                 style={{ width: `${getProjectProgress(project)}%` }}
               >
                 {getProjectProgress(project) > 15 && (

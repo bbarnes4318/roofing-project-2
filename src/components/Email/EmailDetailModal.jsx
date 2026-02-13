@@ -69,7 +69,7 @@ const EmailDetailModal = ({ emailId, email: initialEmail, onClose }) => {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-border-silver bg-gradient-to-r from-brand-aqua-blue to-accent-vibrant-green">
+        <div className="flex items-center justify-between p-6 border-b border-border-silver bg-[#F8FAFC]">
           <div className="flex items-center gap-3 text-white">
             <FiMail className="w-6 h-6" />
             <h2 className="text-xl font-bold">Email Details</h2>
@@ -114,7 +114,7 @@ const EmailDetailModal = ({ emailId, email: initialEmail, onClose }) => {
                         className="w-8 h-8 rounded-full"
                       />
                     ) : (
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-aqua-blue to-accent-vibrant-green flex items-center justify-center text-white text-sm font-semibold">
+                      <div className="w-8 h-8 rounded-full bg-[#F8FAFC] flex items-center justify-center text-white text-sm font-semibold">
                         {email.senderName?.charAt(0) || 'U'}
                       </div>
                     )}

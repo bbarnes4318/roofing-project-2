@@ -1729,11 +1729,11 @@ const apiUrl = window.location.hostname === 'localhost'
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
                                     ? colorMode 
-                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                        ? 'bg-[#F8FAFC] text-white shadow-md' 
+                                        : 'bg-[#F8FAFC] text-white shadow-md'
                                     : colorMode 
                                         ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
                             }`}>
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
                                 {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
@@ -1741,7 +1741,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         ) : item.isDropdown ? (
                             <div key={item.name} className="relative group">
                                 <button
-                                    className={`w-full text-left flex items-center gap-3 py-2.5 px-4 font-bold rounded-lg uppercase tracking-wide text-[9px] transition-all duration-200 ${colorMode ? 'text-[#f2fcfe] hover:bg-[#232526]/60' : 'text-gray-700 hover:bg-white/80'}`}
+                                    className={`w-full text-left flex items-center gap-3 py-2.5 px-4 font-bold rounded-lg uppercase tracking-wide text-[9px] transition-all duration-200 ${colorMode ? 'text-[#f2fcfe] hover:bg-[#232526]/60' : 'text-gray-700 hover:bg-white'}`}
                                     tabIndex={0}
                                     aria-haspopup="true"
                                     aria-expanded="false"
@@ -1751,7 +1751,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     {!sidebarCollapsed && <span className="ml-auto"><ChevronDownIcon className="w-3 h-3" /></span>}
                                 </button>
                                 {/* Dropdown menu */}
-                                <div className="absolute left-0 top-full z-20 min-w-[180px] bg-gradient-to-b from-[#232b4d] to-[#181f3a] shadow-xl rounded-lg py-2 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none transition-all duration-200 border border-[#3b82f6] text-white" style={{marginTop: 2}}>
+                                <div className="absolute left-0 top-full z-20 min-w-[180px] bg-[#F8FAFC] shadow-xl rounded-lg py-2 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none transition-all duration-200 border border-[#3b82f6] text-white" style={{marginTop: 2}}>
                                     {item.children.map((child) => (
                                         <button
                                             key={child.name}
@@ -1774,11 +1774,11 @@ const apiUrl = window.location.hostname === 'localhost'
                                 className={`w-full text-left flex items-center gap-3 py-2 px-4 ml-4 text-[9px] font-semibold rounded-lg transition-all duration-200 ${
                                 activePage === item.page && !navigationState.selectedProject 
                                     ? colorMode 
-                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                        ? 'bg-[#F8FAFC] text-white shadow-md' 
+                                        : 'bg-[#F8FAFC] text-white shadow-md'
                                     : colorMode 
                                         ? 'text-[#f2fcfe] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                        : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                        : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
                                 }`}> 
                                 <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
                                 {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
@@ -1801,11 +1801,11 @@ const apiUrl = window.location.hostname === 'localhost'
                                         : 'text-gray-400 cursor-not-allowed opacity-50'
                                     : activePage === item.page && !navigationState.selectedProject 
                                         ? colorMode 
-                                            ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                            : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
+                                            ? 'bg-[#F8FAFC] text-white shadow-md' 
+                                            : 'bg-[#F8FAFC] text-white shadow-md'
                                         : colorMode 
                                             ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                    : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
+                                    : 'text-gray-700 hover:bg-white hover:text-primary-700 hover:shadow-soft'
                             }`}>
                             <span className="w-4 h-4 flex items-center justify-center relative">
                                 {item.icon}
@@ -1934,7 +1934,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         />
                                     </div>
                                 ) : (
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                    <div className="w-8 h-8 bg-[#F8FAFC] rounded-full flex items-center justify-center text-white font-semibold text-sm">
                                         {getUserInitials(currentUser)}
                                     </div>
                                 )}

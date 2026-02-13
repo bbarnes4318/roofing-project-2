@@ -132,15 +132,15 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
 
   const modalContent = (
     <div
-      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70 backdrop-blur-md"
+      className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/70"
       onClick={handleBackdropClick}
       style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <div className="relative w-[90vw] h-[90vh] max-w-[1600px] bg-white rounded-xl shadow-2xl overflow-hidden" onClick={(e) => e.stopPropagation()}>
         {/* Professional Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 text-white border-b border-slate-600 shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4 bg-[#F8FAFC] text-white border-b border-slate-600 shadow-lg">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-lg flex items-center justify-center border border-white/20">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center border border-white/20">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -156,7 +156,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                   </span>
                 )}
                 {fileType && (
-                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-white/15 backdrop-blur-sm text-white uppercase tracking-wider border border-white/20">
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-white text-white uppercase tracking-wider border border-white/20">
                     {fileType}
                   </span>
                 )}
@@ -170,7 +170,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                   window.open(documentUrl, '_blank', 'noopener,noreferrer');
                 }
               }}
-              className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-sm text-white text-sm font-medium rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-white text-white text-sm font-medium rounded-lg hover:bg-white transition-all duration-200 border border-white/20"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
@@ -179,7 +179,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
             </button>
             <button
               onClick={onClose}
-              className="p-2 hover:bg-white/20 rounded-lg transition-all duration-200 group"
+              className="p-2 hover:bg-white rounded-lg transition-all duration-200 group"
             >
               <svg className="w-6 h-6 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -189,7 +189,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
         </div>
 
         {/* Content Area */}
-        <div className="h-[calc(100%-5rem)] overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100">
+        <div className="h-[calc(100%-5rem)] overflow-hidden bg-[#F8FAFC]">
           {loading && (
             <div className="flex flex-col items-center justify-center h-full">
               <div className="relative mb-6">
@@ -242,7 +242,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
                           iframe.contentWindow.print();
                         }
                       }}
-                      className="px-4 py-2.5 bg-white/95 backdrop-blur-sm text-gray-700 text-sm font-medium rounded-lg hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 border border-gray-200"
+                      className="px-4 py-2.5 bg-white text-gray-700 text-sm font-medium rounded-lg hover:bg-white transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2 border border-gray-200"
                     >
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
@@ -310,7 +310,7 @@ const DocumentViewerModal = ({ document, isOpen, onClose }) => {
               )}
 
               {['word', 'excel', 'unknown'].includes(fileType) && (
-                <div className="flex flex-col items-center justify-center h-full p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <div className="flex flex-col items-center justify-center h-full p-8 bg-[#F8FAFC]">
                   <div className="text-center max-w-md">
                     <div className="w-24 h-24 mb-6 bg-blue-100 rounded-2xl flex items-center justify-center mx-auto">
                       <svg className="w-12 h-12 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

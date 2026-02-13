@@ -619,10 +619,10 @@ const CurrentAlertsSection = ({
   const uniqueProjects = getUniqueProjects();
 
   return (
-    <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="current-alerts">
+    <div className="mb-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6" data-section="current-alerts">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl leading-tight font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+          <h2 className="text-2xl leading-tight font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
             Current Alerts
           </h2>
           <p className="text-[15px] leading-snug text-gray-600 font-medium">

@@ -573,10 +573,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4">
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[99999] p-4">
       <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] flex flex-col animate-fade-in">
         {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 flex-shrink-0 rounded-t-2xl">
+        <div className="bg-[#F8FAFC] text-white px-6 py-3 flex-shrink-0 rounded-t-2xl">
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-xl font-bold">Create New Project</h2>
@@ -586,7 +586,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 resetForm();
                 onClose();
               }}
-              className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
+              className="p-1.5 rounded-lg hover:bg-white transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -613,7 +613,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 </div>
                 {index < STEPS.length - 1 && (
                   <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
-                    currentStep > step.id ? 'bg-white' : 'bg-white/30'
+                    currentStep > step.id ? 'bg-white' : 'bg-white'
                   }`} />
                 )}
               </div>

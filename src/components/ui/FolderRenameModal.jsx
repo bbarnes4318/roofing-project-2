@@ -54,7 +54,7 @@ const FolderRenameModal = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className={`rounded-2xl shadow-2xl max-w-md w-full ${
         colorMode ? 'bg-slate-800' : 'bg-white'
       }`}>

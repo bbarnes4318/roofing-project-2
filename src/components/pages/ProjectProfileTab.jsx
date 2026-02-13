@@ -1494,7 +1494,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
       <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-soft">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-[#F8FAFC] rounded-full flex items-center justify-center">
               <ChartBarIcon className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -1529,8 +1529,8 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
             <div 
               className={`h-full rounded-full transition-all duration-500 ease-out ${
                 overall === 100 
-                  ? 'bg-gradient-to-r from-green-500 to-emerald-600' 
-                  : 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                  ? 'bg-[#F8FAFC]' 
+                  : 'bg-[#F8FAFC]'
               }`}
               style={{ width: `${overall}%` }}
             >
@@ -1549,7 +1549,7 @@ const ProjectProfileTab = ({ project, colorMode, onProjectSelect }) => {
           </div>
           <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-green-500 to-emerald-600 rounded-full transition-all duration-500"
+              className="h-full bg-[#F8FAFC] rounded-full transition-all duration-500"
               style={{ width: `${materialsProgress}%` }}
             />
           </div>

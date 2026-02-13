@@ -332,7 +332,7 @@ const RolesTabComponentFixed = ({
         <div className={`border-b rounded-t-xl p-4 shadow-sm ${
           colorMode 
             ? 'bg-gradient-to-r from-blue-900/20 to-purple-900/20 border-blue-500/30' 
-            : 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200'
+            : 'bg-[#F8FAFC] border-blue-200'
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

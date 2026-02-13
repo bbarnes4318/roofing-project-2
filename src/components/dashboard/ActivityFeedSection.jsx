@@ -168,11 +168,11 @@ const ActivityFeedSection = ({
   return (
     <>
     <div className="w-full flex flex-col" data-section="activity-feed">
-      <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible flex-1 min-h-[800px]">
+      <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible flex-1 min-h-[800px]">
         <div className="mb-3">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+              <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
                 Activity Feed
               </h2>
               <div className="text-xs text-gray-500">
@@ -193,7 +193,7 @@ const ActivityFeedSection = ({
                     // Disabled (White) if ALL expanded (size === count)
                     return state.expandedItems.size < currentCount && currentCount > 0
                       ? 'bg-brand-500 text-white border-brand-500 shadow-brand-glow'
-                      : 'bg-white/80 text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
+                      : 'bg-white text-brand-600 border-gray-200 hover:bg-white hover:border-brand-300 hover:shadow-soft';
                   })()
                 }`}
                 title="Expand all activity details"
@@ -215,7 +215,7 @@ const ActivityFeedSection = ({
                   // Disabled (White) if NONE expanded (size === 0)
                   state.expandedItems.size > 0
                     ? 'bg-orange-500 text-white border-orange-500 shadow-accent-glow'
-                    : 'bg-white/80 text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
+                    : 'bg-white text-orange-600 border-gray-200 hover:bg-white hover:border-orange-300 hover:shadow-soft'
                 }`}
                 title="Collapse all activity details"
                 disabled={state.expandedItems.size === 0}
@@ -233,7 +233,7 @@ const ActivityFeedSection = ({
           <select
             value={activityProjectFilter}
             onChange={(e) => setActivityProjectFilter(e.target.value)}
-            className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
+            className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[120px]"
           >
             <option value="">All Projects</option>
             {(projects || []).map(p => (
@@ -243,7 +243,7 @@ const ActivityFeedSection = ({
           <select
             value={activityTypeFilter || ''}
             onChange={(e) => setActivityTypeFilter(e.target.value)}
-            className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white/80 text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
+            className="text-xs font-medium px-2 py-1 rounded-lg border border-gray-200 bg-white text-gray-700 hover:border-gray-300 hover:bg-white transition-all duration-300 min-w-[100px]"
           >
             <option value="">All Types</option>
             <option value="message">Messages</option>

@@ -40,7 +40,7 @@ const CustomerEmailHistory = ({ customerId }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-brand-aqua-blue to-accent-vibrant-green rounded-lg p-6 text-white">
+      <div className="bg-[#F8FAFC] rounded-lg p-6 text-white">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <FiMail className="w-8 h-8" />

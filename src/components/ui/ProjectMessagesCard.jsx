@@ -508,10 +508,10 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                 <div className="relative">
                     <div 
                         ref={dropdownRef}
-                        className={`absolute top-full left-0 z-50 mt-1 w-80 rounded-lg shadow-lg border backdrop-blur-sm ${
+                        className={`absolute top-full left-0 z-50 mt-1 w-80 rounded-lg shadow-lg border ${
                             colorMode 
                                 ? 'bg-slate-800/95 border-slate-600/50 shadow-black/20' 
-                                : 'bg-white/95 border-gray-200/50 shadow-gray-900/10'
+                                : 'bg-white border-gray-200/50 shadow-gray-900/10'
                         }`}
                         style={{
                             animation: 'fadeIn 0.15s ease-out'
@@ -906,8 +906,8 @@ const ProjectMessagesCard = ({ activity, onProjectSelect, projects, colorMode, o
                                             {/* User avatar */}
                                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs shadow-sm ${
                                                 message.user === 'You' 
-                                                    ? 'bg-gradient-to-br from-green-500 to-green-600' 
-                                                    : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                                    ? 'bg-[#F8FAFC]' 
+                                                    : 'bg-[#F8FAFC]'
                                             }`}>
                                                 {message.user.split(' ').map(n => n[0]).join('').substring(0, 2)}
                                             </div>

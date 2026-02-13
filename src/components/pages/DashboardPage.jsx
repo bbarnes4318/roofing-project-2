@@ -1535,7 +1535,7 @@ const DashboardPage = ({ tasks, activities, onProjectSelect, onAddActivity, colo
       <div className="flex flex-col lg:flex-row gap-6 items-start overflow-visible">
         {/* Left Column - Project Messages */}
         <div className="w-full lg:flex-1 flex flex-col gap-6" data-section="project-messages">
-          <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
+          <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6 relative overflow-visible">
             <MTRHeader
               activeCommTab={activeCommTab}
               setActiveCommTab={setActiveCommTab}

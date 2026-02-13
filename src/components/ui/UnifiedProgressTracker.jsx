@@ -220,7 +220,7 @@ const UnifiedProgressTracker = ({ project, colorMode, onNavigateToWorkflow }) =>
                                 <div className="mt-4">
                                     <button
                                         onClick={handleNavigateToWorkflow}
-                                        className={`w-full py-2 px-4 rounded-md transition-colors font-semibold ${colorMode ? 'hover:bg-white/10' : 'btn-secondary'}`}
+                                        className={`w-full py-2 px-4 rounded-md transition-colors font-semibold ${colorMode ? 'hover:bg-white' : 'btn-secondary'}`}
                                         style={colorMode ? {
                                             backgroundColor: 'rgba(148, 163, 184, 0.25)',
                                             color: 'var(--color-surface-white)',

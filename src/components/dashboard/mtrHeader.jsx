@@ -10,7 +10,7 @@ const MTRHeader = ({
     <div className="mb-4">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+          <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
             Messages, Tasks, & Reminders
           </h2>
           {expandedMessages.size > 0 && (

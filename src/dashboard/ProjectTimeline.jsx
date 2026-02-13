@@ -25,7 +25,7 @@ export default function ProjectTimeline({ timeline = [], currentStep = 0 }) {
   const currentProgress = totalPhases > 0 ? (completedPhases / totalPhases) * 100 : 0;
 
   return (
-    <div className="card-surface backdrop-blur-sm rounded-xl shadow-soft border border-gray-200/50 p-4">
+    <div className="card-surface rounded-xl shadow-soft border border-gray-200/50 p-4">
       <div className="flex items-center gap-2 mb-4">
         <div
           className="w-8 h-8 rounded-lg flex items-center justify-center"

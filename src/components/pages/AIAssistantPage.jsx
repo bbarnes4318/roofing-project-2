@@ -2354,7 +2354,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             `}</style>
             
             {/* Header with project selector - Compact and clean */}
-            <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
+            <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-[#F8FAFC] relative">
                 <div className="flex items-center justify-between gap-4">
                     {/* Enhanced Project selector dropdown - Left aligned */}
                     <div className="flex-1 max-w-2xl relative">
@@ -3186,8 +3186,8 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                             <div key={index} className={`flex flex-col ${isBubbles ? 'items-start' : 'items-end'}`}>
                                                 <div className={`max-w-[85%] rounded-xl px-4 py-3 shadow-sm ${
                                                     isBubbles 
-                                                        ? 'bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200' 
-                                                        : 'bg-gradient-to-br from-gray-50 to-white border border-gray-200'
+                                                        ? 'bg-[#F8FAFC] border border-blue-200' 
+                                                        : 'bg-[#F8FAFC] border border-gray-200'
                                                 }`}>
                                                     <div className="flex items-center gap-2 mb-1.5">
                                                         <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${

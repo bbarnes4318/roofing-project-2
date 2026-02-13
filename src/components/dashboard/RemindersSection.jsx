@@ -72,7 +72,7 @@ const RemindersSection = ({
         if (reminderItems.length === 0) {
           return (
             <div className="text-center py-16">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-amber-100 to-amber-200 rounded-full flex items-center justify-center">
+              <div className="w-20 h-20 mx-auto mb-6 bg-[#F8FAFC] rounded-full flex items-center justify-center">
                 <svg className="w-10 h-10 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>

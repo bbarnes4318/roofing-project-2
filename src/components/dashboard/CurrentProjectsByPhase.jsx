@@ -55,10 +55,10 @@ const CurrentProjectsByPhase = ({
       : projects.filter((p) => String(getProjectPhase(p)).toUpperCase() === String(selectedPhase).toUpperCase());
 
   return (
-    <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-4" data-section="project-phases">
+    <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-4" data-section="project-phases">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+          <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
             Current Projects by Phase
           </h2>
           {/* Subtitle intentionally omitted to match established UI */}
@@ -74,7 +74,7 @@ const CurrentProjectsByPhase = ({
             className={`h-12 px-4 text-sm font-semibold rounded-xl transition-all duration-300 border-2 flex items-center justify-center gap-2 hover:shadow-medium flex-shrink-0 ${
               selectedPhase === 'all'
                 ? 'border-blue-600 bg-blue-50 shadow-medium text-blue-800'
-                : 'border-gray-200 bg-white/80 text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                : 'border-gray-200 bg-white text-gray-700 hover:bg-white hover:border-gray-300 hover:shadow-soft'
             }`}
             style={{ minWidth: 72 }}
           >
@@ -111,7 +111,7 @@ const CurrentProjectsByPhase = ({
                   className={`min-h-14 py-2 px-4 text-base font-semibold rounded-2xl transition-all duration-300 border-2 flex items-center justify-center gap-3 hover:shadow-medium ${
                     selectedPhase === phase.id
                       ? 'border-blue-500 bg-blue-50 shadow-medium text-blue-900'
-                      : 'border-gray-200 bg-white/90 text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
+                      : 'border-gray-200 bg-white text-gray-800 hover:bg-white hover:border-gray-300 hover:shadow-soft'
                   }`}
                 >
                   <div
@@ -461,7 +461,7 @@ const CurrentProjectsByPhase = ({
                           </button>
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <div className="flex-1 h-8 bg-gradient-to-r from-gray-100 to-gray-200 rounded-lg overflow-hidden relative border border-gray-300 shadow-sm">
+                              <div className="flex-1 h-8 bg-[#F8FAFC] rounded-lg overflow-hidden relative border border-gray-300 shadow-sm">
                                 <div 
                                   className="h-full transition-all duration-700 ease-out relative"
                                   style={{ 

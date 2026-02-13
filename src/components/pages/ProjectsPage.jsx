@@ -537,10 +537,10 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
         return (
             <div 
                 data-project-id={String(project.id)}
-                className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl hover:shadow-medium transition-all duration-300 overflow-hidden hover:-translate-y-1"
+                className="bg-white border border-gray-200/50 shadow-soft rounded-2xl hover:shadow-medium transition-all duration-300 overflow-hidden hover:-translate-y-1"
             >
                 {/* Condensed Header */}
-                <div className="px-4 py-4 bg-gradient-to-r from-gray-50 to-white">
+                <div className="px-4 py-4 bg-[#F8FAFC]">
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${phaseColors.bg} ${phaseColors.text} text-sm font-bold shadow-sm`}>
@@ -570,7 +570,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     {/* Progress Bar */}
                     <div className="w-full h-2 rounded-full overflow-hidden bg-gray-200">
                         <div 
-                            className="h-full bg-gradient-to-r from-brand-500 to-red-500 rounded-full transition-all duration-300"
+                            className="h-full bg-[#F8FAFC] rounded-full transition-all duration-300"
                             style={{ width: `${getProjectProgress(project)}%` }}
                         ></div>
                     </div>
@@ -645,8 +645,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             }}
                             className={`w-full text-left px-3 py-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
-                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
+                                    ? 'bg-[#F8FAFC] text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
+                                    : 'bg-[#F8FAFC] text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
                             }`}
                         >
                             <div className="flex items-center gap-1">
@@ -705,8 +705,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             }}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
-                                    : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
+                                    ? 'bg-[#F8FAFC] text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700' 
+                                    : 'bg-[#F8FAFC] text-white border-blue-600 hover:from-blue-700 hover:to-indigo-700 hover:border-blue-700'
                             }`}
                         >
                             <span className="text-sm">🗂️</span>
@@ -717,8 +717,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             onClick={() => onProjectSelect(project, 'Alerts')}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700' 
-                                    : 'bg-gradient-to-r from-red-600 to-pink-600 text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700'
+                                    ? 'bg-[#F8FAFC] text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700' 
+                                    : 'bg-[#F8FAFC] text-white border-red-600 hover:from-red-700 hover:to-pink-700 hover:border-red-700'
                             }`}
                         >
                             <span className="text-sm">⚠️</span>
@@ -729,8 +729,8 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             onClick={() => onProjectSelect(project, 'Messages')}
                             className={`flex flex-col items-center gap-1 p-2 rounded-lg border transition-all duration-200 hover:shadow-md ${
                                 colorMode 
-                                    ? 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700' 
-                                    : 'bg-gradient-to-r from-gray-600 to-gray-700 text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700'
+                                    ? 'bg-[#F8FAFC] text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700' 
+                                    : 'bg-[#F8FAFC] text-white border-gray-600 hover:from-gray-700 hover:to-gray-800 hover:border-gray-700'
                             }`}
                         >
                             <span className="text-sm">💬</span>
@@ -744,13 +744,13 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
 
     return (
         <>
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 text-gray-900">
+        <div className="min-h-screen bg-[#F8FAFC] text-gray-900">
             <div className="w-full max-w-7xl mx-auto py-6 px-6">
                 {/* Condensed Header */}
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-2">
+                            <h1 className="text-3xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-2">
                                 My Projects
                             </h1>
                             <p className="text-lg text-gray-600 font-medium">
@@ -770,7 +770,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
+                            className="flex items-center gap-3 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#F8FAFC] text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                         >
                             <span className="text-lg">+</span>
                             <span>Add New Project</span>
@@ -779,15 +779,15 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     
                     {/* Stats Bar */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                        <div className="p-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                             <div className="text-sm font-medium text-gray-600 mb-1">Total Projects</div>
                             <div className="text-3xl font-bold text-gray-900">{projectsArray.length}</div>
                         </div>
-                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                        <div className="p-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                             <div className="text-sm font-medium text-gray-600 mb-1">In Progress</div>
                             <div className="text-3xl font-bold text-brand-600">{projectsArray.filter(p => p.status !== 'COMPLETED').length}</div>
                         </div>
-                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                        <div className="p-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                             <div className="text-sm font-medium text-gray-600 mb-1">Avg Progress</div>
                             <div className="text-3xl font-bold text-green-600">
                                 {projectsArray.length > 0 ? Math.round(projectsArray.reduce((sum, p) => {
@@ -800,7 +800,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 }, 0) / projectsArray.length) : 0}%
                             </div>
                         </div>
-                        <div className="p-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                        <div className="p-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                             <div className="text-sm font-medium text-gray-600 mb-1">This Month</div>
                             <div className="text-3xl font-bold text-purple-600">
                                 {projectsArray.filter(p => {
@@ -814,7 +814,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                 </div>
 
                 {/* Search and Filter Controls */}
-                <div className="mb-6 p-4 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                <div className="mb-6 p-4 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                     <div className="flex flex-col md:flex-row gap-4 items-center">
                         {/* Search */}
                         <div className="flex-1">
@@ -875,7 +875,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         ))}
                     </div>
                 ) : projectsError ? (
-                    <div className="p-8 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl">
+                    <div className="p-8 bg-white border border-gray-200/50 shadow-soft rounded-2xl">
                         <ErrorState 
                             message={projectsError?.message || 'Unable to load projects. Please try again.'}
                             onRetry={() => refetch()}
@@ -891,7 +891,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                         </div>
                     </div>
                 ) : projectsArray.length === 0 ? (
-                    <div className="p-12 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl text-center">
+                    <div className="p-12 bg-white border border-gray-200/50 shadow-soft rounded-2xl text-center">
                         <div className="mb-8">
                             <div className="text-6xl mb-6">🏗️</div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-3">
@@ -914,7 +914,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                 setNewProject(resetProject);
                                 setIsModalOpen(true);
                             }}
-                            className="px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 bg-gradient-to-r from-brand-500 to-red-500 text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
+                            className="px-8 py-4 rounded-xl text-lg font-semibold transition-all duration-300 bg-[#F8FAFC] text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5"
                         >
                             Create Your First Project
                         </button>
@@ -994,7 +994,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
             }}>
                 <div className="bg-white rounded-2xl shadow-2xl max-w-5xl w-full max-h-[95vh] overflow-hidden">
                     {/* Clean Header */}
-                    <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white p-8">
+                    <div className="bg-[#F8FAFC] text-white p-8">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-3xl font-bold tracking-tight">Create New Project</h2>
@@ -1006,7 +1006,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                     setNewProject(defaultNewProject);
                                     setError('');
                                 }}
-                                className="p-3 rounded-xl hover:bg-white/10 transition-all duration-200"
+                                className="p-3 rounded-xl hover:bg-white transition-all duration-200"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -1019,7 +1019,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                     <div className="p-8 max-h-[75vh] overflow-y-auto">
                         <form onSubmit={handleSubmit} className="space-y-8">
                             {/* Essential Project Details */}
-                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-8 border border-blue-100">
+                            <div className="bg-[#F8FAFC] rounded-2xl p-8 border border-blue-100">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-10 h-10 bg-[var(--color-primary-blueprint-blue)] rounded-xl flex items-center justify-center">
                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1135,7 +1135,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
 
                             {/* Team Assignment */}
-                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-2xl p-8 border border-emerald-100">
+                            <div className="bg-[#F8FAFC] rounded-2xl p-8 border border-emerald-100">
                                 <div className="flex items-center gap-3 mb-6">
                                     <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center">
                                         <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1266,7 +1266,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             </div>
 
                             {/* Project Contacts */}
-                            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100">
+                            <div className="bg-[#F8FAFC] rounded-2xl p-8 border border-purple-100">
                                 <div className="flex items-center justify-between mb-6">
                                     <div className="flex items-center gap-3">
                                         <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
@@ -1402,7 +1402,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                             )}
                             
                             {/* Form Actions */}
-                            <div className="bg-gradient-to-r from-slate-50 to-gray-50 px-8 py-6 border-t border-slate-200 -mx-8 -mb-8">
+                            <div className="bg-[#F8FAFC] px-8 py-6 border-t border-slate-200 -mx-8 -mb-8">
                                 <div className="flex items-center justify-between">
                                     <div className="text-sm text-slate-600">
                                         Fill in the required fields marked with <span className="text-red-500">*</span>
@@ -1423,7 +1423,7 @@ const ProjectsPage = ({ onProjectSelect, onProjectActionSelect, onCreateProject,
                                             type="button"
                                             onClick={handleSubmit}
                                             disabled={createProjectMutation.isLoading}
-                                            className="px-8 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
+                                            className="px-8 py-4 bg-[#F8FAFC] text-white rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 disabled:from-blue-400 disabled:to-indigo-400 disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-3 shadow-lg hover:shadow-xl"
                                         >
                                             {createProjectMutation.isLoading ? (
                                                 <>

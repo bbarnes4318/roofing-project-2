@@ -390,10 +390,10 @@ const CurrentProjectAccessSection = ({
   return (
     <div className="mb-6" data-section="current-project-access">
       {/* Enhanced Controls */}
-      <div className="mb-6 bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-6">
+      <div className="mb-6 bg-white border border-gray-200/50 shadow-soft rounded-2xl p-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent mb-1">
+            <h2 className="text-xl font-bold bg-[#F8FAFC] bg-clip-text text-transparent mb-1">
               Current Project Access
             </h2>
             {/* Subtitle removed per request */}
@@ -534,7 +534,7 @@ const CurrentProjectAccessSection = ({
           colorMode={colorMode}
         />
       ) : (
-        <div className="bg-white/90 backdrop-blur-sm border border-gray-200/50 shadow-soft rounded-2xl p-12">
+        <div className="bg-white border border-gray-200/50 shadow-soft rounded-2xl p-12">
           <div className="text-center">
             <div className="text-gray-400 text-5xl mb-4">🔍</div>
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -563,7 +563,7 @@ const CurrentProjectAccessSection = ({
 
       {/* Selected Project Details */}
       {selectedProjectFilter && (
-        <div className="mt-6 bg-white/90 backdrop-blur-sm border border-blue-200/50 shadow-soft rounded-2xl p-6">
+        <div className="mt-6 bg-white border border-blue-200/50 shadow-soft rounded-2xl p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-900">Selected Project Details</h3>
             <button

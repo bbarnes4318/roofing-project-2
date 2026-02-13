@@ -450,7 +450,7 @@ const DocumentsResourcesPage = () => {
   return (
     <div className="h-screen flex flex-col bg-white">
       {/* Compact Header with All Controls - Subtle Aqua Theme */}
-      <div className="flex-shrink-0 bg-gradient-to-r from-[#0089D1] to-[#0069B5] text-white shadow-lg">
+      <div className="flex-shrink-0 bg-[#F8FAFC] text-white shadow-lg">
         <div className="px-6 py-3 flex items-center justify-between gap-6">
           {/* Left: Folder Creation */}
           <div className="flex items-center gap-3">
@@ -462,11 +462,11 @@ const DocumentsResourcesPage = () => {
                 value={newFolderName}
                 onChange={(e) => setNewFolderName(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && createFolder()}
-                className="w-40 px-3 py-1.5 bg-white/20 border border-white/30 rounded-lg text-sm text-white placeholder-white/70 focus:bg-white/30 focus:outline-none"
+                className="w-40 px-3 py-1.5 bg-white border border-white/30 rounded-lg text-sm text-white placeholder-white/70 focus:bg-white focus:outline-none"
               />
               <button
                 onClick={createFolder}
-                className="px-2 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg transition"
+                className="px-2 py-1.5 bg-white hover:bg-white rounded-lg transition"
               >
                 <PlusIcon className="h-5 w-5" />
               </button>
@@ -482,7 +482,7 @@ const DocumentsResourcesPage = () => {
                 placeholder="Search..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-1.5 bg-white/20 border border-white/30 rounded-lg text-sm text-white placeholder-white/70 focus:bg-white/30 focus:outline-none"
+                className="w-full pl-9 pr-4 py-1.5 bg-white border border-white/30 rounded-lg text-sm text-white placeholder-white/70 focus:bg-white focus:outline-none"
               />
             </div>
             <div className="flex items-center gap-2 text-sm">
@@ -500,7 +500,7 @@ const DocumentsResourcesPage = () => {
           <div className="flex gap-2">
             <button
               onClick={() => setShowPlaybook(true)}
-              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition"
+              className="px-3 py-1.5 bg-white hover:bg-white rounded-lg text-sm font-medium transition"
             >
               <SparklesIcon className="h-4 w-4 inline mr-1.5" />
               Playbook
@@ -513,7 +513,7 @@ const DocumentsResourcesPage = () => {
               className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
                 showTrash 
                   ? 'bg-red-500 text-white hover:bg-red-600' 
-                  : 'bg-white/20 hover:bg-white/30'
+                  : 'bg-white hover:bg-white'
               }`}
             >
               <TrashIconSolid className="h-4 w-4 inline mr-1.5" />
@@ -679,7 +679,7 @@ const DocumentsResourcesPage = () => {
 
       {/* Trash View */}
       {showTrash && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
@@ -733,7 +733,7 @@ const DocumentsResourcesPage = () => {
 
       {/* Upload Modal */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-lg w-full">
             <h3 className="text-2xl font-bold text-slate-900 mb-6">Upload Files</h3>
             <div className="mb-6">
