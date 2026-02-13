@@ -770,7 +770,22 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         // Refresh workflow data
         const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
         if (workflowResponse.data.success) {
-          setWorkflowData(workflowResponse.data.data);
+          const newData = workflowResponse.data.data;
+          setWorkflowData(newData);
+          
+          // Rebuild workflow tabs
+          const tabs = newData.map((workflow, index) => ({
+            id: workflow.customWorkflowId || workflow.workflowType,
+            name: workflow.tradeName,
+            isMainWorkflow: workflow.isMainWorkflow,
+            completedCount: workflow.completedCount,
+            totalCount: workflow.totalCount,
+            progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
+          }));
+          setWorkflowTabs(tabs);
+          
+          // Switch to the new workflow (last item in the array)
+          setActiveWorkflowIndex(newData.length - 1);
         }
         // Reset and close
         setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] });
