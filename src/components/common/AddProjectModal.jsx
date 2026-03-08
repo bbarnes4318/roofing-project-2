@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import api, { API_BASE_URL } from '../../services/api';
 import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
 
@@ -38,6 +38,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [showSecondHousehold, setShowSecondHousehold] = useState(false);
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
   const [validationRequirements, setValidationRequirements] = useState([]);
+  const [customWorkflows, setCustomWorkflows] = useState([]);
+  const [tradeWorkflowAssignments, setTradeWorkflowAssignments] = useState({});
+  const [loadingWorkflows, setLoadingWorkflows] = useState(false);
 
   // Hardcoded Lead Source values as specified
   const LEAD_SOURCES = [
@@ -254,6 +257,24 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
     if (isOpen) {
       fetchUsersAndRoles();
+      // Fetch custom workflows for trade assignment dropdowns
+      (async () => {
+        try {
+          setLoadingWorkflows(true);
+          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          const resp = await fetch(`${API_BASE_URL}/workflow-data/custom-workflows`, {
+            headers: { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) }
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data.success) setCustomWorkflows(data.data || []);
+          }
+        } catch (err) {
+          console.error('Error fetching custom workflows:', err);
+        } finally {
+          setLoadingWorkflows(false);
+        }
+      })();
       // Scroll to top when modal opens
       setTimeout(() => {
         const modalContent = document.querySelector('.modal-content');
@@ -266,6 +287,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       resetForm();
       setShowSecondaryCustomer(false);
       setShowSecondHousehold(false);
+      setTradeWorkflowAssignments({});
     }
   }, [isOpen]);
 
@@ -459,12 +481,25 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       // Auto-generate project name from customer address
       const projectName = formData.address;
 
+      // Build per-trade workflow assignments for backend
+      const assignments = formData.projectTypes.map(tradeType => {
+        const assignment = tradeWorkflowAssignments[tradeType];
+        const tradeLabel = TRADE_TYPES.find(t => t.value === tradeType)?.label || tradeType;
+        return {
+          tradeType,
+          tradeName: tradeLabel,
+          customWorkflowId: assignment?.customWorkflowId || null,
+          useDefault: !assignment?.customWorkflowId
+        };
+      });
+
       // Create project with starting phase
       const projectData = {
         projectName: formData.address || 'New Project', // Use address as project name
         projectType: formData.projectTypes[0], // Main trade type
         additionalTrades: formData.projectTypes.slice(1), // Additional trades
         tradeTypes: formData.projectTypes, // All trade types
+        tradeWorkflowAssignments: assignments, // Per-trade workflow assignments
         description: formData.description,
         budget: 1000, // Default budget
         customerId: customerId,
@@ -1148,6 +1183,84 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     </p>
                   )}
                 </div>
+
+                {/* Per-Trade Workflow Assignment */}
+                {formData.projectTypes.length > 0 && (
+                  <div className="mt-4">
+                    <label className="block text-xs font-semibold text-gray-700 mb-2">
+                      Project Workflow Assignment
+                    </label>
+                    <p className="text-sm text-gray-500 mb-3">
+                      Assign a workflow to each trade. You can use a saved custom workflow or the system default.
+                    </p>
+                    <div className="space-y-3">
+                      {formData.projectTypes.map((tradeType, idx) => {
+                        const trade = TRADE_TYPES.find(t => t.value === tradeType);
+                        const assignment = tradeWorkflowAssignments[tradeType] || {};
+                        const hasCustomWorkflow = !!assignment.customWorkflowId;
+                        
+                        return (
+                          <div
+                            key={tradeType}
+                            className={`border rounded-lg p-3 transition-all duration-200 ${
+                              hasCustomWorkflow
+                                ? 'border-green-300 bg-green-50'
+                                : 'border-gray-200 bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                  {idx + 1}
+                                </span>
+                                <span className="font-semibold text-gray-900 text-sm">
+                                  {trade?.icon} {trade?.label || tradeType}
+                                </span>
+                              </div>
+                              {hasCustomWorkflow ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  Custom Workflow
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
+                                  System Default
+                                </span>
+                              )}
+                            </div>
+                            <select
+                              value={assignment.customWorkflowId || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setTradeWorkflowAssignments(prev => ({
+                                  ...prev,
+                                  [tradeType]: value
+                                    ? { customWorkflowId: value, tradeName: trade?.label }
+                                    : {}
+                                }));
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+                            >
+                              <option value="">System Default Workflow</option>
+                              {customWorkflows.map(cw => (
+                                <option key={cw.id} value={cw.id}>
+                                  {cw.name} ({cw.totalItems} items)
+                                </option>
+                              ))}
+                            </select>
+                            {!hasCustomWorkflow && customWorkflows.length === 0 && (
+                              <p className="mt-1.5 text-xs text-gray-500 italic">
+                                No saved workflows yet. You can create one later from the Workflow Builder page.
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {/* Starting Phase Selection */}
                 <div>

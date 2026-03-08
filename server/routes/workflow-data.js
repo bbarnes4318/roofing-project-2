@@ -359,4 +359,231 @@ router.get('/project-position/:projectId', async (req, res) => {
   }
 });
 
+// ─── Custom Workflow Endpoints ────────────────────────────────────────────
+
+/**
+ * List all custom workflows (for dropdowns & builder page)
+ */
+router.get('/custom-workflows', async (req, res) => {
+  try {
+    const workflows = await prisma.customWorkflow.findMany({
+      where: { isActive: true },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        createdBy: { select: { firstName: true, lastName: true } },
+        phases: {
+          where: { isActive: true },
+          orderBy: { displayOrder: 'asc' },
+          include: {
+            sections: {
+              where: { isActive: true },
+              orderBy: { displayOrder: 'asc' },
+              include: {
+                lineItems: {
+                  where: { isActive: true },
+                  orderBy: { displayOrder: 'asc' }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const formatted = workflows.map(w => {
+      const totalItems = w.phases.reduce((acc, p) =>
+        acc + p.sections.reduce((acc2, s) => acc2 + s.lineItems.length, 0), 0
+      );
+      return {
+        id: w.id,
+        name: w.name,
+        description: w.description,
+        createdBy: w.createdBy ? `${w.createdBy.firstName} ${w.createdBy.lastName}` : 'System',
+        createdAt: w.createdAt,
+        totalPhases: w.phases.length,
+        totalItems,
+        phases: w.phases.map(p => ({
+          id: p.id,
+          phaseName: p.phaseName,
+          phaseType: p.phaseType,
+          sections: p.sections.map(s => ({
+            id: s.id,
+            sectionName: s.sectionName,
+            displayName: s.displayName,
+            lineItems: s.lineItems.map(li => ({
+              id: li.id,
+              itemLetter: li.itemLetter,
+              itemName: li.itemName,
+              responsibleRole: li.responsibleRole,
+              displayOrder: li.displayOrder
+            }))
+          }))
+        }))
+      };
+    });
+
+    res.json({ success: true, data: formatted });
+  } catch (error) {
+    console.error('❌ API: Error loading custom workflows:', error);
+    res.status(500).json({ success: false, message: 'Failed to load custom workflows', error: error.message });
+  }
+});
+
+/**
+ * Create a new custom workflow with phases, sections, and line items
+ */
+router.post('/custom-workflows', async (req, res) => {
+  try {
+    const { name, description, phases, createdById } = req.body;
+
+    if (!name || !phases || !Array.isArray(phases) || phases.length === 0) {
+      return res.status(400).json({ success: false, message: 'Name and at least one phase are required' });
+    }
+
+    const workflow = await prisma.customWorkflow.create({
+      data: {
+        name,
+        description: description || null,
+        createdById: createdById || null,
+        phases: {
+          create: phases.map((phase, pi) => ({
+            phaseName: phase.phaseName || `Phase ${pi + 1}`,
+            phaseType: phase.phaseType || null,
+            displayOrder: pi + 1,
+            description: phase.description || null,
+            workflowType: 'CUSTOM',
+            sections: {
+              create: (phase.sections || []).map((section, si) => ({
+                sectionNumber: String(si + 1),
+                sectionName: section.sectionName || `Section ${si + 1}`,
+                displayName: section.displayName || section.sectionName || `Section ${si + 1}`,
+                displayOrder: si + 1,
+                description: section.description || null,
+                workflowType: 'CUSTOM',
+                lineItems: {
+                  create: (section.lineItems || []).map((item, li) => ({
+                    itemLetter: item.itemLetter || String.fromCharCode(97 + li),
+                    itemName: item.itemName,
+                    responsibleRole: item.responsibleRole || 'ADMINISTRATION',
+                    displayOrder: li + 1,
+                    description: item.description || null,
+                    workflowType: 'CUSTOM',
+                    estimatedMinutes: item.estimatedMinutes || 60,
+                    alertDays: item.alertDays || 1,
+                    daysToComplete: item.daysToComplete || 1
+                  }))
+                }
+              }))
+            }
+          }))
+        }
+      },
+      include: {
+        phases: {
+          include: {
+            sections: {
+              include: { lineItems: true }
+            }
+          }
+        }
+      }
+    });
+
+    console.log(`✅ Created custom workflow "${name}" with ${workflow.phases.length} phases`);
+    res.status(201).json({ success: true, data: workflow });
+  } catch (error) {
+    console.error('❌ API: Error creating custom workflow:', error);
+    res.status(500).json({ success: false, message: 'Failed to create custom workflow', error: error.message });
+  }
+});
+
+/**
+ * Combine selected line items from multiple workflows into a new custom workflow
+ * Body: { name, description, items: [{ lineItemId, displayOrder }], createdById }
+ */
+router.post('/custom-workflows/combine', async (req, res) => {
+  try {
+    const { name, description, items, createdById } = req.body;
+
+    if (!name || !items || !Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ success: false, message: 'Name and at least one line item are required' });
+    }
+
+    // Fetch all selected line items with their section/phase context
+    const lineItemIds = items.map(i => i.lineItemId);
+    const sourceItems = await prisma.workflowLineItem.findMany({
+      where: { id: { in: lineItemIds } },
+      include: {
+        section: {
+          include: { phase: true }
+        }
+      }
+    });
+
+    if (sourceItems.length === 0) {
+      return res.status(400).json({ success: false, message: 'No valid line items found' });
+    }
+
+    // Build a map for ordering
+    const orderMap = {};
+    items.forEach((item, idx) => { orderMap[item.lineItemId] = item.displayOrder || (idx + 1); });
+
+    // Sort by the requested display order
+    sourceItems.sort((a, b) => (orderMap[a.id] || 0) - (orderMap[b.id] || 0));
+
+    // Create a single "Combined" phase with a single section containing all items
+    const workflow = await prisma.customWorkflow.create({
+      data: {
+        name,
+        description: description || `Combined workflow from ${sourceItems.length} line items`,
+        createdById: createdById || null,
+        phases: {
+          create: [{
+            phaseName: 'Combined Workflow',
+            displayOrder: 1,
+            workflowType: 'CUSTOM',
+            sections: {
+              create: [{
+                sectionNumber: '1',
+                sectionName: name,
+                displayName: name,
+                displayOrder: 1,
+                workflowType: 'CUSTOM',
+                lineItems: {
+                  create: sourceItems.map((item, idx) => ({
+                    itemLetter: String.fromCharCode(97 + (idx % 26)),
+                    itemName: item.itemName,
+                    responsibleRole: item.responsibleRole,
+                    displayOrder: idx + 1,
+                    description: item.description || null,
+                    workflowType: 'CUSTOM',
+                    estimatedMinutes: item.estimatedMinutes || 60,
+                    alertDays: item.alertDays || 1,
+                    daysToComplete: item.daysToComplete || 1
+                  }))
+                }
+              }]
+            }
+          }]
+        }
+      },
+      include: {
+        phases: {
+          include: {
+            sections: {
+              include: { lineItems: { orderBy: { displayOrder: 'asc' } } }
+            }
+          }
+        }
+      }
+    });
+
+    console.log(`✅ Created combined workflow "${name}" with ${sourceItems.length} line items`);
+    res.status(201).json({ success: true, data: workflow });
+  } catch (error) {
+    console.error('❌ API: Error combining workflows:', error);
+    res.status(500).json({ success: false, message: 'Failed to combine workflows', error: error.message });
+  }
+});
+
 module.exports = router;

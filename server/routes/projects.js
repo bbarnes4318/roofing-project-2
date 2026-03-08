@@ -916,11 +916,94 @@ router.post('/', authenticateToken, projectValidation, asyncHandler(async (req, 
     // OPTIMIZED: Initialize workflow(s) with template-instance integration
     let workflowInit = null;
     try {
-      // Check if multiple trade types are provided for multiple workflows
+      // Check if custom workflow assignments are provided (new per-trade workflow system)
+      const tradeWorkflowAssignments = req.body.tradeWorkflowAssignments;
       const tradeTypes = req.body.tradeTypes;
       
-      if (tradeTypes && Array.isArray(tradeTypes) && tradeTypes.length > 1) {
-        // Initialize multiple workflows for multiple trade types
+      if (tradeWorkflowAssignments && Array.isArray(tradeWorkflowAssignments) && tradeWorkflowAssignments.length > 0) {
+        // New system: per-trade workflow assignments with optional custom workflow IDs
+        console.log(`🔧 Initializing per-trade workflow assignments for project ${project.id}:`, tradeWorkflowAssignments);
+        const trackers = [];
+        
+        for (let i = 0; i < tradeWorkflowAssignments.length; i++) {
+          const assignment = tradeWorkflowAssignments[i];
+          const isMain = i === 0;
+          
+          if (assignment.customWorkflowId) {
+            // Custom workflow: create tracker with CUSTOM type linked to saved workflow
+            const tracker = await prisma.projectWorkflowTracker.create({
+              data: {
+                projectId: project.id,
+                workflowType: 'CUSTOM',
+                customWorkflowId: assignment.customWorkflowId,
+                isMainWorkflow: isMain,
+                tradeName: assignment.tradeName || assignment.tradeType,
+                totalLineItems: 0,
+                phaseStartedAt: new Date(),
+                sectionStartedAt: new Date(),
+                lineItemStartedAt: new Date()
+              }
+            });
+            
+            // Set current position to first item in the custom workflow
+            const firstPhase = await prisma.workflowPhase.findFirst({
+              where: { customWorkflowId: assignment.customWorkflowId, isActive: true },
+              orderBy: { displayOrder: 'asc' },
+              include: {
+                sections: {
+                  where: { isActive: true },
+                  orderBy: { displayOrder: 'asc' },
+                  include: {
+                    lineItems: {
+                      where: { isActive: true },
+                      orderBy: { displayOrder: 'asc' },
+                      take: 1
+                    }
+                  },
+                  take: 1
+                }
+              }
+            });
+            
+            if (firstPhase && firstPhase.sections[0] && firstPhase.sections[0].lineItems[0]) {
+              const totalItems = await prisma.workflowLineItem.count({
+                where: {
+                  section: { phase: { customWorkflowId: assignment.customWorkflowId } },
+                  isActive: true
+                }
+              });
+              
+              await prisma.projectWorkflowTracker.update({
+                where: { id: tracker.id },
+                data: {
+                  currentPhaseId: firstPhase.id,
+                  currentSectionId: firstPhase.sections[0].id,
+                  currentLineItemId: firstPhase.sections[0].lineItems[0].id,
+                  totalLineItems: totalItems
+                }
+              });
+            }
+            
+            trackers.push(tracker);
+            console.log(`✅ Created CUSTOM workflow tracker for trade "${assignment.tradeType}" with workflow ${assignment.customWorkflowId}`);
+          } else {
+            // Default system workflow
+            const wfType = assignment.tradeType || 'ROOFING';
+            const tracker = await WorkflowProgressionService.initializeProjectWorkflow(
+              project.id,
+              wfType,
+              isMain,
+              req.body.startingPhase || 'LEAD'
+            );
+            trackers.push(tracker);
+            console.log(`✅ Created system workflow tracker for trade "${wfType}"`);
+          }
+        }
+        
+        workflowInit = trackers;
+        console.log(`✅ Successfully initialized ${trackers.length} workflow trackers for project ${project.id}`);
+      } else if (tradeTypes && Array.isArray(tradeTypes) && tradeTypes.length > 1) {
+        // Legacy: Initialize multiple workflows for multiple trade types
         console.log(`🔧 Initializing multiple workflows for project ${project.id}:`, tradeTypes);
         workflowInit = await WorkflowProgressionService.initializeMultipleWorkflows(
           project.id,
