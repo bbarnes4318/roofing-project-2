@@ -274,7 +274,7 @@ const WorkflowLineItemsSection = ({
                                   colorMode ? 'bg-slate-600' : 'bg-gray-200'
                                 }`}>
                                   <div 
-                                    className="h-full rounded-full bg-[#F8FAFC]"
+                                    className="h-full rounded-full bg-gradient-to-r from-blue-500 to-indigo-600"
                                     style={{ width: `${progress}%` }}
                                   ></div>
                                 </div>

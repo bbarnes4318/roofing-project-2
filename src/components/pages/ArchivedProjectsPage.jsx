@@ -154,7 +154,7 @@ const ArchivedProjectsPage = ({ colorMode, onProjectSelect, navigate }) => {
 
     const getProjectTypeColor = (type) => {
         // Professional, subtle styling - no bright colors
-        return 'bg-[#F8FAFC]';
+        return 'bg-gradient-to-r from-gray-500 to-gray-600';
     };
 
     const getProjectTypeTextColor = (type) => {

@@ -52,11 +52,11 @@ const Leaderboard = ({ colorMode }) => {
   const getRankBgColor = (rank) => {
     switch (rank) {
       case 1:
-        return 'bg-[#F8FAFC]';
+        return 'bg-gradient-to-r from-yellow-100 to-yellow-200';
       case 2:
-        return 'bg-[#F8FAFC]';
+        return 'bg-gradient-to-r from-gray-100 to-gray-200';
       case 3:
-        return 'bg-[#F8FAFC]';
+        return 'bg-gradient-to-r from-orange-100 to-orange-200';
       default:
         return colorMode ? 'bg-slate-700' : 'bg-gray-50';
     }
