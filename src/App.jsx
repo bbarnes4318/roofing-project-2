@@ -23,6 +23,7 @@ import DocumentsResourcesPage from './components/pages/DocumentsResourcesPage';
 import MyMessagesPage from './components/pages/MyMessagesPage';
 import EmailHistoryPage from './components/pages/EmailHistoryPage';
 import FeedbackHubPage from './components/pages/FeedbackHubPage';
+import ProjectWorkflowsPage from './components/pages/ProjectWorkflowsPage';
 import Login from './components/Login';
 import ProtectedRoute from './components/ProtectedRoute';
 import ResetPassword from './pages/ResetPassword';
@@ -1462,6 +1463,7 @@ const apiUrl = window.location.hostname === 'localhost'
         { name: 'AI Training Tools', icon: <ChartBarIcon />, page: 'AI Tools' },
         { name: 'Project Schedules', icon: <CalendarIcon />, page: 'Project Schedules', isDisabled: true },
         { name: 'Documents & Resources', icon: <DocumentTextIcon />, page: 'Documents & Resources' },
+        { name: 'Project Workflows', icon: <ChartBarIcon />, page: 'Project Workflows' },
         { name: 'AI Knowledge Base', icon: <ChatBubbleLeftRightIcon />, page: 'Training & Knowledge Base' },
         { name: 'Feedback Hub', icon: <BellIcon />, page: 'Feedback Hub' },
         { name: 'Archived Projects', icon: <ArchiveBoxIcon />, page: 'Archived Projects' },
@@ -1548,6 +1550,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         </div>
                     </div>
                 );
+            case 'Project Workflows': return <ProjectWorkflowsPage colorMode={colorMode} />;
             case 'Archived Projects': return <ArchivedProjectsPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} navigate={navigate} />;
             case 'Email History': return <EmailHistoryPage colorMode={colorMode} />;
             case 'AI Assistant': return <AIAssistantPage projects={projects} colorMode={colorMode} onProjectSelect={handleProjectSelect} />;
