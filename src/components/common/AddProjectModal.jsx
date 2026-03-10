@@ -1,31 +1,31 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import api, { API_BASE_URL } from '../../services/api';
-import GoogleMapsAutocomplete from '../ui/GoogleMapsAutocomplete';
+import React, { useState, useEffect, useCallback } from "react";
+import api, { API_BASE_URL } from "../../services/api";
+import GoogleMapsAutocomplete from "../ui/GoogleMapsAutocomplete";
 
 const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   const [formData, setFormData] = useState({
-    primaryName: '',
-    primaryEmail: '',
-    primaryEmailType: 'PERSONAL', // PERSONAL or WORK
-    primaryPhone: '',
-    primaryPhoneType: 'MOBILE', // MOBILE, HOME, or WORK
-    customerTypeOfContact: 'PRIMARY_CONTACT',
-    secondaryName: '',
-    secondaryEmail: '',
-    secondaryEmailType: 'PERSONAL', // PERSONAL or WORK
-    secondaryPhone: '',
-    secondaryPhoneType: 'MOBILE', // MOBILE, HOME, or WORK
-    secondaryTypeOfContact: 'SECONDARY_CONTACT',
-    primaryContact: 'PRIMARY', // PRIMARY or SECONDARY
-    primaryPhoneContact: 'PRIMARY', // PRIMARY or SECONDARY for phone
-    address: '',
+    primaryName: "",
+    primaryEmail: "",
+    primaryEmailType: "PERSONAL", // PERSONAL or WORK
+    primaryPhone: "",
+    primaryPhoneType: "MOBILE", // MOBILE, HOME, or WORK
+    customerTypeOfContact: "PRIMARY_CONTACT",
+    secondaryName: "",
+    secondaryEmail: "",
+    secondaryEmailType: "PERSONAL", // PERSONAL or WORK
+    secondaryPhone: "",
+    secondaryPhoneType: "MOBILE", // MOBILE, HOME, or WORK
+    secondaryTypeOfContact: "SECONDARY_CONTACT",
+    primaryContact: "PRIMARY", // PRIMARY or SECONDARY
+    primaryPhoneContact: "PRIMARY", // PRIMARY or SECONDARY for phone
+    address: "",
     addressComponents: {}, // Store parsed address components
     projectTypes: [], // Multiple trade types
-    description: '',
-    startingPhase: 'LEAD', // Starting phase selection
-    projectManagerId: '', // Project manager assignment
-    leadSourceId: '',
-    subcontractorIds: [] // Multiple subcontractors
+    description: "",
+    startingPhase: "LEAD", // Starting phase selection
+    projectManagerId: "", // Project manager assignment
+    leadSourceId: "",
+    subcontractorIds: [], // Multiple subcontractors
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
@@ -44,10 +44,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   // Hardcoded Lead Source values as specified
   const LEAD_SOURCES = [
-    'Website',
-    'Google Maps',
-    'Social Media',
-    'Word of Mouth'
+    "Website",
+    "Google Maps",
+    "Social Media",
+    "Word of Mouth",
   ];
 
   // Success Notification Component
@@ -66,23 +66,44 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
           <div className="flex items-start gap-3">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                <svg
+                  className="w-5 h-5 text-green-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               </div>
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-green-800">Project Created Successfully!</h3>
+              <h3 className="text-sm font-semibold text-green-800">
+                Project Created Successfully!
+              </h3>
               <p className="text-sm text-green-700 mt-1">
-                Your new project has been added to the system and is ready for management.
+                Your new project has been added to the system and is ready for
+                management.
               </p>
             </div>
             <button
               onClick={() => setShowSuccessNotification(false)}
               className="flex-shrink-0 text-green-400 hover:text-green-600 transition-colors"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -100,8 +121,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0">
             <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              <svg
+                className="w-4 h-4 text-amber-600"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
               </svg>
             </div>
           </div>
@@ -111,9 +140,22 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             </h3>
             <ul className="space-y-1">
               {requirements.map((requirement, index) => (
-                <li key={index} className="flex items-center gap-2 text-sm text-amber-700">
-                  <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <li
+                  key={index}
+                  className="flex items-center gap-2 text-sm text-amber-700"
+                >
+                  <svg
+                    className="w-4 h-4 text-amber-500 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   {requirement}
                 </li>
@@ -127,53 +169,153 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   // Available trade types with icons
   const TRADE_TYPES = [
-    { value: 'ROOFING', label: 'Roofing', icon: '🏠', description: 'Roof installation and repair' },
-    { value: 'GUTTERS', label: 'Gutters', icon: '🌧️', description: 'Gutter installation and maintenance' },
-    { value: 'INTERIOR_PAINT', label: 'Interior Paint', icon: '🎨', description: 'Interior painting services' },
-    { value: 'FENCE', label: 'Fence', icon: '🔲', description: 'Fence installation and repair' },
-    { value: 'WATER_LEAK', label: 'Water Leak', icon: '💧', description: 'Water leak detection and repair' },
-    { value: 'MOLD', label: 'Mold', icon: '🦠', description: 'Mold remediation and prevention' },
-    { value: 'WINDOWS', label: 'Windows', icon: '🪟', description: 'Window installation and replacement' },
-    { value: 'SIDING', label: 'Siding', icon: '🏘️', description: 'Siding installation and repair' },
-    { value: 'DECKS', label: 'Decks', icon: '🏗️', description: 'Deck construction and repair' },
-    { value: 'REPAIR_EXTERIOR', label: 'Repair - Exterior', icon: '🔧', description: 'Exterior repairs and maintenance' },
-    { value: 'REPAIR_INTERIOR', label: 'Repair - Interior', icon: '🛠️', description: 'Interior repairs and maintenance' }
+    {
+      value: "ROOFING",
+      label: "Roofing",
+      icon: "🏠",
+      description: "Roof installation and repair",
+    },
+    {
+      value: "GUTTERS",
+      label: "Gutters",
+      icon: "🌧️",
+      description: "Gutter installation and maintenance",
+    },
+    {
+      value: "INTERIOR_PAINT",
+      label: "Interior Paint",
+      icon: "🎨",
+      description: "Interior painting services",
+    },
+    {
+      value: "FENCE",
+      label: "Fence",
+      icon: "🔲",
+      description: "Fence installation and repair",
+    },
+    {
+      value: "WATER_LEAK",
+      label: "Water Leak",
+      icon: "💧",
+      description: "Water leak detection and repair",
+    },
+    {
+      value: "MOLD",
+      label: "Mold",
+      icon: "🦠",
+      description: "Mold remediation and prevention",
+    },
+    {
+      value: "WINDOWS",
+      label: "Windows",
+      icon: "🪟",
+      description: "Window installation and replacement",
+    },
+    {
+      value: "SIDING",
+      label: "Siding",
+      icon: "🏘️",
+      description: "Siding installation and repair",
+    },
+    {
+      value: "DECKS",
+      label: "Decks",
+      icon: "🏗️",
+      description: "Deck construction and repair",
+    },
+    {
+      value: "REPAIR_EXTERIOR",
+      label: "Repair - Exterior",
+      icon: "🔧",
+      description: "Exterior repairs and maintenance",
+    },
+    {
+      value: "REPAIR_INTERIOR",
+      label: "Repair - Interior",
+      icon: "🛠️",
+      description: "Interior repairs and maintenance",
+    },
   ];
 
   // Available phases for starting phase selection
   const WORKFLOW_PHASES = [
-    { value: 'LEAD', label: 'Lead', description: 'Initial lead capture and qualification', icon: '📋' },
-    { value: 'PROSPECT', label: 'Prospect', description: 'Prospect development and estimation', icon: '🔍' },
-    { value: 'APPROVED', label: 'Approved', description: 'Approved projects ready for execution', icon: '✅' },
-    { value: 'EXECUTION', label: 'Execution', description: 'Active project execution', icon: '🚧' },
-    { value: 'SECOND_SUPPLEMENT', label: '2nd Supplement', description: 'Supplemental estimates and approvals', icon: '📝' },
-    { value: 'COMPLETION', label: 'Completion', description: 'Financial processing and project closeout', icon: '🎉' }
+    {
+      value: "LEAD",
+      label: "Lead",
+      description: "Initial lead capture and qualification",
+      icon: "📋",
+    },
+    {
+      value: "PROSPECT",
+      label: "Prospect",
+      description: "Prospect development and estimation",
+      icon: "🔍",
+    },
+    {
+      value: "APPROVED",
+      label: "Approved",
+      description: "Approved projects ready for execution",
+      icon: "✅",
+    },
+    {
+      value: "EXECUTION",
+      label: "Execution",
+      description: "Active project execution",
+      icon: "🚧",
+    },
+    {
+      value: "SECOND_SUPPLEMENT",
+      label: "2nd Supplement",
+      description: "Supplemental estimates and approvals",
+      icon: "📝",
+    },
+    {
+      value: "COMPLETION",
+      label: "Completion",
+      description: "Financial processing and project closeout",
+      icon: "🎉",
+    },
   ];
 
   const STEPS = [
-    { id: 1, title: 'Customer Information', description: 'Primary and secondary customer details' },
-    { id: 2, title: 'Project Details', description: 'Project type and configuration' },
-    { id: 3, title: 'Review & Create', description: 'Final review and submission' }
+    {
+      id: 1,
+      title: "Customer Information",
+      description: "Primary and secondary customer details",
+    },
+    {
+      id: 2,
+      title: "Project Details",
+      description: "Project type and configuration",
+    },
+    {
+      id: 3,
+      title: "Review & Create",
+      description: "Final review and submission",
+    },
   ];
 
   // Fetch users for project manager assignment and handle form reset
   useEffect(() => {
     const fetchUsersAndRoles = async () => {
       try {
-        const { usersService } = await import('../../services/api');
+        const { usersService } = await import("../../services/api");
         const result = await usersService.getTeamMembers();
-        const teamMembers = Array.isArray(result?.data?.teamMembers) ? result.data.teamMembers : [];
+        const teamMembers = Array.isArray(result?.data?.teamMembers)
+          ? result.data.teamMembers
+          : [];
         setUsers(teamMembers);
 
         // Fetch role assignments to get Project Managers
         try {
-          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+          const token =
+            localStorage.getItem("authToken") || localStorage.getItem("token");
           const rolesResponse = await fetch(`${API_BASE_URL}/roles`, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
-              ...(token && { 'Authorization': `Bearer ${token}` })
-            }
+              "Content-Type": "application/json",
+              ...(token && { Authorization: `Bearer ${token}` }),
+            },
           });
 
           if (rolesResponse.ok) {
@@ -181,26 +323,35 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             if (rolesData.success && rolesData.data) {
               // Extract project managers from role assignments
               const projectManagerUsers = [];
-              
+
               // Handle both old single-user format and new multi-user format
               if (rolesData.data.projectManager) {
                 if (Array.isArray(rolesData.data.projectManager)) {
                   projectManagerUsers.push(...rolesData.data.projectManager);
                 } else if (rolesData.data.projectManager.userId) {
                   // Find user by ID
-                  const manager = teamMembers.find(u => u.id === rolesData.data.projectManager.userId);
+                  const manager = teamMembers.find(
+                    (u) => u.id === rolesData.data.projectManager.userId,
+                  );
                   if (manager) projectManagerUsers.push(manager);
                 }
               }
-              
+
               // Also check productManager for backwards compatibility
-              if (rolesData.data.productManager && rolesData.data.productManager.userId) {
-                const manager = teamMembers.find(u => u.id === rolesData.data.productManager.userId);
-                if (manager && !projectManagerUsers.find(pm => pm.id === manager.id)) {
+              if (
+                rolesData.data.productManager &&
+                rolesData.data.productManager.userId
+              ) {
+                const manager = teamMembers.find(
+                  (u) => u.id === rolesData.data.productManager.userId,
+                );
+                if (
+                  manager &&
+                  !projectManagerUsers.find((pm) => pm.id === manager.id)
+                ) {
                   projectManagerUsers.push(manager);
                 }
               }
-
 
               setProjectManagers(projectManagerUsers);
 
@@ -210,46 +361,57 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 if (Array.isArray(rolesData.data.subcontractor)) {
                   subcontractorUsers.push(...rolesData.data.subcontractor);
                 } else if (rolesData.data.subcontractor.userId) {
-                  const subcontractor = teamMembers.find(u => u.id === rolesData.data.subcontractor.userId);
+                  const subcontractor = teamMembers.find(
+                    (u) => u.id === rolesData.data.subcontractor.userId,
+                  );
                   if (subcontractor) subcontractorUsers.push(subcontractor);
                 }
               }
               setSubcontractors(subcontractorUsers);
-              
+
               // Also include any users with PROJECT_MANAGER, MANAGER, ADMIN, or OWNER role
-              const roleBasedManagers = teamMembers.filter(u => {
-                const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
-                return ['PROJECT_MANAGER', 'MANAGER', 'ADMIN', 'OWNER'].includes(userRole);
+              const roleBasedManagers = teamMembers.filter((u) => {
+                const userRole = (u.role || "")
+                  .toUpperCase()
+                  .replace(/\s+/g, "_");
+                return [
+                  "PROJECT_MANAGER",
+                  "MANAGER",
+                  "ADMIN",
+                  "OWNER",
+                ].includes(userRole);
               });
-              
+
               // Merge role-based managers with explicitly assigned ones, avoiding duplicates
-              roleBasedManagers.forEach(manager => {
-                if (!projectManagerUsers.find(pm => pm.id === manager.id)) {
+              roleBasedManagers.forEach((manager) => {
+                if (!projectManagerUsers.find((pm) => pm.id === manager.id)) {
                   projectManagerUsers.push(manager);
                 }
               });
-              
+
               setProjectManagers(projectManagerUsers);
             }
           }
         } catch (roleError) {
-          console.error('Error fetching role assignments:', roleError);
+          console.error("Error fetching role assignments:", roleError);
           // Fallback: Filter teamMembers by their role property
-          const roleBasedManagers = teamMembers.filter(u => {
-            const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
-            return ['PROJECT_MANAGER', 'MANAGER', 'ADMIN', 'OWNER'].includes(userRole);
+          const roleBasedManagers = teamMembers.filter((u) => {
+            const userRole = (u.role || "").toUpperCase().replace(/\s+/g, "_");
+            return ["PROJECT_MANAGER", "MANAGER", "ADMIN", "OWNER"].includes(
+              userRole,
+            );
           });
           setProjectManagers(roleBasedManagers);
-          
+
           // For subcontractors, filter by SUBCONTRACTOR role
-          const roleBasedSubcontractors = teamMembers.filter(u => {
-            const userRole = (u.role || '').toUpperCase().replace(/\s+/g, '_');
-            return userRole === 'SUBCONTRACTOR';
+          const roleBasedSubcontractors = teamMembers.filter((u) => {
+            const userRole = (u.role || "").toUpperCase().replace(/\s+/g, "_");
+            return userRole === "SUBCONTRACTOR";
           });
           setSubcontractors(roleBasedSubcontractors);
         }
       } catch (error) {
-        console.error('Error fetching users:', error);
+        console.error("Error fetching users:", error);
       } finally {
         setUsersLoading(false);
       }
@@ -261,23 +423,30 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       (async () => {
         try {
           setLoadingWorkflows(true);
-          const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-          const resp = await fetch(`${API_BASE_URL}/workflow-data/custom-workflows`, {
-            headers: { 'Content-Type': 'application/json', ...(token && { 'Authorization': `Bearer ${token}` }) }
-          });
+          const token =
+            localStorage.getItem("authToken") || localStorage.getItem("token");
+          const resp = await fetch(
+            `${API_BASE_URL}/workflow-data/custom-workflows`,
+            {
+              headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
+              },
+            },
+          );
           if (resp.ok) {
             const data = await resp.json();
             if (data.success) setCustomWorkflows(data.data || []);
           }
         } catch (err) {
-          console.error('Error fetching custom workflows:', err);
+          console.error("Error fetching custom workflows:", err);
         } finally {
           setLoadingWorkflows(false);
         }
       })();
       // Scroll to top when modal opens
       setTimeout(() => {
-        const modalContent = document.querySelector('.modal-content');
+        const modalContent = document.querySelector(".modal-content");
         if (modalContent) {
           modalContent.scrollTop = 0;
         }
@@ -294,13 +463,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   // Phone number formatting function
   const formatPhoneNumber = (value) => {
     if (!value) return value;
-    
+
     // Remove all non-numeric characters
-    const phoneNumber = value.replace(/[^\d]/g, '');
-    
+    const phoneNumber = value.replace(/[^\d]/g, "");
+
     // Don't format if there are no digits
-    if (phoneNumber.length === 0) return '';
-    
+    if (phoneNumber.length === 0) return "";
+
     // Format based on length
     if (phoneNumber.length < 4) {
       return phoneNumber;
@@ -313,59 +482,62 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    
+
     // Apply phone formatting to phone fields
     let formattedValue = value;
-    if (name === 'primaryPhone' || name === 'secondaryPhone') {
+    if (name === "primaryPhone" || name === "secondaryPhone") {
       formattedValue = formatPhoneNumber(value);
     }
-    
-    setFormData(prev => ({
+
+    setFormData((prev) => ({
       ...prev,
-      [name]: formattedValue
+      [name]: formattedValue,
     }));
     // Clear error when user starts typing
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handlePlaceSelect = (placeData) => {
-    console.log('🔍 ADDRESS DEBUG: Place selected:', placeData);
-    console.log('🔍 ADDRESS DEBUG: Address components:', placeData.addressComponents);
-    
-    setFormData(prev => ({
+    console.log("🔍 ADDRESS DEBUG: Place selected:", placeData);
+    console.log(
+      "🔍 ADDRESS DEBUG: Address components:",
+      placeData.addressComponents,
+    );
+
+    setFormData((prev) => ({
       ...prev,
       address: placeData.formattedAddress,
-      addressComponents: placeData.addressComponents || {}
+      addressComponents: placeData.addressComponents || {},
     }));
-    
+
     // Clear address error when place is selected
     if (errors.address) {
-      setErrors(prev => ({
+      setErrors((prev) => ({
         ...prev,
-        address: ''
+        address: "",
       }));
     }
   };
 
   const handleTradeTypeChange = (tradeType) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       projectTypes: prev.projectTypes.includes(tradeType)
-        ? prev.projectTypes.filter(type => type !== tradeType)
-        : [...prev.projectTypes, tradeType]
+        ? prev.projectTypes.filter((type) => type !== tradeType)
+        : [...prev.projectTypes, tradeType],
     }));
     // Clear error when user selects a trade type
     if (errors.projectTypes) {
-      setErrors(prev => ({ ...prev, projectTypes: '' }));
+      setErrors((prev) => ({ ...prev, projectTypes: "" }));
     }
   };
 
   const handleStartingPhaseChange = (phase) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      startingPhase: phase
+      startingPhase: phase,
     }));
   };
 
@@ -376,20 +548,28 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
     if (step === 1) {
       // Only address is required
       if (!formData.address.trim()) {
-        newErrors.address = 'Project address is required';
-        newRequirements.push('Enter project address');
+        newErrors.address = "Project address is required";
+        newRequirements.push("Enter project address");
       }
 
       // Optional email format validation (only if email is provided)
-      if (formData.primaryEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)) {
-        newErrors.primaryEmail = 'Please enter a valid email address';
-        newRequirements.push('Enter a valid email address');
+      if (
+        formData.primaryEmail.trim() &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.primaryEmail)
+      ) {
+        newErrors.primaryEmail = "Please enter a valid email address";
+        newRequirements.push("Enter a valid email address");
       }
 
       // Optional secondary email format validation
-      if (formData.secondaryEmail && formData.secondaryEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)) {
-        newErrors.secondaryEmail = 'Please enter a valid secondary email address';
-        newRequirements.push('Enter a valid secondary email address');
+      if (
+        formData.secondaryEmail &&
+        formData.secondaryEmail.trim() &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.secondaryEmail)
+      ) {
+        newErrors.secondaryEmail =
+          "Please enter a valid secondary email address";
+        newRequirements.push("Enter a valid secondary email address");
       }
     }
 
@@ -402,11 +582,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   const nextStep = () => {
     if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, 3));
+      setCurrentStep((prev) => Math.min(prev + 1, 3));
       setValidationRequirements([]); // Clear requirements when successfully advancing
       // Scroll to top when advancing to next step
       setTimeout(() => {
-        const modalContent = document.querySelector('.modal-content');
+        const modalContent = document.querySelector(".modal-content");
         if (modalContent) {
           modalContent.scrollTop = 0;
         }
@@ -415,11 +595,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
   };
 
   const prevStep = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
     setValidationRequirements([]); // Clear requirements when going back
     // Scroll to top when going back to previous step
     setTimeout(() => {
-      const modalContent = document.querySelector('.modal-content');
+      const modalContent = document.querySelector(".modal-content");
       if (modalContent) {
         modalContent.scrollTop = 0;
       }
@@ -428,31 +608,33 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Prevent double submission
     if (isSubmitting) {
       return;
     }
-    
+
     if (!validateStep(currentStep)) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       // Create customer first - ensure all fields match backend expectations
       const customerData = {
         primaryName: formData.primaryName.trim(),
         primaryEmail: formData.primaryEmail.trim(),
         primaryEmailType: formData.primaryEmailType,
-        primaryPhone: formData.primaryPhone ? formData.primaryPhone.trim() : '555-555-5555',
+        primaryPhone: formData.primaryPhone
+          ? formData.primaryPhone.trim()
+          : "555-555-5555",
         primaryPhoneType: formData.primaryPhoneType,
         primaryContact: formData.primaryContact,
         primaryPhoneContact: formData.primaryPhoneContact,
-        address: formData.address.trim()
+        address: formData.address.trim(),
       };
-      
+
       // Only add secondary fields if they have values
       if (formData.secondaryName && formData.secondaryName.trim()) {
         customerData.secondaryName = formData.secondaryName.trim();
@@ -466,13 +648,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         customerData.secondaryPhoneType = formData.secondaryPhoneType;
       }
 
-      console.log('🔍 Sending customer data:', customerData);
-      const customerResponse = await api.post('/customers', customerData);
+      console.log("🔍 Sending customer data:", customerData);
+      const customerResponse = await api.post("/customers", customerData);
 
       if (!customerResponse.data.success) {
-        const errorMessage = customerResponse.data.errors 
-          ? Object.values(customerResponse.data.errors).join(', ')
-          : customerResponse.data.message || 'Failed to create customer';
+        const errorMessage = customerResponse.data.errors
+          ? Object.values(customerResponse.data.errors).join(", ")
+          : customerResponse.data.message || "Failed to create customer";
         throw new Error(errorMessage);
       }
 
@@ -482,20 +664,21 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
       const projectName = formData.address;
 
       // Build per-trade workflow assignments for backend
-      const assignments = formData.projectTypes.map(tradeType => {
+      const assignments = formData.projectTypes.map((tradeType) => {
         const assignment = tradeWorkflowAssignments[tradeType];
-        const tradeLabel = TRADE_TYPES.find(t => t.value === tradeType)?.label || tradeType;
+        const tradeLabel =
+          TRADE_TYPES.find((t) => t.value === tradeType)?.label || tradeType;
         return {
           tradeType,
           tradeName: tradeLabel,
           customWorkflowId: assignment?.customWorkflowId || null,
-          useDefault: !assignment?.customWorkflowId
+          useDefault: !assignment?.customWorkflowId,
         };
       });
 
       // Create project with starting phase
       const projectData = {
-        projectName: formData.address || 'New Project', // Use address as project name
+        projectName: formData.address || "New Project", // Use address as project name
         projectType: formData.projectTypes[0], // Main trade type
         additionalTrades: formData.projectTypes.slice(1), // Additional trades
         tradeTypes: formData.projectTypes, // All trade types
@@ -507,26 +690,35 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         startDate: new Date().toISOString(),
         endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString(), // 90 days from now
         startingPhase: formData.startingPhase, // New field for starting phase
-        leadSourceId: formData.leadSourceId || undefined
+        leadSourceId: formData.leadSourceId || undefined,
       };
 
-      const projectResponse = await api.post('/projects', projectData);
+      const projectResponse = await api.post("/projects", projectData);
 
       if (projectResponse.data.success) {
-        console.log('✅ Project created successfully with trades:', formData.projectTypes);
+        console.log(
+          "✅ Project created successfully with trades:",
+          formData.projectTypes,
+        );
 
         // Add subcontractors as team members if any selected
-        if (formData.subcontractorIds.length > 0 && projectResponse.data.data.id) {
+        if (
+          formData.subcontractorIds.length > 0 &&
+          projectResponse.data.data.id
+        ) {
           try {
             for (const subcontractorId of formData.subcontractorIds) {
-              await api.post(`/projects/${projectResponse.data.data.id}/team-members`, {
-                userId: subcontractorId,
-                role: 'SUBCONTRACTOR'
-              });
+              await api.post(
+                `/projects/${projectResponse.data.data.id}/team-members`,
+                {
+                  userId: subcontractorId,
+                  role: "SUBCONTRACTOR",
+                },
+              );
             }
-            console.log('✅ Subcontractors added to project');
+            console.log("✅ Subcontractors added to project");
           } catch (teamError) {
-            console.error('Error adding subcontractors to project:', teamError);
+            console.error("Error adding subcontractors to project:", teamError);
             // Don't fail the entire operation if team member addition fails
           }
         }
@@ -540,37 +732,45 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
         resetForm();
         onClose();
       } else {
-        throw new Error(projectResponse.data.message || 'Failed to create project');
+        throw new Error(
+          projectResponse.data.message || "Failed to create project",
+        );
       }
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error("Error creating project:", error);
       // Check if it's an axios error with response data
       if (error.response && error.response.data) {
-        console.error('Server validation error:', error.response.data);
+        console.error("Server validation error:", error.response.data);
         const serverError = error.response.data;
-        let errorMessage = serverError.message || 'Failed to create customer';
-        
+        let errorMessage = serverError.message || "Failed to create customer";
+
         if (serverError.errors) {
           // Format validation errors - handle both array and object formats
           if (Array.isArray(serverError.errors)) {
             // Backend returns array of {field, message, value} objects
             errorMessage = serverError.errors
-              .map(err => `${err.field || err.path || 'Error'}: ${err.message || err.msg || String(err)}`)
-              .join('\n');
-          } else if (typeof serverError.errors === 'object') {
+              .map(
+                (err) =>
+                  `${err.field || err.path || "Error"}: ${err.message || err.msg || String(err)}`,
+              )
+              .join("\n");
+          } else if (typeof serverError.errors === "object") {
             // Handle object format {field: message} or {field: {message: string}}
             errorMessage = Object.entries(serverError.errors)
               .map(([field, msg]) => {
-                const message = typeof msg === 'object' ? (msg.message || JSON.stringify(msg)) : msg;
+                const message =
+                  typeof msg === "object"
+                    ? msg.message || JSON.stringify(msg)
+                    : msg;
                 return `${field}: ${message}`;
               })
-              .join('\n');
+              .join("\n");
           }
         }
-        
-        alert('Error creating project:\n' + errorMessage);
+
+        alert("Error creating project:\n" + errorMessage);
       } else {
-        alert('Error creating project: ' + error.message);
+        alert("Error creating project: " + error.message);
       }
     } finally {
       setIsSubmitting(false);
@@ -579,27 +779,27 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
   const resetForm = () => {
     setFormData({
-      primaryName: '',
-      primaryEmail: '',
-      primaryEmailType: 'PERSONAL',
-      primaryPhone: '',
-      primaryPhoneType: 'MOBILE',
-      customerTypeOfContact: 'PRIMARY_CONTACT',
-      secondaryName: '',
-      secondaryEmail: '',
-      secondaryEmailType: 'PERSONAL',
-      secondaryPhone: '',
-      secondaryPhoneType: 'MOBILE',
-      secondaryTypeOfContact: 'SECONDARY_CONTACT',
-      primaryContact: 'PRIMARY',
-      primaryPhoneContact: 'PRIMARY',
-      address: '',
+      primaryName: "",
+      primaryEmail: "",
+      primaryEmailType: "PERSONAL",
+      primaryPhone: "",
+      primaryPhoneType: "MOBILE",
+      customerTypeOfContact: "PRIMARY_CONTACT",
+      secondaryName: "",
+      secondaryEmail: "",
+      secondaryEmailType: "PERSONAL",
+      secondaryPhone: "",
+      secondaryPhoneType: "MOBILE",
+      secondaryTypeOfContact: "SECONDARY_CONTACT",
+      primaryContact: "PRIMARY",
+      primaryPhoneContact: "PRIMARY",
+      address: "",
       projectTypes: [],
-      description: '',
-      startingPhase: 'LEAD',
-      projectManagerId: '',
-      leadSourceId: '',
-      subcontractorIds: []
+      description: "",
+      startingPhase: "LEAD",
+      projectManagerId: "",
+      leadSourceId: "",
+      subcontractorIds: [],
     });
     setCurrentStep(1);
     setErrors({});
@@ -623,33 +823,55 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
               }}
               className="p-1.5 rounded-lg hover:bg-white/20 transition-colors"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
-          
+
           {/* Progress Steps */}
           <div className="flex items-center justify-center mt-2">
             {STEPS.map((step, index) => (
               <div key={step.id} className="flex items-center">
-                <div className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${
-                  currentStep >= step.id 
-                    ? 'bg-white text-blue-600 border-white' 
-                    : 'border-white/30 text-white/30'
-                }`}>
+                <div
+                  className={`flex items-center justify-center w-8 h-8 rounded-full border-2 transition-all duration-300 ${
+                    currentStep >= step.id
+                      ? "bg-white text-blue-600 border-white"
+                      : "border-white/30 text-white/30"
+                  }`}
+                >
                   {currentStep > step.id ? (
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                   ) : (
                     <span className="font-semibold text-sm">{step.id}</span>
                   )}
                 </div>
                 {index < STEPS.length - 1 && (
-                  <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
-                    currentStep > step.id ? 'bg-white' : 'bg-white/30'
-                  }`} />
+                  <div
+                    className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
+                      currentStep > step.id ? "bg-white" : "bg-white/30"
+                    }`}
+                  />
                 )}
               </div>
             ))}
@@ -663,7 +885,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             {currentStep === 1 && (
               <div className="space-y-4 animate-slide-up">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Customer Information</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Customer Information
+                  </h3>
                 </div>
 
                 {/* Validation Requirements */}
@@ -672,12 +896,20 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 {/* Primary Customer Section */}
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                   <h4 className="text-base font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                        clipRule="evenodd"
+                      />
                     </svg>
                     Primary Customer
                   </h4>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {/* Name */}
                     <div>
@@ -690,14 +922,24 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         value={formData.primaryName}
                         onChange={handleInputChange}
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                          errors.primaryName ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                          errors.primaryName
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
                         placeholder="John Doe"
                       />
                       {errors.primaryName && (
                         <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           {errors.primaryName}
                         </p>
@@ -716,7 +958,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           value={formData.primaryEmail}
                           onChange={handleInputChange}
                           className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                            errors.primaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                            errors.primaryEmail
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                           placeholder="john@email.com"
                         />
@@ -732,8 +976,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </div>
                       {errors.primaryEmail && (
                         <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           {errors.primaryEmail}
                         </p>
@@ -753,10 +1005,15 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           onChange={handleInputChange}
                           onBlur={(e) => {
                             const formatted = formatPhoneNumber(e.target.value);
-                            setFormData(prev => ({ ...prev, primaryPhone: formatted }));
+                            setFormData((prev) => ({
+                              ...prev,
+                              primaryPhone: formatted,
+                            }));
                           }}
                           className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                            errors.primaryPhone ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                            errors.primaryPhone
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                           placeholder="(865) 555-1212"
                         />
@@ -773,8 +1030,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       </div>
                       {errors.primaryPhone && (
                         <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           {errors.primaryPhone}
                         </p>
@@ -784,7 +1049,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     {/* Secondary Phone */}
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Secondary Phone <span className="text-gray-400 text-xs">(Optional)</span>
+                        Secondary Phone{" "}
+                        <span className="text-gray-400 text-xs">
+                          (Optional)
+                        </span>
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -794,7 +1062,10 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           onChange={handleInputChange}
                           onBlur={(e) => {
                             const formatted = formatPhoneNumber(e.target.value);
-                            setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
+                            setFormData((prev) => ({
+                              ...prev,
+                              secondaryPhone: formatted,
+                            }));
                           }}
                           className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
                           placeholder="(865) 555-1212"
@@ -824,10 +1095,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                       >
                         <option value="PRIMARY_CONTACT">Primary Contact</option>
-                        <option value="SECONDARY_CONTACT">Secondary Contact</option>
+                        <option value="SECONDARY_CONTACT">
+                          Secondary Contact
+                        </option>
                         <option value="TENANT">Tenant</option>
-                        <option value="PROPERTY_MANAGER">Property Manager</option>
-                        <option value="GENERAL_CONTRACTOR">General Contractor</option>
+                        <option value="PROPERTY_MANAGER">
+                          Property Manager
+                        </option>
+                        <option value="GENERAL_CONTRACTOR">
+                          General Contractor
+                        </option>
                       </select>
                     </div>
 
@@ -843,53 +1120,95 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         onPlaceSelect={handlePlaceSelect}
                         placeholder="Enter full project address"
                         className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                          errors.address ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                          errors.address
+                            ? "border-red-300 bg-red-50"
+                            : "border-gray-300 hover:border-gray-400"
                         }`}
                         required
                       />
-                      
+
                       {/* Address Components Display */}
-                      {formData.addressComponents && typeof formData.addressComponents === 'object' && Object.keys(formData.addressComponents).length > 0 && (
-                        <div className="mt-3 p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
-                          <div className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
-                            </svg>
-                            Parsed Address Details
+                      {formData.addressComponents &&
+                        typeof formData.addressComponents === "object" &&
+                        Object.keys(formData.addressComponents).length > 0 && (
+                          <div className="mt-3 p-4 bg-white border border-blue-200 rounded-lg shadow-sm">
+                            <div className="text-sm font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                              <svg
+                                className="w-4 h-4"
+                                fill="currentColor"
+                                viewBox="0 0 20 20"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"
+                                  clipRule="evenodd"
+                                />
+                              </svg>
+                              Parsed Address Details
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 text-sm">
+                              {formData.addressComponents.street_number &&
+                                formData.addressComponents.route && (
+                                  <div>
+                                    <span className="text-gray-500 font-medium block">
+                                      Street
+                                    </span>
+                                    <span className="text-gray-900">
+                                      {formData.addressComponents.street_number}{" "}
+                                      {formData.addressComponents.route}
+                                    </span>
+                                  </div>
+                                )}
+                              {formData.addressComponents.locality && (
+                                <div>
+                                  <span className="text-gray-500 font-medium block">
+                                    City
+                                  </span>
+                                  <span className="text-gray-900">
+                                    {formData.addressComponents.locality}
+                                  </span>
+                                </div>
+                              )}
+                              {formData.addressComponents
+                                .administrative_area_level_1 && (
+                                <div>
+                                  <span className="text-gray-500 font-medium block">
+                                    State
+                                  </span>
+                                  <span className="text-gray-900">
+                                    {
+                                      formData.addressComponents
+                                        .administrative_area_level_1
+                                    }
+                                  </span>
+                                </div>
+                              )}
+                              {formData.addressComponents.postal_code && (
+                                <div>
+                                  <span className="text-gray-500 font-medium block">
+                                    ZIP Code
+                                  </span>
+                                  <span className="text-gray-900 font-semibold">
+                                    {formData.addressComponents.postal_code}
+                                  </span>
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <div className="grid grid-cols-2 gap-3 text-sm">
-                            {formData.addressComponents.street_number && formData.addressComponents.route && (
-                              <div>
-                                <span className="text-gray-500 font-medium block">Street</span>
-                                <span className="text-gray-900">{formData.addressComponents.street_number} {formData.addressComponents.route}</span>
-                              </div>
-                            )}
-                            {formData.addressComponents.locality && (
-                              <div>
-                                <span className="text-gray-500 font-medium block">City</span>
-                                <span className="text-gray-900">{formData.addressComponents.locality}</span>
-                              </div>
-                            )}
-                            {formData.addressComponents.administrative_area_level_1 && (
-                              <div>
-                                <span className="text-gray-500 font-medium block">State</span>
-                                <span className="text-gray-900">{formData.addressComponents.administrative_area_level_1}</span>
-                              </div>
-                            )}
-                            {formData.addressComponents.postal_code && (
-                              <div>
-                                <span className="text-gray-500 font-medium block">ZIP Code</span>
-                                <span className="text-gray-900 font-semibold">{formData.addressComponents.postal_code}</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
+                        )}
+
                       {errors.address && (
                         <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                          <svg
+                            className="w-4 h-4"
+                            fill="currentColor"
+                            viewBox="0 0 20 20"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           {errors.address}
                         </p>
@@ -906,8 +1225,18 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       onClick={() => setShowSecondaryCustomer(true)}
                       className="w-full px-4 py-3.5 border-2 border-dashed border-gray-300 rounded-xl text-gray-600 hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center gap-2 font-medium"
                     >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 4v16m8-8H4"
+                        />
                       </svg>
                       Add Secondary Customer (Optional)
                     </button>
@@ -916,7 +1245,11 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                     <div className="flex items-center justify-between mb-3">
                       <h4 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg
+                          className="w-5 h-5"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
                           <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z" />
                         </svg>
                         Secondary Customer
@@ -925,22 +1258,32 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         type="button"
                         onClick={() => {
                           setShowSecondaryCustomer(false);
-                          setFormData(prev => ({
+                          setFormData((prev) => ({
                             ...prev,
-                            secondaryName: '',
-                            secondaryEmail: '',
-                            secondaryPhone: '',
-                            secondaryTypeOfContact: 'SECONDARY_CONTACT'
+                            secondaryName: "",
+                            secondaryEmail: "",
+                            secondaryPhone: "",
+                            secondaryTypeOfContact: "SECONDARY_CONTACT",
                           }));
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors p-1"
                       >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        <svg
+                          className="w-5 h-5"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
                         </svg>
                       </button>
                     </div>
-                  
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Secondary Name */}
                       <div>
@@ -953,14 +1296,24 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           value={formData.secondaryName}
                           onChange={handleInputChange}
                           className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                            errors.secondaryName ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                            errors.secondaryName
+                              ? "border-red-300 bg-red-50"
+                              : "border-gray-300 hover:border-gray-400"
                           }`}
                           placeholder="Jane Doe"
                         />
                         {errors.secondaryName && (
                           <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             {errors.secondaryName}
                           </p>
@@ -979,7 +1332,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             value={formData.secondaryEmail}
                             onChange={handleInputChange}
                             className={`flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 ${
-                              errors.secondaryEmail ? 'border-red-300 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+                              errors.secondaryEmail
+                                ? "border-red-300 bg-red-50"
+                                : "border-gray-300 hover:border-gray-400"
                             }`}
                             placeholder="jane@email.com"
                           />
@@ -995,8 +1350,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         </div>
                         {errors.secondaryEmail && (
                           <p className="mt-1.5 text-sm text-red-600 flex items-center gap-1">
-                            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                            <svg
+                              className="w-4 h-4"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                             {errors.secondaryEmail}
                           </p>
@@ -1015,8 +1378,13 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             value={formData.secondaryPhone}
                             onChange={handleInputChange}
                             onBlur={(e) => {
-                              const formatted = formatPhoneNumber(e.target.value);
-                              setFormData(prev => ({ ...prev, secondaryPhone: formatted }));
+                              const formatted = formatPhoneNumber(
+                                e.target.value,
+                              );
+                              setFormData((prev) => ({
+                                ...prev,
+                                secondaryPhone: formatted,
+                              }));
                             }}
                             className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400"
                             placeholder="(865) 555-1212"
@@ -1045,11 +1413,19 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-gray-400 bg-white"
                         >
-                          <option value="PRIMARY_CONTACT">Primary Contact</option>
-                          <option value="SECONDARY_CONTACT">Secondary Contact</option>
+                          <option value="PRIMARY_CONTACT">
+                            Primary Contact
+                          </option>
+                          <option value="SECONDARY_CONTACT">
+                            Secondary Contact
+                          </option>
                           <option value="TENANT">Tenant</option>
-                          <option value="PROPERTY_MANAGER">Property Manager</option>
-                          <option value="GENERAL_CONTRACTOR">General Contractor</option>
+                          <option value="PROPERTY_MANAGER">
+                            Property Manager
+                          </option>
+                          <option value="GENERAL_CONTRACTOR">
+                            General Contractor
+                          </option>
                         </select>
                       </div>
 
@@ -1066,7 +1442,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                             className="w-full p-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 hover:border-gray-300 text-sm"
                           >
                             <option value="PRIMARY">Primary Customer</option>
-                            <option value="SECONDARY">Secondary Customer</option>
+                            <option value="SECONDARY">
+                              Secondary Customer
+                            </option>
                           </select>
                         </div>
                       )}
@@ -1075,47 +1453,59 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                 )}
 
                 {/* Primary Phone Selection - Show only when there are TWO customers (secondary customer added) with phone numbers */}
-                {showSecondaryCustomer && formData.secondaryName && formData.primaryPhone && formData.secondaryPhone && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <h4 className="text-base font-semibold text-yellow-800 mb-2 flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                      </svg>
-                      Primary Phone Number
-                    </h4>
-                    <p className="text-sm text-yellow-700 mb-2">
-                      Both customers have phone numbers. Please select which one should be the primary contact number:
-                    </p>
-                    <div className="flex gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="primaryPhoneContact"
-                          value="PRIMARY"
-                          checked={formData.primaryPhoneContact === 'PRIMARY'}
-                          onChange={handleInputChange}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">
-                          {formData.primaryPhone} ({formData.primaryPhoneType})
-                        </span>
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="radio"
-                          name="primaryPhoneContact"
-                          value="SECONDARY"
-                          checked={formData.primaryPhoneContact === 'SECONDARY'}
-                          onChange={handleInputChange}
-                          className="mr-2"
-                        />
-                        <span className="text-sm">
-                          {formData.secondaryPhone} ({formData.secondaryPhoneType})
-                        </span>
-                      </label>
+                {showSecondaryCustomer &&
+                  formData.secondaryName &&
+                  formData.primaryPhone &&
+                  formData.secondaryPhone && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                      <h4 className="text-base font-semibold text-yellow-800 mb-2 flex items-center gap-2">
+                        <svg
+                          className="w-4 h-4"
+                          fill="currentColor"
+                          viewBox="0 0 20 20"
+                        >
+                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+                        </svg>
+                        Primary Phone Number
+                      </h4>
+                      <p className="text-sm text-yellow-700 mb-2">
+                        Both customers have phone numbers. Please select which
+                        one should be the primary contact number:
+                      </p>
+                      <div className="flex gap-4">
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="primaryPhoneContact"
+                            value="PRIMARY"
+                            checked={formData.primaryPhoneContact === "PRIMARY"}
+                            onChange={handleInputChange}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">
+                            {formData.primaryPhone} ({formData.primaryPhoneType}
+                            )
+                          </span>
+                        </label>
+                        <label className="flex items-center">
+                          <input
+                            type="radio"
+                            name="primaryPhoneContact"
+                            value="SECONDARY"
+                            checked={
+                              formData.primaryPhoneContact === "SECONDARY"
+                            }
+                            onChange={handleInputChange}
+                            className="mr-2"
+                          />
+                          <span className="text-sm">
+                            {formData.secondaryPhone} (
+                            {formData.secondaryPhoneType})
+                          </span>
+                        </label>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             )}
 
@@ -1123,8 +1513,12 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             {currentStep === 2 && (
               <div className="space-y-3 animate-slide-up">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Project Configuration</h3>
-                  <p className="text-gray-600 text-sm">Select project type and starting phase</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Project Configuration
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Select project type and starting phase
+                  </p>
                 </div>
 
                 {/* Validation Requirements */}
@@ -1136,14 +1530,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     Trade Types <span className="text-red-500">*</span>
                   </label>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {TRADE_TYPES.map(trade => (
+                    {TRADE_TYPES.map((trade) => (
                       <label
                         key={trade.value}
                         className={`relative p-2 border rounded-lg cursor-pointer transition-all duration-200 group ${
                           formData.projectTypes.includes(trade.value)
-                            ? 'border-blue-500 bg-blue-50 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                        } ${errors.projectTypes ? 'border-red-300 bg-red-50' : ''}`}
+                            ? "border-blue-500 bg-blue-50 shadow-md"
+                            : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
+                        } ${errors.projectTypes ? "border-red-300 bg-red-50" : ""}`}
                       >
                         <input
                           type="checkbox"
@@ -1152,22 +1546,36 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           className="sr-only"
                         />
                         <div className="flex items-center gap-2">
-                          <div className={`w-6 h-6 rounded flex items-center justify-center text-sm transition-all duration-200 ${
-                            formData.projectTypes.includes(trade.value)
-                              ? 'bg-blue-500 text-white'
-                              : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
-                          }`}>
+                          <div
+                            className={`w-6 h-6 rounded flex items-center justify-center text-sm transition-all duration-200 ${
+                              formData.projectTypes.includes(trade.value)
+                                ? "bg-blue-500 text-white"
+                                : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                            }`}
+                          >
                             {trade.icon}
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">{trade.label}</div>
-                            <div className="text-sm text-gray-500">{trade.description}</div>
+                            <div className="font-semibold text-gray-900">
+                              {trade.label}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {trade.description}
+                            </div>
                           </div>
                         </div>
                         {formData.projectTypes.includes(trade.value) && (
                           <div className="absolute top-2 right-2 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                         )}
@@ -1176,8 +1584,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   </div>
                   {errors.projectTypes && (
                     <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {errors.projectTypes}
                     </p>
@@ -1191,21 +1607,25 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       Project Workflow Assignment
                     </label>
                     <p className="text-sm text-gray-500 mb-3">
-                      Assign a workflow to each trade. You can use a saved custom workflow or the system default.
+                      Assign a workflow to each trade. You can use a saved
+                      custom workflow or the system default.
                     </p>
                     <div className="space-y-3">
                       {formData.projectTypes.map((tradeType, idx) => {
-                        const trade = TRADE_TYPES.find(t => t.value === tradeType);
-                        const assignment = tradeWorkflowAssignments[tradeType] || {};
+                        const trade = TRADE_TYPES.find(
+                          (t) => t.value === tradeType,
+                        );
+                        const assignment =
+                          tradeWorkflowAssignments[tradeType] || {};
                         const hasCustomWorkflow = !!assignment.customWorkflowId;
-                        
+
                         return (
                           <div
                             key={tradeType}
                             className={`border rounded-lg p-3 transition-all duration-200 ${
                               hasCustomWorkflow
-                                ? 'border-green-300 bg-green-50'
-                                : 'border-gray-200 bg-gray-50'
+                                ? "border-green-300 bg-green-50"
+                                : "border-gray-200 bg-gray-50"
                             }`}
                           >
                             <div className="flex items-center justify-between mb-2">
@@ -1219,8 +1639,16 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                               </div>
                               {hasCustomWorkflow ? (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
                                   Custom Workflow
                                 </span>
@@ -1231,30 +1659,35 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                               )}
                             </div>
                             <select
-                              value={assignment.customWorkflowId || ''}
+                              value={assignment.customWorkflowId || ""}
                               onChange={(e) => {
                                 const value = e.target.value;
-                                setTradeWorkflowAssignments(prev => ({
+                                setTradeWorkflowAssignments((prev) => ({
                                   ...prev,
                                   [tradeType]: value
-                                    ? { customWorkflowId: value, tradeName: trade?.label }
-                                    : {}
+                                    ? {
+                                        customWorkflowId: value,
+                                        tradeName: trade?.label,
+                                      }
+                                    : {},
                                 }));
                               }}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
                             >
                               <option value="">System Default Workflow</option>
-                              {customWorkflows.map(cw => (
+                              {customWorkflows.map((cw) => (
                                 <option key={cw.id} value={cw.id}>
                                   {cw.name} ({cw.totalItems} items)
                                 </option>
                               ))}
                             </select>
-                            {!hasCustomWorkflow && customWorkflows.length === 0 && (
-                              <p className="mt-1.5 text-xs text-gray-500 italic">
-                                No saved workflows yet. You can create one later from the Workflow Builder page.
-                              </p>
-                            )}
+                            {!hasCustomWorkflow &&
+                              customWorkflows.length === 0 && (
+                                <p className="mt-1.5 text-xs text-gray-500 italic">
+                                  No saved workflows yet. You can create one
+                                  later from the Workflow Builder page.
+                                </p>
+                              )}
                           </div>
                         );
                       })}
@@ -1268,16 +1701,17 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     Starting Phase <span className="text-red-500">*</span>
                   </label>
                   <p className="text-sm text-gray-600 mb-4">
-                    Select the phase to start the project. All previous phases will be automatically marked as completed.
+                    Select the phase to start the project. All previous phases
+                    will be automatically marked as completed.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {WORKFLOW_PHASES.map(phase => (
+                    {WORKFLOW_PHASES.map((phase) => (
                       <label
                         key={phase.value}
                         className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 group ${
                           formData.startingPhase === phase.value
-                            ? 'border-green-500 bg-green-50 shadow-md'
-                            : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                            ? "border-green-500 bg-green-50 shadow-md"
+                            : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                         }`}
                       >
                         <input
@@ -1285,26 +1719,42 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           name="startingPhase"
                           value={phase.value}
                           checked={formData.startingPhase === phase.value}
-                          onChange={() => handleStartingPhaseChange(phase.value)}
+                          onChange={() =>
+                            handleStartingPhaseChange(phase.value)
+                          }
                           className="sr-only"
                         />
                         <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all duration-200 ${
-                            formData.startingPhase === phase.value
-                              ? 'bg-green-500 text-white'
-                              : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
-                          }`}>
+                          <div
+                            className={`w-8 h-8 rounded-lg flex items-center justify-center text-lg transition-all duration-200 ${
+                              formData.startingPhase === phase.value
+                                ? "bg-green-500 text-white"
+                                : "bg-gray-100 text-gray-600 group-hover:bg-gray-200"
+                            }`}
+                          >
                             {phase.icon}
                           </div>
                           <div>
-                            <div className="font-semibold text-gray-900">{phase.label}</div>
-                            <div className="text-sm text-gray-500">{phase.description}</div>
+                            <div className="font-semibold text-gray-900">
+                              {phase.label}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {phase.description}
+                            </div>
                           </div>
                         </div>
                         {formData.startingPhase === phase.value && (
                           <div className="absolute top-2 right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-                            <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <svg
+                              className="w-3 h-3 text-white"
+                              fill="currentColor"
+                              viewBox="0 0 20 20"
+                            >
+                              <path
+                                fillRule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clipRule="evenodd"
+                              />
                             </svg>
                           </div>
                         )}
@@ -1312,7 +1762,6 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     ))}
                   </div>
                 </div>
-
 
                 {/* Project Manager */}
                 <div>
@@ -1327,27 +1776,45 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                     disabled={usersLoading}
                   >
                     <option value="">Select a project manager</option>
-                    {projectManagers.map(user => (
+                    {projectManagers.map((user) => (
                       <option key={user.id} value={user.id}>
                         {user.firstName} {user.lastName}
                       </option>
                     ))}
                   </select>
                   {usersLoading && (
-                    <p className="mt-2 text-sm text-gray-500">Loading project managers...</p>
+                    <p className="mt-2 text-sm text-gray-500">
+                      Loading project managers...
+                    </p>
                   )}
                   {!usersLoading && projectManagers.length === 0 && (
                     <p className="mt-2 text-sm text-amber-600 flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       No project managers assigned in Settings → Roles
                     </p>
                   )}
                   {errors.projectManagerId && (
                     <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       {errors.projectManagerId}
                     </p>
@@ -1367,7 +1834,9 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   >
                     <option value="">Select a lead source (optional)</option>
                     {LEAD_SOURCES.map((source, index) => (
-                      <option key={index} value={source}>{source}</option>
+                      <option key={index} value={source}>
+                        {source}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -1379,16 +1848,26 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   </label>
                   <div className="border-2 border-gray-200 rounded-xl p-4 max-h-48 overflow-y-auto">
                     {subcontractors.length > 0 ? (
-                      subcontractors.map(user => (
-                        <label key={user.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                      subcontractors.map((user) => (
+                        <label
+                          key={user.id}
+                          className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer"
+                        >
                           <input
                             type="checkbox"
-                            checked={formData.subcontractorIds.includes(user.id)}
+                            checked={formData.subcontractorIds.includes(
+                              user.id,
+                            )}
                             onChange={(e) => {
                               const newIds = e.target.checked
                                 ? [...formData.subcontractorIds, user.id]
-                                : formData.subcontractorIds.filter(id => id !== user.id);
-                              setFormData({ ...formData, subcontractorIds: newIds });
+                                : formData.subcontractorIds.filter(
+                                    (id) => id !== user.id,
+                                  );
+                              setFormData({
+                                ...formData,
+                                subcontractorIds: newIds,
+                              });
                             }}
                             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                           />
@@ -1405,7 +1884,8 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   </div>
                   {formData.subcontractorIds.length > 0 && (
                     <p className="mt-2 text-sm text-gray-600">
-                      {formData.subcontractorIds.length} subcontractor{formData.subcontractorIds.length > 1 ? 's' : ''} selected
+                      {formData.subcontractorIds.length} subcontractor
+                      {formData.subcontractorIds.length > 1 ? "s" : ""} selected
                     </p>
                   )}
                 </div>
@@ -1431,68 +1911,121 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
             {currentStep === 3 && (
               <div className="space-y-3 animate-slide-up">
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Review Project Details</h3>
-                  <p className="text-gray-600 text-sm">Please review all information before creating the project</p>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                    Review Project Details
+                  </h3>
+                  <p className="text-gray-600 text-sm">
+                    Please review all information before creating the project
+                  </p>
                 </div>
 
                 <div className="bg-gray-50 rounded-lg p-3 space-y-2">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-900 mb-2">Customer Information</h4>
+                      <h4 className="font-semibold text-sm text-gray-900 mb-2">
+                        Customer Information
+                      </h4>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-xs text-gray-500">Primary Customer:</span>
-                          <p className="font-medium text-sm">{formData.customerName || 'Not specified'}</p>
+                          <span className="text-xs text-gray-500">
+                            Primary Customer:
+                          </span>
+                          <p className="font-medium text-sm">
+                            {formData.primaryName || "Not specified"}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Primary Email:</span>
-                          <p className="font-medium">{formData.customerEmail || 'Not specified'}</p>
+                          <span className="text-sm text-gray-500">
+                            Primary Email:
+                          </span>
+                          <p className="font-medium">
+                            {formData.primaryEmail || "Not specified"}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Primary Phone:</span>
-                          <p className="font-medium">{formData.customerPhone || 'Not specified'}</p>
+                          <span className="text-sm text-gray-500">
+                            Primary Phone:
+                          </span>
+                          <p className="font-medium">
+                            {formData.primaryPhone || "Not specified"}
+                          </p>
                         </div>
                         {formData.secondaryName && (
                           <>
                             <div>
-                              <span className="text-sm text-gray-500">Secondary Customer:</span>
-                              <p className="font-medium">{formData.secondaryName}</p>
+                              <span className="text-sm text-gray-500">
+                                Secondary Customer:
+                              </span>
+                              <p className="font-medium">
+                                {formData.secondaryName}
+                              </p>
                             </div>
                             <div>
-                              <span className="text-sm text-gray-500">Secondary Email:</span>
-                              <p className="font-medium">{formData.secondaryEmail || 'Not specified'}</p>
+                              <span className="text-sm text-gray-500">
+                                Secondary Email:
+                              </span>
+                              <p className="font-medium">
+                                {formData.secondaryEmail || "Not specified"}
+                              </p>
                             </div>
                             <div>
-                              <span className="text-sm text-gray-500">Secondary Phone:</span>
-                              <p className="font-medium">{formData.secondaryPhone || 'Not specified'}</p>
+                              <span className="text-sm text-gray-500">
+                                Secondary Phone:
+                              </span>
+                              <p className="font-medium">
+                                {formData.secondaryPhone || "Not specified"}
+                              </p>
                             </div>
                             <div>
-                              <span className="text-sm text-gray-500">Primary Contact:</span>
-                              <p className="font-medium">{formData.primaryContact === 'PRIMARY' ? 'Primary Customer' : 'Secondary Customer'}</p>
+                              <span className="text-sm text-gray-500">
+                                Primary Contact:
+                              </span>
+                              <p className="font-medium">
+                                {formData.primaryContact === "PRIMARY"
+                                  ? "Primary Customer"
+                                  : "Secondary Customer"}
+                              </p>
                             </div>
                           </>
                         )}
                         <div>
-                          <span className="text-sm text-gray-500">Project Address:</span>
-                          <p className="font-medium">{formData.address || 'Not specified'}</p>
+                          <span className="text-sm text-gray-500">
+                            Project Address:
+                          </span>
+                          <p className="font-medium">
+                            {formData.address || "Not specified"}
+                          </p>
                         </div>
                       </div>
                     </div>
 
                     <div>
-                      <h4 className="font-semibold text-sm text-gray-900 mb-2">Project Configuration</h4>
+                      <h4 className="font-semibold text-sm text-gray-900 mb-2">
+                        Project Configuration
+                      </h4>
                       <div className="space-y-1">
                         <div>
-                          <span className="text-sm text-gray-500">Project Name:</span>
-                          <p className="font-medium">{formData.address || 'Auto-generated from address'}</p>
+                          <span className="text-sm text-gray-500">
+                            Project Name:
+                          </span>
+                          <p className="font-medium">
+                            {formData.address || "Auto-generated from address"}
+                          </p>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Trade Types:</span>
+                          <span className="text-sm text-gray-500">
+                            Trade Types:
+                          </span>
                           <div className="flex flex-wrap gap-1 mt-1">
-                            {formData.projectTypes.map(type => {
-                              const trade = TRADE_TYPES.find(t => t.value === type);
+                            {formData.projectTypes.map((type) => {
+                              const trade = TRADE_TYPES.find(
+                                (t) => t.value === type,
+                              );
                               return (
-                                <span key={type} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm">
+                                <span
+                                  key={type}
+                                  className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-lg text-sm"
+                                >
                                   {trade?.icon} {trade?.label}
                                 </span>
                               );
@@ -1500,10 +2033,14 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           </div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Starting Phase:</span>
+                          <span className="text-sm text-gray-500">
+                            Starting Phase:
+                          </span>
                           <div className="flex items-center gap-1 mt-1">
                             {(() => {
-                              const phase = WORKFLOW_PHASES.find(p => p.value === formData.startingPhase);
+                              const phase = WORKFLOW_PHASES.find(
+                                (p) => p.value === formData.startingPhase,
+                              );
                               return (
                                 <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-lg text-sm">
                                   {phase?.icon} {phase?.label}
@@ -1513,14 +2050,23 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                           </div>
                         </div>
                         <div>
-                          <span className="text-sm text-gray-500">Project Manager:</span>
+                          <span className="text-sm text-gray-500">
+                            Project Manager:
+                          </span>
                           <p className="font-medium">
-                            {formData.projectManagerId 
+                            {formData.projectManagerId
                               ? (() => {
-                                  const manager = [...projectManagers, ...users].find(u => u.id === formData.projectManagerId);
-                                  return manager ? `${manager.firstName} ${manager.lastName}` : 'Not found';
+                                  const manager = [
+                                    ...projectManagers,
+                                    ...users,
+                                  ].find(
+                                    (u) => u.id === formData.projectManagerId,
+                                  );
+                                  return manager
+                                    ? `${manager.firstName} ${manager.lastName}`
+                                    : "Not found";
                                 })()
-                              : 'Not assigned'}
+                              : "Not assigned"}
                           </p>
                         </div>
                       </div>
@@ -1529,14 +2075,18 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
 
                   {formData.description && (
                     <div>
-                      <span className="text-sm text-gray-500">Description:</span>
-                      <p className="mt-1 text-gray-900">{formData.description}</p>
+                      <span className="text-sm text-gray-500">
+                        Description:
+                      </span>
+                      <p className="mt-1 text-gray-900">
+                        {formData.description}
+                      </p>
                     </div>
                   )}
                 </div>
               </div>
             )}
-            
+
             {/* Form Actions */}
             <div className="bg-gray-50 px-4 py-3 border-t border-gray-200 flex-shrink-0 -mx-4 -mb-4 rounded-b-2xl">
               <div className="flex items-center justify-between">
@@ -1546,16 +2096,26 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   disabled={currentStep === 1}
                   className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center gap-2 ${
                     currentStep === 1
-                      ? 'text-gray-400 cursor-not-allowed'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-200'
+                      ? "text-gray-400 cursor-not-allowed"
+                      : "text-gray-700 hover:text-gray-900 hover:bg-gray-200"
                   }`}
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
                   </svg>
                   Previous
                 </button>
-                
+
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
@@ -1567,7 +2127,7 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                   >
                     Cancel
                   </button>
-                  
+
                   {currentStep < 3 ? (
                     <button
                       type="button"
@@ -1575,8 +2135,18 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 shadow-sm hover:shadow-md transition-all duration-200 flex items-center gap-2"
                     >
                       Next
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </button>
                   ) : (
@@ -1593,8 +2163,18 @@ const AddProjectModal = ({ isOpen, onClose, onProjectCreated }) => {
                         </>
                       ) : (
                         <>
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          <svg
+                            className="w-5 h-5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
                           </svg>
                           Create Project
                         </>
