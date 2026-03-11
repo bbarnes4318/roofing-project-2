@@ -940,64 +940,55 @@ if (bubblesRoutes) {
   console.log('✅ SERVER: Bubbles routes also registered at /bubbles (backward compatibility)');
 }
 
-// Serve React build files in production
-if (process.env.NODE_ENV === 'production') {
-  const path = require('path');
-  const fs = require('fs');
-  
+// Serve React build files (works in any environment where a build exists)
+{
   // Determine React build location (support multiple layouts)
   const candidatePaths = [
     path.join(__dirname, 'public'),           // server/public (if copied during build)
     path.join(__dirname, '..', 'build'),      // root/build (CRA default)
     path.join(process.cwd(), 'build')         // cwd/build fallback
   ];
-  const buildPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
+  const buildPath = candidatePaths.find(p => fs.existsSync(path.join(p, 'index.html'))) || candidatePaths[0];
+  const indexPath = path.join(buildPath, 'index.html');
+  const hasBuild = fs.existsSync(indexPath);
   
   console.log('🏗️ Server directory:', __dirname);
   console.log('🏗️ Build path candidates:', candidatePaths);
   console.log('🏗️ Selected build path:', buildPath);
-  console.log('🏗️ Build exists?', fs.existsSync(buildPath));
+  console.log('🏗️ Build exists?', hasBuild);
   
   // List files in /app to see what's actually there
   if (fs.existsSync('/app')) {
     console.log('📁 Files in /app:', fs.readdirSync('/app').filter(f => !f.startsWith('.')));
   }
   
-  // Serve static files from React build with cache control to reduce revalidation
-  app.use(express.static(buildPath, {
-    setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
-        // Long cache for fingerprinted assets
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
-      } else if (filePath.endsWith('index.html')) {
-        // No-cache for HTML entry
-        res.setHeader('Cache-Control', 'no-cache');
+  if (hasBuild) {
+    // Serve static files from React build with cache control
+    app.use(express.static(buildPath, {
+      setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.js') || filePath.endsWith('.css')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (filePath.endsWith('index.html')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
       }
-    }
-  }));
-  
-  // Serve React app for all non-API routes
-  app.get('*', (req, res, next) => {
-    // Skip API routes
-    if (req.path.startsWith('/api/')) {
-      return next();
-    }
+    }));
     
-    const indexPath = path.join(buildPath, 'index.html');
-    if (fs.existsSync(indexPath)) {
+    // Serve React app for all non-API routes
+    app.get('*', (req, res, next) => {
+      if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) {
+        return next();
+      }
       res.sendFile(indexPath);
-    } else {
-      res.status(404).json({ 
-        error: 'React build not found',
-        searchedPath: indexPath,
-        currentDir: __dirname
-      });
-    }
-  });
-} else {
-  app.get('/', (req, res) => {
-    res.json({ message: 'API is running in development mode' });
-  });
+    });
+    console.log('✅ React build detected – SPA catch-all enabled');
+  } else {
+    // No build found – serve a simple dev landing
+    app.get('/', (req, res) => {
+      res.json({ message: 'API is running – no React build found. Run npm run build to generate one.' });
+    });
+    console.log('⚠️ No React build found – serving API-only mode');
+  }
 }
 
 // Demo endpoint for adding alerts (no authentication required for demo purposes)
@@ -1029,18 +1020,7 @@ app.post('/api/demo/add-alerts', async (req, res) => {
   }
 });
 
-// Root endpoint (only in development)
-if (process.env.NODE_ENV !== 'production') {
-  app.get('/', (req, res) => {
-    res.json({
-      message: '🏗️ Kenstruction API Server',
-      version: '1.0.0',
-      status: 'active',
-      environment: process.env.NODE_ENV || 'development',
-      timestamp: new Date().toISOString()
-    });
-  });
-}
+// (Duplicate dev root removed – handled by SPA catch-all or API-only fallback above)
 
 // API status endpoint
 app.get('/api', (req, res) => {

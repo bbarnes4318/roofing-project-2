@@ -34,6 +34,9 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
+# Set production mode so the server serves the React build
+ENV NODE_ENV=production
+
 # Copy backend package files and Prisma schema (needed for postinstall)
 COPY server/package*.json ./
 COPY server/prisma ./prisma
