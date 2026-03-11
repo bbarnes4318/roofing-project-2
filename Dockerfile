@@ -34,9 +34,6 @@ RUN apk add --no-cache openssl
 
 WORKDIR /app
 
-# Set production mode so the server serves the React build
-ENV NODE_ENV=production
-
 # Copy backend package files and Prisma schema (needed for postinstall)
 COPY server/package*.json ./
 COPY server/prisma ./prisma
@@ -54,6 +51,9 @@ RUN mkdir -p /app/uploads/company-assets /app/uploads/documents
 
 # Generate Prisma client, then prune dev deps for smaller image
 RUN npx prisma generate && npm prune --omit=dev
+
+# Set production mode AFTER install/generate so dev deps are available during build
+ENV NODE_ENV=production
 
 EXPOSE 8080
 CMD ["npm", "start"]
