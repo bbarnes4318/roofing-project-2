@@ -397,7 +397,8 @@ try {
   // Helper to get current workflow data
   getCurrentWorkflowData = async function(projectId) {
     const tracker = await prisma.projectWorkflowTracker.findFirst({
-      where: { projectId, isMainWorkflow: true },
+      where: { projectId },
+      orderBy: { isMainWorkflow: 'desc' },
       select: { id: true, currentLineItemId: true, currentPhaseId: true, workflowType: true }
     });
     

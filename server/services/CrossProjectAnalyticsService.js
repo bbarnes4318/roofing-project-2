@@ -193,8 +193,7 @@ class CrossProjectAnalyticsService {
       // Get workflow trackers for all active projects
       const trackers = await prisma.projectWorkflowTracker.findMany({
         where: {
-          projectId: { in: projects.map(p => p.id) },
-          isMainWorkflow: true
+          projectId: { in: projects.map(p => p.id) }
         },
         include: {
           currentLineItem: {

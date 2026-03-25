@@ -15,30 +15,66 @@ class WorkflowCompletionService {
     
     try {
       return await prisma.$transaction(async (tx) => {
-        // 1. Get current project workflow tracker - use findFirst instead of findUnique
-        const tracker = await tx.projectWorkflowTracker.findFirst({
-          where: { 
-            projectId,
-            isMainWorkflow: true // Get the main workflow tracker
-          },
-          include: {
-            currentLineItem: {
-              include: {
-                section: {
-                  include: {
-                    phase: true
-                  }
+        // 1. Find the correct tracker that owns this line item
+        //    Priority: tracker whose currentLineItemId matches → tracker whose workflow template contains the item → main tracker fallback
+        const trackerInclude = {
+          currentLineItem: {
+            include: {
+              section: {
+                include: {
+                  phase: true
                 }
               }
-            },
-            currentSection: true,
-            currentPhase: true
-          }
+            }
+          },
+          currentSection: true,
+          currentPhase: true
+        };
+
+        // First try: find a tracker whose current active line item is the one being completed
+        let tracker = await tx.projectWorkflowTracker.findFirst({
+          where: { projectId, currentLineItemId: lineItemId },
+          include: trackerInclude
         });
+
+        // Second try: find the tracker whose workflow template contains this line item
+        if (!tracker) {
+          const lineItem = await tx.workflowLineItem.findUnique({
+            where: { id: lineItemId },
+            select: { workflowType: true, section: { select: { phase: { select: { customWorkflowId: true } } } } }
+          });
+
+          if (lineItem) {
+            const customWorkflowId = lineItem.section?.phase?.customWorkflowId;
+            if (customWorkflowId) {
+              // Custom workflow: find tracker linked to this custom workflow
+              tracker = await tx.projectWorkflowTracker.findFirst({
+                where: { projectId, customWorkflowId },
+                include: trackerInclude
+              });
+            } else {
+              // System workflow: match by workflowType
+              tracker = await tx.projectWorkflowTracker.findFirst({
+                where: { projectId, workflowType: lineItem.workflowType },
+                include: trackerInclude
+              });
+            }
+          }
+        }
+
+        // Final fallback: main workflow tracker
+        if (!tracker) {
+          tracker = await tx.projectWorkflowTracker.findFirst({
+            where: { projectId, isMainWorkflow: true },
+            include: trackerInclude
+          });
+        }
 
         if (!tracker) {
           throw new Error(`No workflow tracker found for project ${projectId}`);
         }
+
+        console.log(`📋 Resolved tracker ${tracker.id} (type: ${tracker.workflowType}, main: ${tracker.isMainWorkflow}) for line item ${lineItemId}`);
 
         // 2. Verify the line item being completed is the current active one
         if (tracker.currentLineItemId !== lineItemId) {

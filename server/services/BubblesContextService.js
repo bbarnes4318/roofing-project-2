@@ -75,13 +75,12 @@ class BubblesContextService {
             select: { id: true, firstName: true, lastName: true, email: true }
           },
           workflowTrackers: {
-            where: { isMainWorkflow: true },
             include: {
               currentPhase: { select: { phaseType: true, phaseName: true } },
               currentSection: { select: { displayName: true } },
               currentLineItem: { select: { itemName: true } }
             },
-            take: 1
+            orderBy: [{ isMainWorkflow: 'desc' }, { workflowType: 'asc' }]
           }
         },
         orderBy: { createdAt: 'desc' },
@@ -109,14 +108,13 @@ class BubblesContextService {
             select: { id: true, firstName: true, lastName: true, email: true, phone: true }
           },
           workflowTrackers: {
-            where: { isMainWorkflow: true },
             include: {
               currentPhase: true,
               currentSection: true,
               currentLineItem: true,
               completedItems: true
             },
-            take: 1
+            orderBy: [{ isMainWorkflow: 'desc' }, { workflowType: 'asc' }]
           },
           teamMembers: {
             include: {
@@ -676,8 +674,9 @@ class BubblesContextService {
 
   async getIncompleteWorkflowItems(projectId) {
     try {
-      const tracker = await prisma.projectWorkflowTracker.findFirst({
-        where: { projectId, isMainWorkflow: true },
+      // Get ALL trackers for this project (not just main)
+      const trackers = await prisma.projectWorkflowTracker.findMany({
+        where: { projectId },
         include: {
           currentPhase: {
             include: {
@@ -698,26 +697,33 @@ class BubblesContextService {
         }
       });
 
-      if (!tracker || !tracker.currentPhase) {
+      if (!trackers || trackers.length === 0) {
         return [];
       }
 
-      const completedIds = new Set(tracker.completedItems.map(item => item.lineItemId));
       const incomplete = [];
 
-      for (const section of tracker.currentPhase.sections) {
-        for (const lineItem of section.lineItems) {
-          if (!completedIds.has(lineItem.id)) {
-            incomplete.push({
-              id: lineItem.id,
-              itemName: lineItem.itemName,
-              itemLetter: lineItem.itemLetter,
-              sectionId: section.id,
-              sectionName: section.displayName,
-              phaseId: tracker.currentPhase.id,
-              phaseName: tracker.currentPhase.phaseName,
-              responsibleRole: lineItem.responsibleRole
-            });
+      for (const tracker of trackers) {
+        if (!tracker.currentPhase) continue;
+
+        const completedIds = new Set(tracker.completedItems.map(item => item.lineItemId));
+
+        for (const section of tracker.currentPhase.sections) {
+          for (const lineItem of section.lineItems) {
+            if (!completedIds.has(lineItem.id)) {
+              incomplete.push({
+                id: lineItem.id,
+                itemName: lineItem.itemName,
+                itemLetter: lineItem.itemLetter,
+                sectionId: section.id,
+                sectionName: section.displayName,
+                phaseId: tracker.currentPhase.id,
+                phaseName: tracker.currentPhase.phaseName,
+                responsibleRole: lineItem.responsibleRole,
+                workflowType: tracker.workflowType,
+                isMainWorkflow: tracker.isMainWorkflow
+              });
+            }
           }
         }
       }

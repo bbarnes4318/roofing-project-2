@@ -436,7 +436,8 @@ async function handleHeuristicIntent(message, projectContext, userId) {
     // Pull workflow and alerts; format per business rules
     const [tracker, activeAlerts] = await Promise.all([
       prisma.projectWorkflowTracker.findFirst({
-        where: { projectId: projectContext.id, isMainWorkflow: true },
+        where: { projectId: projectContext.id },
+        orderBy: { isMainWorkflow: 'desc' },
         select: { id: true, currentLineItemId: true }
       }),
       prisma.workflowAlert.count({ where: { projectId: projectContext.id, status: 'ACTIVE' } })
@@ -527,7 +528,8 @@ async function handleHeuristicIntent(message, projectContext, userId) {
   if (text.includes('incomplete')) {
     // Try to infer current phase via tracker
     const tracker = await prisma.projectWorkflowTracker.findFirst({
-      where: { projectId: projectContext.id, isMainWorkflow: true },
+      where: { projectId: projectContext.id },
+      orderBy: { isMainWorkflow: 'desc' },
       select: { currentLineItemId: true }
     });
     let phaseName = null;
@@ -550,7 +552,8 @@ async function handleHeuristicIntent(message, projectContext, userId) {
   // Blocking task
   if (text.includes('blocking')) {
     const tracker = await prisma.projectWorkflowTracker.findFirst({
-      where: { projectId: projectContext.id, isMainWorkflow: true },
+      where: { projectId: projectContext.id },
+      orderBy: { isMainWorkflow: 'desc' },
       select: { currentLineItemId: true }
     });
     let phaseName = null;
@@ -570,7 +573,8 @@ async function handleHeuristicIntent(message, projectContext, userId) {
   // Next line item
   if (text.includes('next') && (text.includes('line item') || text.includes('task') || text.includes('step'))) {
     const tracker = await prisma.projectWorkflowTracker.findFirst({
-      where: { projectId: projectContext.id, isMainWorkflow: true },
+      where: { projectId: projectContext.id },
+      orderBy: { isMainWorkflow: 'desc' },
       select: { currentLineItemId: true }
     });
     if (tracker?.currentLineItemId) {
@@ -604,7 +608,8 @@ async function handleHeuristicIntent(message, projectContext, userId) {
 // Helper function to get current workflow data for a project (same logic as the API endpoint)
 async function getCurrentWorkflowData(projectId) {
   const tracker = await prisma.projectWorkflowTracker.findFirst({
-    where: { projectId, isMainWorkflow: true },
+    where: { projectId },
+    orderBy: { isMainWorkflow: 'desc' },
     select: { id: true, currentLineItemId: true, currentPhaseId: true, workflowType: true }
   });
   
@@ -3731,7 +3736,8 @@ router.get('/insights/optimization/:projectId', asyncHandler(async (req, res) =>
 router.get('/project/:projectId/current-step', asyncHandler(async (req, res) => {
   const projectId = String(req.params.projectId);
   const tracker = await prisma.projectWorkflowTracker.findFirst({
-    where: { projectId, isMainWorkflow: true },
+    where: { projectId },
+    orderBy: { isMainWorkflow: 'desc' },
     select: { id: true, currentLineItemId: true, currentPhaseId: true, workflowType: true }
   });
   let li = null;

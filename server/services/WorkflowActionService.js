@@ -29,6 +29,49 @@ class WorkflowActionService {
 		});
 	}
 
+	/**
+	 * Find the tracker that owns a specific line item by matching workflow template
+	 */
+	async getTrackerForLineItem(projectId, lineItemName) {
+		// First get all trackers for the project
+		const trackers = await prisma.projectWorkflowTracker.findMany({
+			where: { projectId },
+			select: { id: true, workflowType: true, customWorkflowId: true, isMainWorkflow: true }
+		});
+
+		if (trackers.length <= 1) {
+			return trackers[0] || null;
+		}
+
+		// Try to find which tracker's workflow template contains this line item
+		for (const tracker of trackers) {
+			let lineItem;
+			if (tracker.workflowType === 'CUSTOM' && tracker.customWorkflowId) {
+				lineItem = await prisma.workflowLineItem.findFirst({
+					where: {
+						isActive: true,
+						isCurrent: true,
+						itemName: { equals: lineItemName, mode: 'insensitive' },
+						section: { phase: { customWorkflowId: tracker.customWorkflowId } }
+					}
+				});
+			} else {
+				lineItem = await prisma.workflowLineItem.findFirst({
+					where: {
+						isActive: true,
+						isCurrent: true,
+						workflowType: tracker.workflowType,
+						itemName: { equals: lineItemName, mode: 'insensitive' }
+					}
+				});
+			}
+			if (lineItem) return tracker;
+		}
+
+		// Fallback to main tracker
+		return trackers.find(t => t.isMainWorkflow) || trackers[0];
+	}
+
 	async findLineItemByName(itemName, workflowType = 'ROOFING') {
 		if (!itemName) return null;
 		return await prisma.workflowLineItem.findFirst({
@@ -50,7 +93,8 @@ class WorkflowActionService {
 			return { success: false, message: 'projectId and lineItemName are required.' };
 		}
 
-		const tracker = await this.getMainTracker(projectId);
+		// Find the correct tracker for this line item (not just main)
+		const tracker = await this.getTrackerForLineItem(projectId, lineItemName);
 		if (!tracker) {
 			return { success: false, message: 'No workflow tracker found for this project. Initialize the workflow first.' };
 		}
@@ -118,16 +162,25 @@ class WorkflowActionService {
 		};
 	}
 
-	// 2) List incomplete items in a given phase
+	// 2) List incomplete items in a given phase (across all trackers)
     async getIncompleteItemsInPhase(projectId, phaseName) {
-		const tracker = await this.getMainTracker(projectId);
-		if (!tracker) return [];
+		// Get all trackers for this project
+		const trackers = await prisma.projectWorkflowTracker.findMany({
+			where: { projectId },
+			select: { id: true, workflowType: true }
+		});
+		if (trackers.length === 0) return [];
 
 		const phaseType = WorkflowActionService.normalizePhaseName(phaseName);
 		if (!phaseType) return [];
 
-		const phase = await prisma.workflowPhase.findFirst({
-			where: { phaseType, isActive: true, isCurrent: true, workflowType: tracker.workflowType || 'ROOFING' },
+		// Collect unique workflowTypes from all trackers
+		const workflowTypes = [...new Set(trackers.map(t => t.workflowType))];
+		const trackerIds = trackers.map(t => t.id);
+
+		// Find phases matching any of the project's workflow types
+		const phases = await prisma.workflowPhase.findMany({
+			where: { phaseType, isActive: true, isCurrent: true, workflowType: { in: workflowTypes } },
 			include: {
 				sections: {
 					where: { isActive: true, isCurrent: true },
@@ -136,26 +189,29 @@ class WorkflowActionService {
 				}
 			}
 		});
-		if (!phase) return [];
+		if (phases.length === 0) return [];
 
+		// Get completed items across ALL trackers
 		const completed = await prisma.completedWorkflowItem.findMany({
-			where: { trackerId: tracker.id },
+			where: { trackerId: { in: trackerIds } },
 			select: { lineItemId: true }
 		});
 		const completedIds = new Set(completed.map(c => c.lineItemId));
 
 		const items = [];
-		for (const section of phase.sections) {
-			const sorted = [...section.lineItems].sort((a, b) => a.displayOrder - b.displayOrder);
-			for (const item of sorted) {
-				if (!completedIds.has(item.id)) {
-					items.push({
-						id: item.id,
-						itemName: item.itemName,
-						sectionName: section.displayName,
-						phaseName: phase.phaseType,
-						displayOrder: item.displayOrder
-					});
+		for (const phase of phases) {
+			for (const section of phase.sections) {
+				const sorted = [...section.lineItems].sort((a, b) => a.displayOrder - b.displayOrder);
+				for (const item of sorted) {
+					if (!completedIds.has(item.id)) {
+						items.push({
+							id: item.id,
+							itemName: item.itemName,
+							sectionName: section.displayName,
+							phaseName: phase.phaseType,
+							displayOrder: item.displayOrder
+						});
+					}
 				}
 			}
 		}

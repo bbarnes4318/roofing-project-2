@@ -81,10 +81,12 @@ class ProjectStatusService {
       return false;
     }
 
-    // For now, consider project complete when main workflow is complete
-    // TODO: Implement logic to check if all workflows are actually complete
-    const mainWorkflow = workflowTrackers.find(tracker => tracker.isMainWorkflow);
-    return mainWorkflow?.currentPhase?.phaseType === 'COMPLETION';
+    // Check ALL workflow trackers - project is complete only when every tracker is done
+    return workflowTrackers.every(tracker => {
+      // A tracker with no current line item means it has run through all items
+      if (!tracker.currentLineItemId && !tracker.currentPhaseId) return true;
+      return tracker.currentPhase?.phaseType === 'COMPLETION';
+    });
   }
 
   /**
@@ -221,14 +223,11 @@ class ProjectStatusService {
       let updatedCount = 0;
       
       for (const project of projects) {
-        // Check if main workflow is completed
-        let isCompleted = false;
+        // Check if ALL workflows are completed
+        const isCompleted = this.areAllWorkflowsCompleted(project.workflowTrackers);
+
+        // Use main workflow phase for project-level phase display
         const mainWorkflow = project.workflowTrackers?.find(tracker => tracker.isMainWorkflow);
-        if (mainWorkflow?.currentLineItemId) {
-          isCompleted = await this.isCompletedPhaseFinalItem(
-            mainWorkflow.currentLineItemId
-          );
-        }
 
         // Update status based on current phase
         const result = await this.updateProjectStatus(

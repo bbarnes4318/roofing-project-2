@@ -250,9 +250,9 @@ class WorkflowProgressionService {
   async completeLineItem(projectId, lineItemId, completedById = null, notes = null, io = null) {
     try {
       const result = await prisma.$transaction(async (tx) => {
-        // OPTIMIZED: Get tracker with instance references
-        const tracker = await tx.projectWorkflowTracker.findUnique({
-          where: { projectId },
+        // OPTIMIZED: Get tracker by matching currentLineItemId first, then fallback to main
+        let tracker = await tx.projectWorkflowTracker.findFirst({
+          where: { projectId, currentLineItemId: lineItemId },
           select: { 
             id: true, 
             currentLineItemId: true,
@@ -262,6 +262,22 @@ class WorkflowProgressionService {
             workflowInstanceId: true
           }
         });
+
+        // Fallback: find any tracker for this project (ordered by main first)
+        if (!tracker) {
+          tracker = await tx.projectWorkflowTracker.findFirst({
+            where: { projectId },
+            orderBy: { isMainWorkflow: 'desc' },
+            select: { 
+              id: true, 
+              currentLineItemId: true,
+              currentPhaseId: true,
+              currentSectionId: true,
+              currentStepId: true,
+              workflowInstanceId: true
+            }
+          });
+        }
 
         console.log(`🔍 VALIDATION: tracker.currentLineItemId: ${tracker?.currentLineItemId}, requested lineItemId: ${lineItemId}`);
         
