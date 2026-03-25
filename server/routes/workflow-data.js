@@ -1,5 +1,6 @@
 const express = require('express');
 const { prisma } = require('../config/prisma');
+const AlertGenerationService = require('../services/AlertGenerationService');
 const router = express.Router();
 
 /**
@@ -583,6 +584,153 @@ router.post('/custom-workflows/combine', async (req, res) => {
   } catch (error) {
     console.error('❌ API: Error combining workflows:', error);
     res.status(500).json({ success: false, message: 'Failed to combine workflows', error: error.message });
+  }
+});
+
+/**
+ * Add a workflow tracker to an existing project
+ * Creates a projectWorkflowTracker, sets currentLineItemId to first item,
+ * and triggers alert generation so the item shows up immediately in the dashboard.
+ *
+ * Body: { customWorkflowId, tradeName }  — for custom workflows
+ *   OR  { workflowType, tradeName }      — for system workflows
+ */
+router.post('/project/:projectId/add-workflow', async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { customWorkflowId, workflowType, tradeName } = req.body;
+
+    // Validate project exists
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, projectNumber: true } });
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found' });
+    }
+
+    let tracker;
+
+    if (customWorkflowId) {
+      // ── Custom Workflow ──────────────────────────────────────────────
+      const customWorkflow = await prisma.customWorkflow.findUnique({
+        where: { id: customWorkflowId },
+        select: { id: true, name: true }
+      });
+      if (!customWorkflow) {
+        return res.status(404).json({ success: false, message: 'Custom workflow not found' });
+      }
+
+      // Check for duplicate tracker
+      const existing = await prisma.projectWorkflowTracker.findFirst({
+        where: { projectId, workflowType: 'CUSTOM', customWorkflowId }
+      });
+      if (existing) {
+        return res.status(409).json({ success: false, message: 'This workflow is already assigned to the project' });
+      }
+
+      // Create tracker
+      tracker = await prisma.projectWorkflowTracker.create({
+        data: {
+          projectId,
+          workflowType: 'CUSTOM',
+          customWorkflowId,
+          isMainWorkflow: false,
+          tradeName: tradeName || customWorkflow.name,
+          totalLineItems: 0,
+          phaseStartedAt: new Date(),
+          sectionStartedAt: new Date(),
+          lineItemStartedAt: new Date()
+        }
+      });
+
+      // Resolve first phase → section → line item
+      const firstPhase = await prisma.workflowPhase.findFirst({
+        where: { customWorkflowId, isActive: true },
+        orderBy: { displayOrder: 'asc' },
+        include: {
+          sections: {
+            where: { isActive: true },
+            orderBy: { displayOrder: 'asc' },
+            include: {
+              lineItems: {
+                where: { isActive: true },
+                orderBy: { displayOrder: 'asc' },
+                take: 1
+              }
+            },
+            take: 1
+          }
+        }
+      });
+
+      if (firstPhase && firstPhase.sections[0] && firstPhase.sections[0].lineItems[0]) {
+        const totalItems = await prisma.workflowLineItem.count({
+          where: {
+            section: { phase: { customWorkflowId } },
+            isActive: true
+          }
+        });
+
+        tracker = await prisma.projectWorkflowTracker.update({
+          where: { id: tracker.id },
+          data: {
+            currentPhaseId: firstPhase.id,
+            currentSectionId: firstPhase.sections[0].id,
+            currentLineItemId: firstPhase.sections[0].lineItems[0].id,
+            totalLineItems: totalItems
+          }
+        });
+      }
+
+      console.log(`✅ Added CUSTOM workflow "${customWorkflow.name}" to project ${project.projectNumber} (tracker ${tracker.id})`);
+
+    } else if (workflowType) {
+      // ── System Workflow ──────────────────────────────────────────────
+      const existing = await prisma.projectWorkflowTracker.findFirst({
+        where: { projectId, workflowType, customWorkflowId: null }
+      });
+      if (existing) {
+        return res.status(409).json({ success: false, message: 'This workflow type is already assigned to the project' });
+      }
+
+      // Use WorkflowProgressionService for system workflows
+      const WorkflowProgressionService = require('../services/WorkflowProgressionService');
+      const initResult = await WorkflowProgressionService.initializeProjectWorkflow(
+        projectId,
+        workflowType,
+        false, // not main workflow
+        'LEAD'
+      );
+      tracker = initResult?.tracker || initResult;
+      console.log(`✅ Added system workflow "${workflowType}" to project ${project.projectNumber}`);
+
+    } else {
+      return res.status(400).json({ success: false, message: 'Either customWorkflowId or workflowType is required' });
+    }
+
+    // Trigger alert generation immediately
+    try {
+      const alerts = await AlertGenerationService.generateBatchAlerts([projectId]);
+      console.log(`🔔 Generated ${alerts?.length || 0} alert(s) after adding workflow to project ${project.projectNumber}`);
+    } catch (alertErr) {
+      console.warn('⚠️ Alert generation after add-workflow failed:', alertErr?.message);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Workflow added to project successfully',
+      data: {
+        trackerId: tracker.id,
+        projectId,
+        workflowType: tracker.workflowType,
+        customWorkflowId: tracker.customWorkflowId || null,
+        tradeName: tracker.tradeName,
+        currentLineItemId: tracker.currentLineItemId,
+        totalLineItems: tracker.totalLineItems
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ API: Error adding workflow to project:', error);
+    res.status(500).json({ success: false, message: 'Failed to add workflow to project', error: error.message });
   }
 });
 

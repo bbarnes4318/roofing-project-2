@@ -1302,7 +1302,7 @@ router.post('/line-items',
               section: {
                 include: {
                   phase: {
-                    select: { id: true, phaseType: true, phaseName: true }
+                    select: { id: true, phaseType: true, phaseName: true, customWorkflowId: true, workflowType: true }
                   }
                 }
               }
@@ -1320,6 +1320,84 @@ router.post('/line-items',
       }
       
       console.log(`✅ WORKFLOW: Successfully created line item ${newLineItem.id}`);
+      
+      // CRITICAL: If any tracker linked to this workflow has a null currentLineItemId,
+      // initialize it now so alert generation picks it up.
+      try {
+        const phaseRecord = newLineItem.section?.phase;
+        const customWfId = phaseRecord?.customWorkflowId || newLineItem.section?.phase?.customWorkflowId;
+        
+        // Build a filter to find any tracker that owns this workflow but has no active item
+        const trackerFilter = { currentLineItemId: null };
+        if (customWfId) {
+          trackerFilter.customWorkflowId = customWfId;
+          trackerFilter.workflowType = 'CUSTOM';
+        } else if (phaseRecord?.workflowType) {
+          trackerFilter.workflowType = phaseRecord.workflowType;
+          trackerFilter.customWorkflowId = null;
+        }
+        
+        const uninitTrackers = await prisma.projectWorkflowTracker.findMany({
+          where: trackerFilter,
+          select: { id: true, projectId: true }
+        });
+        
+        if (uninitTrackers.length > 0) {
+          // Resolve the first line item in display order for this workflow
+          const firstPhase = customWfId
+            ? await prisma.workflowPhase.findFirst({
+                where: { customWorkflowId: customWfId, isActive: true },
+                orderBy: { displayOrder: 'asc' },
+                include: {
+                  sections: {
+                    where: { isActive: true },
+                    orderBy: { displayOrder: 'asc' },
+                    include: {
+                      lineItems: { where: { isActive: true }, orderBy: { displayOrder: 'asc' }, take: 1 }
+                    },
+                    take: 1
+                  }
+                }
+              })
+            : null;
+          
+          const firstSection = firstPhase?.sections?.[0];
+          const firstLineItem = firstSection?.lineItems?.[0];
+          
+          if (firstPhase && firstSection && firstLineItem) {
+            // Count total line items
+            const totalItems = customWfId
+              ? await prisma.workflowLineItem.count({
+                  where: { section: { phase: { customWorkflowId: customWfId } }, isActive: true }
+                })
+              : 0;
+            
+            for (const t of uninitTrackers) {
+              await prisma.projectWorkflowTracker.update({
+                where: { id: t.id },
+                data: {
+                  currentPhaseId: firstPhase.id,
+                  currentSectionId: firstSection.id,
+                  currentLineItemId: firstLineItem.id,
+                  totalLineItems: totalItems
+                }
+              });
+              console.log(`🔧 WORKFLOW: Auto-initialized tracker ${t.id} for project ${t.projectId} → lineItem ${firstLineItem.id}`);
+              
+              // Trigger alert generation for this project
+              try {
+                const AlertGenerationService = require('../services/AlertGenerationService');
+                const alerts = await AlertGenerationService.generateBatchAlerts([t.projectId]);
+                console.log(`🔔 Generated ${alerts?.length || 0} alert(s) for project ${t.projectId} after tracker init`);
+              } catch (alertErr) {
+                console.warn(`⚠️ Alert generation failed for project ${t.projectId}:`, alertErr?.message);
+              }
+            }
+          }
+        }
+      } catch (trackerErr) {
+        console.warn('⚠️ Tracker auto-initialization check failed (non-fatal):', trackerErr?.message);
+      }
       
       // If addToAllWorkflows is true, add this line item to all existing workflows of the same type
       if (addToAllWorkflows) {
