@@ -2353,19 +2353,19 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                 }
             `}</style>
             
-            {/* Header with project selector - Compact and clean */}
-            <div ref={headerRef} className="flex-shrink-0 p-3 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50 relative">
-                <div className="flex items-center justify-between gap-4">
-                    {/* Enhanced Project selector dropdown - Left aligned */}
+            {/* Context Bar — slim, project selector + icon utilities */}
+            <div ref={headerRef} className="flex-shrink-0 px-4 py-2 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between gap-3">
+                    {/* Project selector — primary element */}
                     <div className="flex-1 max-w-2xl relative">
                         <EnhancedProjectDropdown
                             projects={projects}
                             selectedProject={selectedProject}
                             onProjectSelect={(project) => {
-                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: onProjectSelect called with:', project);
-                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: Current selectedProject before:', selectedProject);
+                                console.log('\u{1F4A1} AIAssistantPage: onProjectSelect called with:', project);
+                                console.log('\u{1F4A1} AIAssistantPage: Current selectedProject before:', selectedProject);
                                 setSelectedProject(project);
-                                console.log('ÃƒÂ°Ã…Â¸|â‚¬Â|Â AIAssistantPage: setSelectedProject called with:', project);
+                                console.log('\u{1F4A1} AIAssistantPage: setSelectedProject called with:', project);
                                 setSelectedProjectNonce(prev => prev + 1);
                                 setShowProjectSelector(false);
                                 setProjectSearch('');
@@ -2377,7 +2377,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                     // Enhanced navigation for Project Workflow to navigate to current line item
                                     if (targetTab === 'Project Workflow') {
                                         try {
-                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
+                                            console.log('\u{1F3AF} AI ASSISTANT: Navigating to workflow for project:', project.projectName || project.name);
                                             
                                             // Get current workflow state
                                             const currentWorkflow = project.currentWorkflowItem || {};
@@ -2385,7 +2385,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                             const section = currentWorkflow.section || 'Unknown Section';
                                             const lineItem = currentWorkflow.lineItem || 'Unknown Item';
                                             
-                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Current workflow state:', {
+                                            console.log('\u{1F3AF} AI ASSISTANT: Current workflow state:', {
                                                 phase,
                                                 section,
                                                 lineItem
@@ -2403,7 +2403,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                 const positionResult = await positionResponse.json();
                                                 if (positionResult.success && positionResult.data) {
                                                     const position = positionResult.data;
-                                                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Project position data:', position);
+                                                    console.log('\u{1F3AF} AI ASSISTANT: Project position data:', position);
                                                     
                                                     // Generate proper target IDs for navigation
                                                     const targetLineItemId = position.currentLineItemId || 
@@ -2414,7 +2414,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                                           position.currentSection ||
                                                                           section.toLowerCase().replace(/\s+/g, '-');
                                                     
-                                                    console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Target IDs:', {
+                                                    console.log('\u{1F3AF} AI ASSISTANT: Target IDs:', {
                                                         targetLineItemId,
                                                         targetSectionId
                                                     });
@@ -2450,9 +2450,9 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                 }
                                             }
                                             
-                                            console.log('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Could not get position data, using fallback navigation');
+                                            console.log('\u{1F3AF} AI ASSISTANT: Could not get position data, using fallback navigation');
                                         } catch (error) {
-                                            console.error('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Error enhancing workflow navigation:', error);
+                                            console.error('\u{1F3AF} AI ASSISTANT: Error enhancing workflow navigation:', error);
                                         }
                                         
                                         // Fallback to simple navigation if enhanced navigation fails
@@ -2465,7 +2465,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                         onProjectSelect(project, 'Project Profile', null, 'AI Assistant');
                                     }
                                 } catch (error) {
-                                    console.error('ÃƒÂ°Ã…Â¸Ã…Â½|Â¯ AI ASSISTANT: Error in project navigation:', error);
+                                    console.error('\u{1F3AF} AI ASSISTANT: Error in project navigation:', error);
                                     // Fallback to simple navigation
                                     onProjectSelect(project, targetTab || 'Project Profile', null, 'AI Assistant');
                                 }
@@ -2475,123 +2475,45 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         />
                     </div>
                     
-                    {/* Header Actions */}
-                    <div className="flex items-center gap-2">
+                    {/* Icon-only utility buttons — visually subordinate */}
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={() => setShowDocumentBrowser(!showDocumentBrowser)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-md ${
+                            className={`p-2 rounded-lg transition-colors ${
                                 showDocumentBrowser 
-                                    ? 'bg-[#6BC22E] text-white hover:bg-[#5AB01D]' 
-                                    : 'bg-[#7ED242] text-white hover:bg-[#6BC22E]'
+                                    ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+                                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
                             }`}
-                            title="Show available documents"
+                            title="Documents"
                         >
-                            <FolderIcon className="w-4 h-4" />
-                            <span className="hidden md:inline">Documents</span>
+                            <FolderIcon className="w-[18px] h-[18px]" />
                         </button>
                         <button
                             onClick={() => setShowPlaybook(true)}
-                            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white transition-all shadow-md bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700"
-                            title="Bubbles Assistant Playbook"
+                            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                            title="Assistant Playbook"
                         >
-                            <SparklesIcon className="w-4 h-4" />
-                            <span className="hidden md:inline">Assistant Playbook</span>
-                            <span className="md:hidden">Playbook</span>
+                            <SparklesIcon className="w-[18px] h-[18px]" />
+                        </button>
+                        <button
+                            onClick={() => setShowTranscriptHistory(true)}
+                            className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+                            title="Transcript History"
+                        >
+                            <DocumentTextIcon className="w-[18px] h-[18px]" />
                         </button>
                         <button
                             onClick={() => {
                                 setMessages([]);
                                 setCurrentChatId(null);
                             }}
-                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors"
-                            title="Clear the current chat"
+                            className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors"
+                            title="Clear Chat"
                         >
-                            <TrashIcon className="w-3.5 h-3.5" />
-                            Clear Chat
+                            <TrashIcon className="w-[18px] h-[18px]" />
                         </button>
                     </div>
                 </div>
-            </div>
-
-            {/* Input Area - Moved to top, above messages */}
-            <div ref={inputRef} className="flex-shrink-0 p-1 px-3 md:px-4 border-b border-gray-200 bg-gray-50">
-                <form onSubmit={handleSubmit} className="w-full max-w-2xl flex items-center gap-1">
-                    <textarea
-                        ref={actualInputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter' && !e.shiftKey) {
-                                e.preventDefault();
-                                handleSubmit(e);
-                            }
-                        }}
-                        placeholder={selectedProject 
-                            ? `Ask about ${selectedProject.projectName || selectedProject.name}...` 
-                            : "Send a message..."
-                        }
-                        rows={3}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-sm resize-none"
-                    />
-                    <button
-                        type="submit"
-                        disabled={isLoading || !input.trim()}
-                        className={`px-3 py-1 rounded-lg flex items-center justify-center gap-2 font-semibold transition-all shadow-sm ${
-                            isLoading || !input.trim()
-                                ? 'bg-gray-300 cursor-not-allowed text-gray-500'
-                                : 'bg-black hover:bg-gray-900 text-white'
-                        }`}
-                    >
-                        {isLoading ? (
-                            <span className="text-xs md:text-sm">Processing...</span>
-                        ) : (
-                            <span className="text-xs md:text-sm">Send</span>
-                        )}
-                    </button>
-                    {/* Vapi Voice mic button */}
-                    <button
-                        type="button"
-                        onClick={handleVoiceToggle}
-                        className={`ml-1 p-[6px] rounded-full border flex items-center justify-center transition ${isVoiceLive ? 'border-blue-600 bg-blue-50 shadow-glow' : 'border-gray-300 bg-white hover:bg-gray-100'}`}
-                        aria-label={isVoiceLive ? 'End voice with Bubbles' : (isVoiceConnecting ? 'Connecting to Bubbles' : 'Speak to Bubbles')}
-                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'ConnectingÃƒÂ¢|â€šÂ¬|Â¦' : 'Speak to Bubbles')}
-                    >
-                        {isVoiceConnecting ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin" aria-hidden="true">
-                                <circle cx="12" cy="12" r="9" stroke="#93c5fd" strokeWidth="3" opacity="0.35" />
-                                <path d="M21 12a9 9 0 00-9-9" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
-                            </svg>
-                        ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className={isVoiceLive ? 'animate-pulse' : ''}>
-                                <path d="M9 5a3 3 0 016 0v6a3 3 0 11-6 0V5z" fill={isVoiceLive ? '#2563eb' : '#111827'} />
-                                <path d="M5 12a7 7 0 0014 0M12 19v-3" stroke={isVoiceLive ? '#2563eb' : '#111827'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                        )}
-                    </button>
-
-                    {/* Transcript History button */}
-                    <button
-                        type="button"
-                        onClick={() => setShowTranscriptHistory(true)}
-                        className="ml-1 p-[6px] rounded-full border border-gray-300 bg-white hover:bg-gray-100 flex items-center justify-center"
-                        aria-label="View transcript history"
-                        title="Transcript History"
-                    >
-                        <DocumentTextIcon className="w-[18px] h-[18px] text-gray-700" />
-                    </button>
-
-                    {/* Telephone call button */}
-                    <a
-                        href="tel:+17243812859"
-                        className="ml-1 p-[6px] rounded-full border border-gray-300 bg-white hover:bg-gray-100 flex items-center justify-center"
-                        aria-label="Call +17243812859"
-                        title="+17243812859"
-                    >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <path d="M2.5 6.75C2.5 5.78 3.28 5 4.25 5h2.2c.72 0 1.35.47 1.54 1.16l.8 2.82c.18.65-.07 1.35-.63 1.73l-1.24.85c1.14 2.1 2.95 3.92 5.05 5.05l.85-1.24c.38-.56 1.08-.81 1.73-.63l2.82.8c.69.2 1.16.82 1.16 1.54v2.2c0 .97-.78 1.75-1.75 1.75h-1.5C8.49 21.99 2 15.51 2 7.25v-1.5z" fill="#111827"/>
-                        </svg>
-                    </a>
-                </form>
             </div>
 
             {/* Chat History Panel */}
@@ -2760,6 +2682,75 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                     )}
                 </div>
             )}
+
+            {/* Compose Bar — anchored at bottom */}
+            <div ref={inputRef} className="flex-shrink-0 px-4 py-3 border-t border-gray-200 bg-white">
+                <form onSubmit={handleSubmit} className="flex items-end gap-2">
+                    <textarea
+                        ref={actualInputRef}
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                                e.preventDefault();
+                                handleSubmit(e);
+                            }
+                        }}
+                        placeholder={selectedProject 
+                            ? `Ask about ${selectedProject.projectName || selectedProject.name}...` 
+                            : "Send a message..."
+                        }
+                        rows={2}
+                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--ui-trust)] focus:border-transparent shadow-sm resize-none text-sm"
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading || !input.trim()}
+                        className={`px-4 py-2 rounded-lg flex items-center justify-center font-semibold transition-all text-sm ${
+                            isLoading || !input.trim()
+                                ? 'bg-gray-200 cursor-not-allowed text-gray-400'
+                                : 'bg-[var(--ui-trust)] hover:bg-blue-700 text-white shadow-sm'
+                        }`}
+                    >
+                        {isLoading ? 'Sending...' : 'Send'}
+                    </button>
+                    {/* Voice mic */}
+                    <button
+                        type="button"
+                        onClick={handleVoiceToggle}
+                        className={`p-2 rounded-lg border flex items-center justify-center transition-colors ${
+                            isVoiceLive 
+                                ? 'border-blue-500 bg-blue-50 text-blue-600' 
+                                : 'border-gray-300 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                        }`}
+                        aria-label={isVoiceLive ? 'End voice with Bubbles' : (isVoiceConnecting ? 'Connecting to Bubbles' : 'Speak to Bubbles')}
+                        title={isVoiceLive ? 'End voice' : (isVoiceConnecting ? 'Connecting...' : 'Speak to Bubbles')}
+                    >
+                        {isVoiceConnecting ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="animate-spin" aria-hidden="true">
+                                <circle cx="12" cy="12" r="9" stroke="#93c5fd" strokeWidth="3" opacity="0.35" />
+                                <path d="M21 12a9 9 0 00-9-9" stroke="#2563eb" strokeWidth="3" strokeLinecap="round" />
+                            </svg>
+                        ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className={isVoiceLive ? 'animate-pulse' : ''}>
+                                <path d="M9 5a3 3 0 016 0v6a3 3 0 11-6 0V5z" fill={isVoiceLive ? '#2563eb' : 'currentColor'} />
+                                <path d="M5 12a7 7 0 0014 0M12 19v-3" stroke={isVoiceLive ? '#2563eb' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        )}
+                    </button>
+                    {/* Phone */}
+                    <a
+                        href="tel:+17243812859"
+                        className="p-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-700 flex items-center justify-center transition-colors"
+                        aria-label="Call +17243812859"
+                        title="+17243812859"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <path d="M2.5 6.75C2.5 5.78 3.28 5 4.25 5h2.2c.72 0 1.35.47 1.54 1.16l.8 2.82c.18.65-.07 1.35-.63 1.73l-1.24.85c1.14 2.1 2.95 3.92 5.05 5.05l.85-1.24c.38-.56 1.08-.81 1.73-.63l2.82.8c.69.2 1.16.82 1.16 1.54v2.2c0 .97-.78 1.75-1.75 1.75h-1.5C8.49 21.99 2 15.51 2 7.25v-1.5z" fill="currentColor"/>
+                        </svg>
+                    </a>
+                </form>
+            </div>
 
             {/* Document Browser Panel - Persistent Side Drawer */}
             {showDocumentBrowser && (
