@@ -11,7 +11,8 @@
   --ui-surface-elevated: #FFFFFF;
   --ui-border: #E2E8F0;
   --ui-text-primary: #0F172A;
-  --ui-text-secondary: #64748B;
+  --ui-text-secondary: #475569;
+  --ui-text-muted: #64748B;
 
   /* 30% — Trust / System Color (single institutional blue) */
   --ui-trust: #0069B5;
@@ -41,6 +42,7 @@
   --color-surface-white: var(--ui-surface);
   --color-text-charcoal: var(--ui-text-primary);
   --color-text-light-gray: var(--ui-text-secondary);
+  --color-text-muted: var(--ui-text-muted);
   --color-border-silver: var(--ui-border);
   --color-brand-aqua-blue: var(--ui-trust);
   --color-brand-deep-teal: var(--ui-trust-hover);
@@ -64,6 +66,7 @@
   --color-background-gray: var(--ui-bg);
   --color-text-ink-black: var(--ui-text-primary);
   --color-text-slate-gray: var(--ui-text-secondary);
+  --color-text-muted-gray: var(--ui-text-muted);
   --color-border-gray: var(--ui-border);
   --color-primary-blueprint-blue: var(--ui-trust);
   --color-accent-safety-orange: var(--ui-accent);
@@ -82,7 +85,8 @@
   --ui-surface-elevated: #334155;
   --ui-border: #334155;
   --ui-text-primary: #F1F5F9;
-  --ui-text-secondary: #94A3B8;
+  --ui-text-secondary: #CBD5E1;
+  --ui-text-muted: #94A3B8;
   --ui-trust: #38BDF8;
   --ui-trust-hover: #7DD3FC;
   --ui-trust-light: #1E3A5F;
@@ -152,6 +156,33 @@ main {
 }
 
 /* ============================================================
+   GLOBAL :focus-visible BASELINE
+   Catch-all for any interactive element without a component rule.
+   Uses outline (not box-shadow) so it never conflicts with
+   inset indicators like [aria-current="page"].
+   ============================================================ */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: 2px;
+}
+/* Remove the outline when a component already uses box-shadow focus */
+.shell-btn:focus-visible,
+.shell-nav-item:focus-visible,
+.shell-action-btn:focus-visible,
+.voice-mic:focus-visible,
+.wf-checkbox:focus-visible,
+.wf-action:focus-visible,
+.btn:focus-visible {
+  outline: none;
+}
+
+/* ============================================================
    SHELL INTERACTION SYSTEM
    Consistent interaction states for all shell controls
    ============================================================ */
@@ -189,7 +220,7 @@ main {
 }
 .shell-btn:disabled,
 .shell-btn[aria-disabled="true"] {
-  opacity: 0.45;
+  opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
@@ -237,6 +268,12 @@ main {
   font-weight: 700;
   box-shadow: inset 3px 0 0 var(--ui-trust);
 }
+/* Focused active page — outline ring so it doesn't conflict with inset bar */
+.shell-nav-item[aria-current="page"]:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: 2px;
+  box-shadow: inset 3px 0 0 var(--ui-trust);
+}
 
 /* Shell section header — sidebar grouping labels */
 .shell-section-label {
@@ -251,7 +288,6 @@ main {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--ui-text-secondary);
-  opacity: 0.7;
   user-select: none;
 }
 
@@ -575,10 +611,13 @@ main {
 
 .text-gray-600,
 .text-gray-500,
-.text-gray-400,
 .text-slate-500,
 .text-slate-600 {
-  color: var(--color-text-light-gray) !important;
+  color: var(--ui-text-secondary) !important;
+}
+
+.text-gray-400 {
+  color: var(--ui-text-muted) !important;
 }
 
 /* Link treatments */
@@ -655,7 +694,7 @@ a:hover,
 .sidebar {
   background-color: var(--color-surface-white);
   border-right: 1px solid var(--color-border-silver);
-  color: var(--color-text-light-gray);
+  color: var(--ui-text-secondary);
 }
 
 .sidebar-header {
@@ -667,7 +706,7 @@ a:hover,
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--color-text-light-gray);
+  color: var(--ui-text-secondary);
   background-color: transparent;
   border-left: 3px solid transparent;
   border-radius: 0.5rem;
@@ -715,7 +754,7 @@ a:hover,
 
 .phase-pill--unselected {
   background-color: var(--color-background-ash);
-  color: var(--color-text-light-gray);
+  color: var(--ui-text-secondary);
 }
 
 /* Status circles */
@@ -752,7 +791,7 @@ a:hover,
 }
 
 .module-subtext {
-  color: var(--color-text-light-gray);
+  color: var(--ui-text-secondary);
 }
 
 .module-link,
@@ -1501,12 +1540,16 @@ main {
 .wf-phase:active {
   background-color: #E2E8F0;
 }
+.wf-phase:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: -2px;
+}
 .wf-phase[aria-expanded="true"] {
   border-left-color: var(--ui-trust, #0069B5);
   background: #F8FAFC;
 }
 .wf-phase--complete {
-  color: var(--ui-text-secondary, #64748B);
+  color: var(--ui-text-muted, #64748B);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
@@ -1539,13 +1582,17 @@ main {
 .wf-section:hover {
   background: #F1F5F9;
 }
+.wf-section:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: -2px;
+}
 .wf-section--current {
   background: var(--ui-trust-light, #DBEAFE);
   color: var(--ui-trust, #0069B5);
   box-shadow: inset 3px 0 0 var(--ui-trust, #0069B5);
 }
 .wf-section--complete {
-  color: var(--ui-text-secondary, #64748B);
+  color: var(--ui-text-muted, #64748B);
   text-decoration: line-through;
   text-decoration-thickness: 2px;
 }
@@ -1569,6 +1616,11 @@ main {
 }
 .wf-row:active {
   background-color: #F1F5F9;
+}
+.wf-row:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: -2px;
+  border-radius: 8px;
 }
 
 /* Row state: current item (project position) */
@@ -1659,7 +1711,7 @@ main {
   transition: color 160ms ease-out;
 }
 .wf-label--completed {
-  color: var(--ui-text-secondary, #94A3B8);
+  color: var(--ui-text-muted, #64748B);
   text-decoration: line-through;
   text-decoration-thickness: 1.5px;
 }
@@ -1683,9 +1735,9 @@ main {
   border-radius: 6px;
   border: none;
   background: transparent;
-  color: #94A3B8;
+  color: var(--ui-text-muted, #64748B);
   cursor: pointer;
-  opacity: 0.45;
+  opacity: 0.6;
   transition: opacity 160ms ease-out,
               color 160ms ease-out,
               background-color 160ms ease-out;
@@ -1707,7 +1759,7 @@ main {
 /* On touch devices and when row is focused, bump visibility */
 @media (hover: none) {
   .wf-action {
-    opacity: 0.7;
+    opacity: 0.85;
   }
 }
 
@@ -1921,6 +1973,10 @@ main {
   background: #F3F4F6;
   color: #374151;
 }
+.wf-dialog-close:focus-visible {
+  outline: 2px solid var(--ui-trust, #0069B5);
+  outline-offset: 2px;
+}
 
 /* ---- Body (scrollable) ---- */
 .wf-dialog-body {
@@ -1965,10 +2021,10 @@ main {
   background: #fff;
   transition: border-color 150ms, box-shadow 150ms;
 }
-.wf-dialog-body input[type="text"]:focus,
-.wf-dialog-body input[type="number"]:focus,
-.wf-dialog-body select:focus,
-.wf-dialog-body textarea:focus {
+.wf-dialog-body input[type="text"]:focus-visible,
+.wf-dialog-body input[type="number"]:focus-visible,
+.wf-dialog-body select:focus-visible,
+.wf-dialog-body textarea:focus-visible {
   outline: none;
   border-color: var(--ui-trust, #0069B5);
   box-shadow: 0 0 0 3px rgba(0, 105, 181, 0.12);
@@ -2044,3 +2100,31 @@ main {
 }
 .wf-dialog-icon--blue { background: #DBEAFE; color: #2563EB; }
 .wf-dialog-icon--purple { background: #EDE9FE; color: #7C3AED; }
+
+/* ============================================================
+   HIGH-VISIBILITY UTILITY MODE
+   For outdoor / glare-heavy environments.
+   Activate by adding class="high-visibility" to <html>.
+   Uses the same token system — no redesign needed.
+   ============================================================ */
+html.high-visibility {
+  --ui-text-primary: #020617;
+  --ui-text-secondary: #334155;
+  --ui-text-muted: #475569;
+  --ui-border: #CBD5E1;
+}
+html.high-visibility .shell-section-label {
+  font-weight: 800;
+}
+html.high-visibility .wf-action {
+  opacity: 0.8;
+}
+html.high-visibility .wf-row--completed {
+  opacity: 0.75;
+}
+/* High-vis dark mode override */
+html.high-visibility.dark {
+  --ui-text-primary: #FFFFFF;
+  --ui-text-secondary: #E2E8F0;
+  --ui-text-muted: #CBD5E1;
+}

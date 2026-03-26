@@ -2312,7 +2312,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             ))}
                         </div>
                     )}
-                    <div className="text-xs mt-2 text-gray-400">
+                    <div className="text-xs mt-2 text-gray-500">
                         {message.timestamp instanceof Date
                             ? message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                             : new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -2632,7 +2632,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             {chatHistory.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center h-full text-center py-12">
                                     <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-                                        <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-400" />
+                                        <ChatBubbleLeftRightIcon className="w-8 h-8 text-gray-500" />
                                     </div>
                                     <h4 className="font-medium text-gray-700 mb-2">No saved chats yet</h4>
                                     <p className="text-sm text-gray-500">Your conversations will appear here automatically</p>
@@ -2683,7 +2683,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                                             setCurrentChatId(null);
                                                         }
                                                     }}
-                                                    className="p-1.5 rounded-md hover:bg-red-100 text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="p-1.5 rounded-md hover:bg-red-100 text-red-600 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-visible:opacity-100 transition-opacity"
                                                     title="Delete chat"
                                                 >
                                                     <TrashIcon className="w-4 h-4" />

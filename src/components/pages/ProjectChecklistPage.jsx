@@ -156,7 +156,7 @@ const RecursiveSubItems = ({
               <span className={`wf-label${isChecked ? ' wf-label--completed' : ''}`}>
                 {childLabel}
                 {hasGrandchildren && (
-                  <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({child.children.length})</span>
+                  <span className="ml-1 text-xs" style={{ color: 'var(--ui-text-muted)' }}>({child.children.length})</span>
                 )}
               </span>
               {childId && (
@@ -1580,7 +1580,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                       Custom
                     </span>
                   )}
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-gray-500">
                     {tab.completedCount}/{tab.totalCount}
                   </span>
                   <div className="w-12 bg-gray-200 rounded-full h-1.5">
@@ -1890,7 +1890,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                     {isCurrentLineItem && <span style={{ marginRight: 4 }}>▶</span>}
                                     {subtaskLabel}
                                     {subtask.children && subtask.children.length > 0 && (
-                                      <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({subtask.children.length} sub-items)</span>
+                                      <span className="ml-1 text-xs" style={{ color: 'var(--ui-text-muted)' }}>({subtask.children.length} sub-items)</span>
                                     )}
                                   </label>
                                   {/* Move up/down for line items */}
@@ -2414,7 +2414,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                   <div className="space-y-2">
                     {createWorkflowData.phases.map((phase, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <span className="text-xs text-gray-400 w-5">{idx + 1}.</span>
+                        <span className="text-xs text-gray-500 w-5">{idx + 1}.</span>
                         <input
                           type="text"
                           value={phase.phaseName}
@@ -2423,7 +2423,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                             newPhases[idx] = { phaseName: e.target.value };
                             setCreateWorkflowData(prev => ({ ...prev, phases: newPhases }));
                           }}
-                          className="flex-1 px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                          className="flex-1 px-2 py-1.5 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ui-trust)]"
                           placeholder={`Phase ${idx + 1} name`}
                         />
                         {createWorkflowData.phases.length > 1 && (
@@ -2433,7 +2433,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                               const newPhases = createWorkflowData.phases.filter((_, i) => i !== idx);
                               setCreateWorkflowData(prev => ({ ...prev, phases: newPhases }));
                             }}
-                            className="p-1 text-gray-400 hover:text-red-500"
+                            className="p-1 text-gray-500 hover:text-red-500"
                           >✕</button>
                         )}
                       </div>
@@ -2524,7 +2524,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                         key={phase.id || `new-${idx}`} 
                         className={`flex items-center gap-2 ${phase.isDeleted ? 'opacity-40' : ''}`}
                       >
-                        <span className="text-xs text-gray-400 w-5">{idx + 1}.</span>
+                        <span className="text-xs text-gray-500 w-5">{idx + 1}.</span>
                         <input
                           type="text"
                           value={phase.phaseName}
@@ -2534,7 +2534,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                             newPhases[idx] = { ...newPhases[idx], phaseName: e.target.value };
                             setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
                           }}
-                          className={`flex-1 px-2 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-purple-500 ${
+                          className={`flex-1 px-2 py-1.5 border rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-[var(--ui-trust)] ${
                             phase.isDeleted ? 'line-through bg-red-50 border-red-200' : 
                             phase.isNew ? 'border-green-300 bg-green-50' : 'border-gray-300'
                           }`}
@@ -2572,7 +2572,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                 setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
                               }
                             }}
-                            className="p-1 text-gray-400 hover:text-red-500"
+                            className="p-1 text-gray-500 hover:text-red-500"
                           >✕</button>
                         )}
                       </div>

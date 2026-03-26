@@ -1378,7 +1378,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6.5V18a2 2 0 002 2h12a2 2 0 002-2V6.5M4 6.5L12 3l8 3.5" /></svg>
                                     <span className="font-bold text-blue-700 text-lg">AI Company Documents</span>
                                 </div>
-                                <p className="text-gray-600 text-sm">Instantly search, summarize, and answer questions about your company handbooks, policies, and internal documents using AI.</p>
+                                <p className="text-sm" style={{ color: 'var(--ui-text-secondary)' }}>Instantly search, summarize, and answer questions about your company handbooks, policies, and internal documents using AI.</p>
                             </div>
                             {/* AI Project Documents */}
                             <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-green-500 flex flex-col gap-2 hover:shadow-xl transition">
@@ -1386,7 +1386,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2a2 2 0 012-2h2a2 2 0 012 2v2m-6 0h6a2 2 0 002-2v-5a2 2 0 00-2-2h-2a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2v2" /></svg>
                                     <span className="font-bold text-green-700 text-lg">AI Project Documents</span>
                                 </div>
-                                <p className="text-gray-600 text-sm">Get AI-powered insights, summaries, and answers from your project files, contracts, and technical documents.</p>
+                                <p className="text-sm" style={{ color: 'var(--ui-text-secondary)' }}>Get AI-powered insights, summaries, and answers from your project files, contracts, and technical documents.</p>
                             </div>
                             {/* AI Manufacturer Guidance */}
                             <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-yellow-500 flex flex-col gap-2 hover:shadow-xl transition">
@@ -1394,7 +1394,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                     <span className="font-bold text-yellow-700 text-lg">AI Manufacturer Guidance</span>
                                 </div>
-                                <p className="text-gray-600 text-sm">Access up-to-date, AI-curated manufacturer recommendations, product specs, and compliance information.</p>
+                                <p className="text-sm" style={{ color: 'var(--ui-text-secondary)' }}>Access up-to-date, AI-curated manufacturer recommendations, product specs, and compliance information.</p>
                             </div>
                             {/* AI Installation Guidance */}
                             <div className="bg-white rounded-xl shadow-lg p-6 border-t-4 border-purple-500 flex flex-col gap-2 hover:shadow-xl transition">
@@ -1402,7 +1402,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                     <svg className="w-6 h-6 text-purple-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 01-8 0m8 0V5a4 4 0 00-8 0v2m8 0a4 4 0 01-8 0V7" /></svg>
                                     <span className="font-bold text-purple-700 text-lg">AI Installation Guidance</span>
                                 </div>
-                                <p className="text-gray-600 text-sm">Get step-by-step, AI-driven installation instructions and troubleshooting for your field teams.</p>
+                                <p className="text-sm" style={{ color: 'var(--ui-text-secondary)' }}>Get step-by-step, AI-driven installation instructions and troubleshooting for your field teams.</p>
                             </div>
                         </div>
                     </div>
@@ -1500,7 +1500,7 @@ const apiUrl = window.location.hostname === 'localhost'
                         <div className="text-center">
                             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
-                            <p className="text-gray-600">Please wait while we prepare everything for you.</p>
+                            <p style={{ color: 'var(--ui-text-secondary)' }}>Please wait while we prepare everything for you.</p>
                         </div>
                     </div>
                 </AuthProvider>
