@@ -3,7 +3,6 @@ import { useSocket, useRealTimeUpdates } from '../../hooks/useSocket';
 import api, { projectsService, workflowAlertsService } from '../../services/api';
 import workflowService from '../../services/workflowService';
 import { ChevronDownIcon } from '../common/Icons';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useWorkflowUpdate } from '../../hooks/useWorkflowUpdate';
 import WorkflowProgressService from '../../services/workflowProgress';
 
@@ -128,13 +127,13 @@ const RecursiveSubItems = ({
   children, depth, phase, item, projectId, 
   isItemChecked, handleCheckboxToggle, projectPosition, 
   highlightedLineItemId, api, setWorkflowData,
-  inlineNewSubItem, setInlineNewSubItem 
+  inlineNewSubItem, setInlineNewSubItem,
+  requestConfirm
 }) => {
   if (!children || children.length === 0) return null;
-  const marginLeft = `${depth * 1.5}rem`;
   
   return (
-    <div style={{ marginLeft }} className="mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+    <div className={`wf-sub-rail${depth > 1 ? ' wf-sub-rail--depth-2' : ''}`}>
       {children.map((child, idx) => {
         const childId = child.id;
         const childLabel = child.label;
@@ -143,50 +142,50 @@ const RecursiveSubItems = ({
         
         return (
           <React.Fragment key={childId || idx}>
-            <div className="workflow-line-item group flex items-start space-x-2 py-0.5">
-              {/* Checkbox */}
-              <div className="relative flex-shrink-0 mt-0.5">
-                <input
-                  type="checkbox"
-                  checked={isChecked}
-                  onChange={() => handleCheckboxToggle(childId, phase.id, item.id, idx, child)}
-                  className="h-3.5 w-3.5 rounded border-2 border-gray-300 text-blue-600 focus:ring-1 focus:ring-blue-500 checked:bg-[var(--color-primary-blueprint-blue)] checked:border-blue-600"
-                />
-              </div>
-              {/* Label */}
-              <span className={`flex-1 text-xs cursor-pointer select-none ${
-                isChecked ? 'text-gray-400 line-through' : 'text-gray-700 hover:text-blue-600'
-              }`}>
+            <div
+              className={`wf-row workflow-line-item${isChecked ? ' wf-row--completed' : ''}`}
+              onClick={() => handleCheckboxToggle(childId, phase.id, item.id, idx, child)}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => handleCheckboxToggle(childId, phase.id, item.id, idx, child)}
+                onClick={(e) => e.stopPropagation()}
+                className={`wf-checkbox${isChecked ? '' : ''}`}
+              />
+              <span className={`wf-label${isChecked ? ' wf-label--completed' : ''}`}>
                 {childLabel}
                 {hasGrandchildren && (
-                  <span className="ml-1 text-gray-400">({child.children.length})</span>
+                  <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({child.children.length})</span>
                 )}
               </span>
-              {/* Delete */}
               {childId && (
                 <button
-                  onClick={async (e) => {
+                  onClick={(e) => {
                     e.stopPropagation();
-                    if (!window.confirm('Delete this sub-item?')) return;
-                    try {
-                      let resp;
-                      try { resp = await api.delete(`/workflows/line-items/${childId}`); }
-                      catch (e) { resp = await api.post(`/workflows/line-items/${childId}/delete`); }
-                      if (resp.data?.success) {
-                        const wr = await api.get(`/workflow-data/project-workflows/${projectId}`);
-                        if (wr.data.success) setWorkflowData(wr.data.data);
+                    requestConfirm({
+                      message: 'Delete this sub-item?',
+                      onConfirm: async () => {
+                        try {
+                          let resp;
+                          try { resp = await api.delete(`/workflows/line-items/${childId}`); }
+                          catch (e) { resp = await api.post(`/workflows/line-items/${childId}/delete`); }
+                          if (resp.data?.success) {
+                            const wr = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                            if (wr.data.success) setWorkflowData(wr.data.data);
+                          }
+                        } catch (err) { console.error('Failed to delete', err); }
                       }
-                    } catch (err) { alert('Failed to delete'); }
+                    });
                   }}
-                  className="p-0.5 rounded text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"
+                  className="wf-action wf-action--delete"
                   title="Delete"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3 h-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
                   </svg>
                 </button>
               )}
-              {/* Add sub-item */}
               {childId && (
                 <button
                   onClick={(e) => {
@@ -196,10 +195,10 @@ const RecursiveSubItems = ({
                       [childId]: prev[childId] ? undefined : { name: '', sectionId: item.id, saving: false }
                     }));
                   }}
-                  className="p-0.5 rounded text-gray-300 hover:text-blue-500 opacity-0 group-hover:opacity-100 transition"
+                  className="wf-action wf-action--add"
                   title="Add sub-item"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-3 h-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                   </svg>
                 </button>
@@ -207,7 +206,7 @@ const RecursiveSubItems = ({
             </div>
             {/* Inline sub-item form */}
             {childId && inlineNewSubItem[childId] && (
-              <div style={{ marginLeft: '1.5rem' }} className="mt-0.5">
+              <div className="wf-sub-rail" style={{ marginTop: '4px' }}>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -224,27 +223,25 @@ const RecursiveSubItems = ({
                         setInlineNewSubItem(prev => ({ ...prev, [childId]: undefined }));
                       }
                     } catch (err) {
-                      alert('Failed to add sub-item');
+                      console.error('Failed to add sub-item', err);
                       setInlineNewSubItem(prev => ({ ...prev, [childId]: { ...prev[childId], saving: false } }));
                     }
                   }}
-                  className="flex items-center gap-1"
+                  className="flex items-center gap-2"
                 >
                   <input
                     autoFocus type="text"
                     value={inlineNewSubItem[childId]?.name || ''}
                     onChange={(e) => setInlineNewSubItem(prev => ({ ...prev, [childId]: { ...prev[childId], name: e.target.value } }))}
-                    className="px-1 py-0.5 border border-gray-300 rounded text-xs w-32"
+                    className="px-2 py-1.5 border border-gray-300 rounded text-sm w-40"
                     placeholder="Sub-item name"
                   />
-                  <button type="submit" disabled={inlineNewSubItem[childId]?.saving} className="px-1.5 py-0.5 text-xs text-white bg-blue-500 rounded disabled:opacity-50">
-                    {inlineNewSubItem[childId]?.saving ? '...' : 'Add'}
+                  <button type="submit" disabled={inlineNewSubItem[childId]?.saving} className="px-3 py-1.5 text-sm text-white bg-blue-500 rounded disabled:opacity-50 min-h-[36px]">                    {inlineNewSubItem[childId]?.saving ? '...' : 'Add'}
                   </button>
-                  <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [childId]: undefined }))} className="text-xs text-gray-400 hover:text-gray-600">✕</button>
+                  <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [childId]: undefined }))} className="text-sm text-gray-400 hover:text-gray-600 p-1.5">✕</button>
                 </form>
               </div>
             )}
-            {/* Recurse into grandchildren */}
             {hasGrandchildren && (
               <RecursiveSubItems
                 children={child.children}
@@ -260,6 +257,7 @@ const RecursiveSubItems = ({
                 setWorkflowData={setWorkflowData}
                 inlineNewSubItem={inlineNewSubItem}
                 setInlineNewSubItem={setInlineNewSubItem}
+                requestConfirm={requestConfirm}
               />
             )}
           </React.Fragment>
@@ -268,6 +266,15 @@ const RecursiveSubItems = ({
     </div>
   );
 };
+
+// Inline confirmation bar — replaces native window.confirm
+const ConfirmBar = ({ message, onConfirm, onCancel }) => (
+  <div className="wf-confirm-bar">
+    <span className="wf-confirm-bar__msg">{message}</span>
+    <button className="wf-confirm-bar__btn wf-confirm-bar__btn--no" onClick={onCancel} type="button">Cancel</button>
+    <button className="wf-confirm-bar__btn wf-confirm-bar__btn--yes" onClick={onConfirm} type="button">Delete</button>
+  </div>
+);
 
 const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targetLineItemId, targetSectionId, selectionNonce, onBack, colorMode, projectSourceSection, onProjectSelect }) => {
   const projectId = project?._id || project?.id;
@@ -283,19 +290,66 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   console.log('   project.navigationTarget:', project?.navigationTarget);
   console.log('   project.returnToSection:', project?.returnToSection);
   
-  // Add pulse animation styles
-  React.useEffect(() => {
-    const style = document.createElement('style');
-    style.textContent = `
-      @keyframes pulse {
-        0%, 100% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.02); opacity: 0.9; }
-      }
-      .workflow-line-item { transition: all 0.3s ease; }
-    `;
-    document.head.appendChild(style);
-    return () => document.head.removeChild(style);
-  }, []);
+  // Inline confirmation state — replaces window.confirm
+  const [confirmAction, setConfirmAction] = useState(null);
+  const requestConfirm = ({ message, onConfirm }) => {
+    setConfirmAction({ message, onConfirm });
+  };
+  const dismissConfirm = () => setConfirmAction(null);
+  const executeConfirm = async () => {
+    if (confirmAction?.onConfirm) await confirmAction.onConfirm();
+    setConfirmAction(null);
+  };
+
+  // ---- Optimistic reorder helpers ----
+  const moveItem = (arr, fromIndex, direction) => {
+    const toIndex = fromIndex + direction;
+    if (toIndex < 0 || toIndex >= arr.length) return arr;
+    const next = [...arr];
+    [next[fromIndex], next[toIndex]] = [next[toIndex], next[fromIndex]];
+    return next;
+  };
+
+  const handleMoveSection = (phaseId, itemIndex, direction) => {
+    setWorkflowData(prev => {
+      if (!prev) return prev;
+      return prev.map(wf => ({
+        ...wf,
+        phases: wf.phases.map(phase => {
+          if (phase.id !== phaseId) return phase;
+          const newItems = moveItem(phase.items, itemIndex, direction);
+          // Fire server sync in background
+          const orderedIds = newItems.map(i => i.id).filter(Boolean);
+          if (orderedIds.length > 0) {
+            api.patch('/workflows/sections/reorder', { phaseId, orderedIds }).catch(e => console.error('Reorder sync failed', e));
+          }
+          return { ...phase, items: newItems };
+        })
+      }));
+    });
+  };
+
+  const handleMoveLineItem = (sectionId, subtaskIndex, direction, phase) => {
+    setWorkflowData(prev => {
+      if (!prev) return prev;
+      return prev.map(wf => ({
+        ...wf,
+        phases: wf.phases.map(p => ({
+          ...p,
+          items: p.items.map(item => {
+            if (item.id !== sectionId) return item;
+            const newSubtasks = moveItem(item.subtasks, subtaskIndex, direction);
+            // Fire server sync in background
+            const orderedIds = newSubtasks.map(s => (typeof s === 'object' ? s.id : null)).filter(Boolean);
+            if (orderedIds.length > 0) {
+              api.patch('/workflows/line-items/reorder', { sectionId, orderedIds }).catch(e => console.error('Reorder sync failed', e));
+            }
+            return { ...item, subtasks: newSubtasks };
+          })
+        }))
+      }));
+    });
+  };
   
   // =================================================================
   // CHECKBOX STATE MANAGEMENT
@@ -434,20 +488,19 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
     if (hasChildren && newState === true) {
       // Can't check parent until all children are done
       if (!allChildrenCompleted(subtaskData.children)) {
-        const autoComplete = window.confirm(
-          'This item has sub-items that are not yet completed. \n\nWould you like to auto-complete all sub-items?'
-        );
-        if (!autoComplete) return; // User cancelled
-        // Auto-complete all children then the parent
-        const childIds = collectChildIds(subtaskData.children);
-        batchUpdateStates([stepId, ...childIds], true);
-        // Server sync for each
-        setTimeout(() => {
-          [stepId, ...childIds].forEach(id => {
-            workflowService.updateStep(projectId, id, true).catch(e => console.error('Sync fail:', id, e));
-          });
-          if (onUpdate) onUpdate();
-        }, 10);
+        requestConfirm({
+          message: 'This item has sub-items that are not yet completed. Auto-complete all sub-items?',
+          onConfirm: () => {
+            const childIds = collectChildIds(subtaskData.children);
+            batchUpdateStates([stepId, ...childIds], true);
+            setTimeout(() => {
+              [stepId, ...childIds].forEach(id => {
+                workflowService.updateStep(projectId, id, true).catch(e => console.error('Sync fail:', id, e));
+              });
+              if (onUpdate) onUpdate();
+            }, 10);
+          }
+        });
         return;
       }
     }
@@ -887,40 +940,35 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
   
   // Delete a custom workflow
   const handleDeleteCustomWorkflow = async (customWorkflowId, workflowName) => {
-    if (!window.confirm(`Are you sure you want to delete the workflow "${workflowName}"?\n\nThis will permanently delete all phases, sections, and line items in this workflow. This cannot be undone.`)) {
-      return;
-    }
-    
-    try {
-      await api.delete(`/workflows/custom/${customWorkflowId}`);
-      
-      // Refresh workflow data
-      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
-      if (workflowResponse.data.success) {
-        const newData = workflowResponse.data.data;
-        setWorkflowData(newData);
-        
-        const tabs = newData.map((workflow) => ({
-          id: workflow.customWorkflowId || workflow.workflowType,
-          name: workflow.tradeName,
-          isMainWorkflow: workflow.isMainWorkflow,
-          isCustom: workflow.workflowType === 'CUSTOM',
-          customWorkflowId: workflow.customWorkflowId || null,
-          completedCount: workflow.completedCount,
-          totalCount: workflow.totalCount,
-          progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
-        }));
-        setWorkflowTabs(tabs);
-        setActiveWorkflowIndex(0);
+    requestConfirm({
+      message: `Delete the workflow "${workflowName}"? This will permanently delete all phases, sections, and line items.`,
+      onConfirm: async () => {
+        try {
+          await api.delete(`/workflows/custom/${customWorkflowId}`);
+          const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+          if (workflowResponse.data.success) {
+            const newData = workflowResponse.data.data;
+            setWorkflowData(newData);
+            const tabs = newData.map((workflow) => ({
+              id: workflow.customWorkflowId || workflow.workflowType,
+              name: workflow.tradeName,
+              isMainWorkflow: workflow.isMainWorkflow,
+              isCustom: workflow.workflowType === 'CUSTOM',
+              customWorkflowId: workflow.customWorkflowId || null,
+              completedCount: workflow.completedCount,
+              totalCount: workflow.totalCount,
+              progress: workflow.totalCount > 0 ? Math.round((workflow.completedCount / workflow.totalCount) * 100) : 0
+            }));
+            setWorkflowTabs(tabs);
+            setActiveWorkflowIndex(0);
+          }
+          setShowEditWorkflowModal(false);
+          setEditWorkflowData(null);
+        } catch (error) {
+          console.error('Error deleting custom workflow:', error);
+        }
       }
-      
-      setShowEditWorkflowModal(false);
-      setEditWorkflowData(null);
-      console.log(`✅ Custom workflow "${workflowName}" deleted`);
-    } catch (error) {
-      console.error('❌ Error deleting custom workflow:', error);
-      alert(error?.response?.data?.message || 'Failed to delete workflow.');
-    }
+    });
   };
   
   const isItemChecked = (stepId) => {
@@ -1196,30 +1244,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
               if (targetLineItemId || useEnhancedHighlight) {
                 console.log('🎯 ENHANCED HIGHLIGHTING: Applying enhanced highlight from', project?.navigationSource);
                 
-                // Apply enhanced highlight for line items
-                if (highlightColor === '#0066CC') {
-                  // Special Current Alerts highlighting
-                  targetElement.style.backgroundColor = '#EFF6FF';
-                  targetElement.style.border = '3px solid #0066CC';
-                  targetElement.style.boxShadow = '0 0 20px rgba(0, 102, 204, 0.5)';
-                } else {
-                  // Standard highlighting  
-                  targetElement.style.backgroundColor = '#FEF3C7';
-                  targetElement.style.border = '3px solid #F59E0B';
-                  targetElement.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
-                }
-                
-                targetElement.style.transition = 'all 0.3s ease';
-                
-                // Add pulsing animation
-                targetElement.style.animation = 'pulse 1.5s ease-in-out 3';
+                // Apply CSS class-based highlight
+                const hlClass = highlightColor === '#0066CC' ? 'wf-row--highlight-blue' : 'wf-row--highlight-amber';
+                targetElement.classList.add('wf-row--highlight', hlClass);
                 
                 // Remove highlight after delay
                 setTimeout(() => {
-                  targetElement.style.backgroundColor = '';
-                  targetElement.style.border = '';
-                  targetElement.style.boxShadow = '';
-                  targetElement.style.animation = '';
+                  targetElement.classList.remove('wf-row--highlight', hlClass);
                 }, highlightDuration);
               } else {
                 // Standard highlight for sections
@@ -1435,26 +1466,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
           }
           if (el) {
             el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            // Force highlight each time
+            // CSS class-based highlight
             const useEnhanced = project?.highlightTarget || project?.navigationTarget;
             const highlightColor = useEnhanced ? (project.highlightTarget?.highlightColor || project.navigationTarget?.highlightColor || '#0066CC') : '#F59E0B';
-            if (highlightColor === '#0066CC') {
-              el.style.backgroundColor = '#EFF6FF';
-              el.style.border = '3px solid #0066CC';
-              el.style.boxShadow = '0 0 20px rgba(0, 102, 204, 0.5)';
-            } else {
-              el.style.backgroundColor = '#FEF3C7';
-              el.style.border = '3px solid #F59E0B';
-              el.style.boxShadow = '0 0 20px rgba(245, 158, 11, 0.5)';
-            }
-            el.style.transition = 'all 0.3s ease';
-            el.style.animation = 'pulse 1.5s ease-in-out 3';
+            const hlClass = highlightColor === '#0066CC' ? 'wf-row--highlight-blue' : 'wf-row--highlight-amber';
+            el.classList.add('wf-row--highlight', hlClass);
+            const dur = project.highlightTarget?.highlightDuration || project.navigationTarget?.highlightDuration || 5000;
             setTimeout(() => {
-              el.style.backgroundColor = '';
-              el.style.border = '';
-              el.style.boxShadow = '';
-              el.style.animation = '';
-            }, (project.highlightTarget?.highlightDuration || project.navigationTarget?.highlightDuration || 5000));
+              el.classList.remove('wf-row--highlight', hlClass);
+            }, dur);
           }
         }, 500);
 
@@ -1638,44 +1658,46 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
         </div>
       </div>
 
+      {/* Global Confirm Bar */}
+      {confirmAction && (
+        <ConfirmBar
+          message={confirmAction.message}
+          onConfirm={executeConfirm}
+          onCancel={dismissConfirm}
+        />
+      )}
+
       {/* Checklist */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {currentWorkflowPhases.map((phase) => {
-          console.log(`Rendering phase: ${phase.id} with ${phase.items.length} items`);
+          const phaseComplete = phase.items.length > 0 && phase.items.every(item => 
+            item.subtasks.every((_, subIdx) => {
+              const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
+              return isItemChecked(stepId);
+            })
+          );
           return (
-          <div key={phase.id} className="bg-white rounded-lg shadow-md overflow-hidden">
+          <div key={phase.id} className="bg-white rounded-xl shadow-md overflow-hidden">
             {/* Phase Header */}
             <button
               onClick={() => handlePhaseClick(phase.id)}
-              className={`w-full px-6 py-4 text-left font-semibold bg-white hover:bg-gray-50 transition-colors duration-200 border-b border-gray-100 ${
-                phase.items.length > 0 && phase.items.every(item => 
-                  item.subtasks.every((_, subIdx) => {
-                    const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
-                    return isItemChecked(stepId);
-                  })
-                ) ? 'line-through decoration-2' : ''
-              }`}
+              className={`wf-phase${phaseComplete ? ' wf-phase--complete' : ''}`}
+              aria-expanded={openPhase === phase.id || openPhase === 'ALL'}
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {/* Phase Color Circle */}
-                  <div 
-                    className={`w-4 h-4 rounded-full ${getPhaseColor(phase.id)} flex-shrink-0`}
-                  ></div>
-                  {/* Phase Title */}
-                  <span className="text-gray-900">{phase.label}</span>
-                </div>
-                <ChevronDownIcon 
-                  className={`w-5 h-5 transform transition-transform duration-200 text-gray-600 ${
-                    openPhase === phase.id || openPhase === 'ALL' ? 'rotate-180' : ''
-                  }`} 
-                />
+              <div className="flex items-center gap-3">
+                <div className={`wf-phase__dot ${getPhaseColor(phase.id)}`}></div>
+                <span>{phase.label}</span>
               </div>
+              <ChevronDownIcon 
+                className={`w-5 h-5 transform transition-transform duration-200 text-gray-500 ${
+                  openPhase === phase.id || openPhase === 'ALL' ? 'rotate-180' : ''
+                }`} 
+              />
             </button>
 
-            {/* Phase Content - Show when specific phase is open OR when ALL phases are open */}
+            {/* Phase Content */}
             {openPhase === phase.id && (
-              <div className="p-6 space-y-4">
+              <div className="wf-phase-body">
                 {/* Inline add section */}
                 <div className="flex items-center gap-2">
                   <button
@@ -1729,77 +1751,90 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     <div className="text-sm">This phase will be populated with workflow items as needed.</div>
                   </div>
                 ) : (
-                  phase.items.map((item) => {
+                  phase.items.map((item, itemIndex) => {
                   // Check if this is the current active section
                   const isCurrentSection = projectPosition && projectPosition.currentSection === item.id;
                   
+                  const sectionComplete = item.subtasks.every((_, subIdx) => {
+                    const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
+                    return isItemChecked(stepId);
+                  });
+
                   return (
-                    <div key={item.id} id={`item-${item.id}`} className={`border rounded-lg overflow-hidden ${
-                      isCurrentSection ? 'border-blue-500 bg-blue-50/50' : ''
-                    }`}>
-                      {/* Item Header */}
+                    <div key={item.id} id={`item-${item.id}`} className="rounded-lg overflow-hidden border border-gray-200">
+                      {/* Section Header */}
                       <button
                         onClick={() => handleItemClick(item.id)}
-                        className={`w-full px-4 py-3 text-left font-medium transition-colors duration-200 ${
-                          isCurrentSection 
-                            ? 'bg-blue-100 hover:bg-blue-150 text-blue-900' 
-                            : 'bg-gray-50 hover:bg-gray-100 text-gray-800'
-                        } ${
-                          item.subtasks.every((_, subIdx) => {
-                            const stepId = `DB_${phase.id}-${item.id}-${subIdx}`;
-                            return isItemChecked(stepId);
-                          }) ? 'line-through decoration-2' : ''
-                        }`}
+                        className={`wf-section${
+                          isCurrentSection ? ' wf-section--current' : ''
+                        }${sectionComplete ? ' wf-section--complete' : ''}`}
                       >
-                        <div className="flex items-center justify-between group">
-                          <span className="flex items-center gap-2">
-                            {isCurrentSection && <span className="text-blue-500">👈</span>}
-                            {item.label}
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {/* Delete section (subtle icon, shown on hover) */}
+                        <span className="flex items-center gap-2">
+                          {isCurrentSection && <span style={{ fontSize: 14, color: 'var(--ui-trust)' }}>▶</span>}
+                          {item.label}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {/* Move up/down */}
+                          <div className="wf-move-group">
                             <button
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                if (!window.confirm('Delete this section?')) return;
-                                try {
-                                  let resp;
-                                  try {
-                                    resp = await api.delete(`/workflows/sections/${item.id}`);
-                                  } catch (e) {
-                                    // Fallback for environments without DELETE route
-                                    resp = await api.post(`/workflows/sections/${item.id}/delete`);
-                                  }
-                                  if (resp.data?.success) {
-                                    const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
-                                    if (workflowResponse.data.success) {
-                                      setWorkflowData(workflowResponse.data.data);
-                                    }
-                                  }
-                                } catch (err) {
-                                  alert(err?.response?.data?.message || 'Failed to delete section');
-                                }
-                              }}
-                              className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition"
-                              title="Delete section"
-                              aria-label="Delete section"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
-                              </svg>
-                            </button>
-                            <ChevronDownIcon 
-                              className={`w-4 h-4 transform transition-transform duration-200 ${
-                                openItem[item.id] ? 'rotate-180' : ''
-                              }`} 
-                            />
+                              onClick={(e) => { e.stopPropagation(); handleMoveSection(phase.id, itemIndex, -1); }}
+                              disabled={itemIndex === 0}
+                              className="wf-action wf-action--move"
+                              aria-label="Move section up"
+                              title="Move up"
+                            >▲</button>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleMoveSection(phase.id, itemIndex, 1); }}
+                              disabled={itemIndex === phase.items.length - 1}
+                              className="wf-action wf-action--move"
+                              aria-label="Move section down"
+                              title="Move down"
+                            >▼</button>
                           </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              requestConfirm({
+                                message: 'Delete this section?',
+                                onConfirm: async () => {
+                                  try {
+                                    let resp;
+                                    try {
+                                      resp = await api.delete(`/workflows/sections/${item.id}`);
+                                    } catch (e) {
+                                      resp = await api.post(`/workflows/sections/${item.id}/delete`);
+                                    }
+                                    if (resp.data?.success) {
+                                      const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                      if (workflowResponse.data.success) {
+                                        setWorkflowData(workflowResponse.data.data);
+                                      }
+                                    }
+                                  } catch (err) {
+                                    console.error('Failed to delete section', err);
+                                  }
+                                }
+                              });
+                            }}
+                            className="wf-action wf-action--delete"
+                            title="Delete section"
+                            aria-label="Delete section"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-4 h-4">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 7h12M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2m-7 4v6m4-6v6M7 7l1 13a2 2 0 002 2h4a2 2 0 002-2l1-13" />
+                            </svg>
+                          </button>
+                          <ChevronDownIcon 
+                            className={`w-4 h-4 transform transition-transform duration-200 ${
+                              openItem[item.id] ? 'rotate-180' : ''
+                            }`} 
+                          />
                         </div>
                       </button>
 
-                      {/* Item Content - Subtasks */}
+                      {/* Section Content - Subtasks */}
                       {openItem[item.id] && (
-                        <div className={`p-4 ${isCurrentSection ? 'bg-blue-50/30' : 'bg-white'}`}>
+                        <div className="wf-section-body">
                           <div className="space-y-3">
                             {item.subtasks.map((subtask, subIdx) => {
                               // Support object format from DB: { id, label }
@@ -1825,90 +1860,83 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                 <React.Fragment key={subIdx}>
                                 <div 
                                   id={`lineitem-${lineItemId}`}
-                                  className={`workflow-line-item group flex items-start space-x-3 ${
-                                    isCurrentLineItem ? 'p-2 bg-blue-100 border border-blue-300 rounded-lg ring-2 ring-blue-400 ring-opacity-50' : 
-                                    isTargetedLineItem ? 'p-2 bg-yellow-100 border border-yellow-300 rounded-lg ring-2 ring-yellow-400 ring-opacity-75' : ''
-                                  }`}
+                                  className={`wf-row workflow-line-item${
+                                    isCurrentLineItem ? ' wf-row--current' : 
+                                    isTargetedLineItem ? ' wf-row--targeted' : ''
+                                  }${isChecked ? ' wf-row--completed' : ''}`}
+                                  onClick={() => {
+                                    handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx, subtask);
+                                  }}
                                 >
-                                  {/* NUCLEAR CHECKBOX */}
-                                  <div className="relative flex-shrink-0 mt-1">
-                                    <input
-                                      type="checkbox"
-                                      id={`lineitem-checkbox-${stepId}`}
-                                      checked={isChecked}
-                                      onChange={() => {
-                                        console.log(`Checkbox onChange: ${stepId}, Database ID: ${subtaskId}`);
-                                        handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx, subtask);
-                                      }}
-                                      onClick={(e) => {
-                                        console.log(`Checkbox onClick: ${stepId}`);
-                                        e.stopPropagation();
-                                      }}
-                                      className={`h-4 w-4 rounded border-2 text-blue-600 focus:ring-2 focus:ring-blue-500 transition-all duration-200 checked:bg-[var(--color-primary-blueprint-blue)] checked:border-blue-600 ${
-                                        isCurrentLineItem ? 'border-blue-500' : 'border-gray-300'
-                                      }`}
-                                    />
-                                    {/* Custom checkmark */}
-                                    {isChecked && (
-                                      <svg 
-                                        className="absolute inset-0 w-4 h-4 text-white pointer-events-none" 
-                                        fill="currentColor" 
-                                        viewBox="0 0 20 20"
-                                      >
-                                        <path 
-                                          fillRule="evenodd" 
-                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" 
-                                          clipRule="evenodd" 
-                                        />
-                                      </svg>
-                                    )}
-                                  </div>
-                                  
-                                  {/* Task Label */}
+                                  <input
+                                    type="checkbox"
+                                    id={`lineitem-checkbox-${stepId}`}
+                                    checked={isChecked}
+                                    onChange={() => {
+                                      handleCheckboxToggle(subtaskId || stepId, phase.id, item.id, subIdx, subtask);
+                                    }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className={`wf-checkbox${isCurrentLineItem ? ' wf-checkbox--current' : ''}`}
+                                  />
                                   <label 
                                     htmlFor={`lineitem-checkbox-${stepId}`}
-                                    className={`flex-1 text-sm cursor-pointer select-none transition-all duration-200 ${
-                                      isCurrentLineItem
-                                        ? 'font-semibold text-blue-800'
-                                        : isTargetedLineItem
-                                          ? 'font-semibold text-yellow-800'
-                                          : isChecked 
-                                            ? 'text-gray-500 line-through decoration-2' 
-                                            : 'text-gray-800 hover:text-blue-600'
+                                    className={`wf-label${
+                                      isCurrentLineItem ? ' wf-label--current'
+                                        : isTargetedLineItem ? ' wf-label--targeted'
+                                          : isChecked ? ' wf-label--completed' : ''
                                     }`}
+                                    onClick={(e) => e.stopPropagation()}
                                   >
-                                    {isCurrentLineItem && <span className="text-blue-500">👈 </span>}
-                                    {isTargetedLineItem && <span className="text-yellow-500">⭐ </span>}
+                                    {isCurrentLineItem && <span style={{ marginRight: 4 }}>▶</span>}
                                     {subtaskLabel}
                                     {subtask.children && subtask.children.length > 0 && (
-                                      <span className="ml-1 text-xs text-gray-400">({subtask.children.length} sub-items)</span>
+                                      <span className="ml-1 text-xs" style={{ color: '#94A3B8' }}>({subtask.children.length} sub-items)</span>
                                     )}
                                   </label>
-                                  {/* Delete line item (subtle icon on hover) */}
+                                  {/* Move up/down for line items */}
+                                  <div className="wf-move-group">
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleMoveLineItem(item.id, subIdx, -1, phase); }}
+                                      disabled={subIdx === 0}
+                                      className="wf-action wf-action--move"
+                                      aria-label="Move item up"
+                                      title="Move up"
+                                    >▲</button>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); handleMoveLineItem(item.id, subIdx, 1, phase); }}
+                                      disabled={subIdx === item.subtasks.length - 1}
+                                      className="wf-action wf-action--move"
+                                      aria-label="Move item down"
+                                      title="Move down"
+                                    >▼</button>
+                                  </div>
                                   {subtaskId && (
                                     <button
-                                      onClick={async (e) => {
+                                      onClick={(e) => {
                                         e.stopPropagation();
-        										if (!window.confirm('Delete this line item?')) return;
-                                        try {
-                                          let resp;
-                                          try {
-                                            resp = await api.delete(`/workflows/line-items/${subtaskId}`);
-                                          } catch (e) {
-                                            // Fallback for environments without DELETE route
-                                            resp = await api.post(`/workflows/line-items/${subtaskId}/delete`);
-                                          }
-                                          if (resp.data?.success) {
-                                            const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
-                                            if (workflowResponse.data.success) {
-                                              setWorkflowData(workflowResponse.data.data);
+                                        requestConfirm({
+                                          message: 'Delete this line item?',
+                                          onConfirm: async () => {
+                                            try {
+                                              let resp;
+                                              try {
+                                                resp = await api.delete(`/workflows/line-items/${subtaskId}`);
+                                              } catch (e) {
+                                                resp = await api.post(`/workflows/line-items/${subtaskId}/delete`);
+                                              }
+                                              if (resp.data?.success) {
+                                                const workflowResponse = await api.get(`/workflow-data/project-workflows/${projectId}`);
+                                                if (workflowResponse.data.success) {
+                                                  setWorkflowData(workflowResponse.data.data);
+                                                }
+                                              }
+                                            } catch (err) {
+                                              console.error('Failed to delete line item', err);
                                             }
                                           }
-                                        } catch (err) {
-                                          alert(err?.response?.data?.message || 'Failed to delete line item');
-                                        }
+                                        });
                                       }}
-                                      className="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition ml-2"
+                                      className="wf-action wf-action--delete"
                                       title="Delete line item"
                                       aria-label="Delete line item"
                                     >
@@ -1917,7 +1945,6 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       </svg>
                                     </button>
                                   )}
-                                  {/* Add Sub-Item button */}
                                   {subtaskId && (
                                     <button
                                       onClick={(e) => {
@@ -1927,7 +1954,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                           [subtaskId]: prev[subtaskId] ? undefined : { name: '', sectionId: item.id, saving: false }
                                         }));
                                       }}
-                                      className="p-1 rounded text-gray-400 hover:text-blue-600 hover:bg-blue-50 opacity-0 group-hover:opacity-100 transition ml-1"
+                                      className="wf-action wf-action--add"
                                       title="Add sub-item"
                                       aria-label="Add sub-item"
                                     >
@@ -1971,13 +1998,13 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                         type="text"
                                         value={inlineNewSubItem[subtaskId]?.name || ''}
                                         onChange={(e) => setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: { ...prev[subtaskId], name: e.target.value } }))}
-                                        className="px-2 py-1 border border-gray-300 rounded-md text-xs"
+                                        className="px-2 py-1.5 border border-gray-300 rounded-md text-sm"
                                         placeholder="Sub-item name"
                                       />
-                                      <button type="submit" disabled={inlineNewSubItem[subtaskId]?.saving} className="px-2 py-1 text-xs text-white bg-blue-500 rounded-md disabled:opacity-50">
+                                      <button type="submit" disabled={inlineNewSubItem[subtaskId]?.saving} className="px-3 py-1.5 text-sm text-white bg-blue-500 rounded-md disabled:opacity-50 min-h-[36px]">
                                         {inlineNewSubItem[subtaskId]?.saving ? '...' : 'Add'}
                                       </button>
-                                      <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: undefined }))} className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700">
+                                      <button type="button" onClick={() => setInlineNewSubItem(prev => ({ ...prev, [subtaskId]: undefined }))} className="px-2 py-1.5 text-sm text-gray-500 hover:text-gray-700">
                                         ✕
                                       </button>
                                     </form>
@@ -1999,6 +2026,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                     setWorkflowData={setWorkflowData}
                                     inlineNewSubItem={inlineNewSubItem}
                                     setInlineNewSubItem={setInlineNewSubItem}
+                                    requestConfirm={requestConfirm}
                                   />
                                 )}
                                 </React.Fragment>
@@ -2073,9 +2101,9 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                                       type="checkbox"
                                       checked={inlineNewLineItem[item.id]?.addToAllWorkflows || false}
                                       onChange={(e) => setInlineNewLineItem(prev => ({ ...prev, [item.id]: { ...prev[item.id], addToAllWorkflows: e.target.checked } }))}
-                                      className="mr-1 h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                                      className="mr-2 h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
                                     />
-                                    <span className="text-xs text-gray-600">
+                                    <span className="text-sm text-gray-600">
                                       Add to all workflows permanently
                                     </span>
                                   </label>
@@ -2113,162 +2141,147 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
       
       {/* Create Section Modal */}
       {showCreateSectionModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Section</h3>
-              <form onSubmit={handleCreateSection}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phase
-                  </label>
+        <div
+          className="wf-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create New Section"
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowCreateSectionModal(false); setCreateSectionData({ sectionName: '', displayName: '', description: '' }); setSelectedPhaseForSection(null); }}}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowCreateSectionModal(false); setCreateSectionData({ sectionName: '', displayName: '', description: '' }); setSelectedPhaseForSection(null); }}}
+        >
+          <div className="wf-dialog wf-dialog--sm">
+            <div className="wf-dialog-header">
+              <h3>Create New Section</h3>
+              <button className="wf-dialog-close" onClick={() => { setShowCreateSectionModal(false); setCreateSectionData({ sectionName: '', displayName: '', description: '' }); setSelectedPhaseForSection(null); }} aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleCreateSection}>
+              <div className="wf-dialog-body">
+                <div className="wf-field">
+                  <label>Phase</label>
                   <select
                     value={selectedPhaseForSection?.id || ''}
                     onChange={(e) => {
                       const phase = currentWorkflowPhases.find(p => p.id === e.target.value);
                       setSelectedPhaseForSection(phase);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Select a phase</option>
                     {currentWorkflowPhases.map((phase) => (
-                      <option key={phase.id} value={phase.id}>
-                        {phase.label}
-                      </option>
+                      <option key={phase.id} value={phase.id}>{phase.label}</option>
                     ))}
                   </select>
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Section Name *
-                  </label>
+                <div className="wf-field">
+                  <label>Section Name *</label>
                   <input
                     type="text"
                     value={createSectionData.sectionName}
                     onChange={(e) => setCreateSectionData({...createSectionData, sectionName: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter section name"
                     required
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Display Name
-                  </label>
+                <div className="wf-field">
+                  <label>Display Name</label>
                   <input
                     type="text"
                     value={createSectionData.displayName}
                     onChange={(e) => setCreateSectionData({...createSectionData, displayName: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter display name (optional)"
                   />
                 </div>
-                
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
+                <div className="wf-field">
+                  <label>Description</label>
                   <textarea
                     value={createSectionData.description}
                     onChange={(e) => setCreateSectionData({...createSectionData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter description (optional)"
                     rows="3"
                   />
                 </div>
-                
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateSectionModal(false);
-                      setCreateSectionData({ sectionName: '', displayName: '', description: '' });
-                      setSelectedPhaseForSection(null);
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingSection || !selectedPhaseForSection || !createSectionData.sectionName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary-blueprint-blue)] rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {creatingSection ? 'Creating...' : 'Create Section'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div className="wf-dialog-footer">
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateSectionModal(false); setCreateSectionData({ sectionName: '', displayName: '', description: '' }); setSelectedPhaseForSection(null); }}
+                  className="wf-dialog-btn wf-dialog-btn--secondary"
+                >Cancel</button>
+                <button
+                  type="submit"
+                  disabled={creatingSection || !selectedPhaseForSection || !createSectionData.sectionName.trim()}
+                  className="wf-dialog-btn wf-dialog-btn--primary"
+                >{creatingSection ? 'Creating...' : 'Create Section'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
       
       {/* Create Line Item Modal */}
       {showCreateLineItemModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Create New Line Item</h3>
-              <form onSubmit={handleCreateLineItem}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Section
-                  </label>
+        <div
+          className="wf-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create New Line Item"
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowCreateLineItemModal(false); setCreateLineItemData({ itemName: '', responsibleRole: 'WORKER', description: '', estimatedMinutes: 30, alertDays: 1, addToAllWorkflows: false }); setSelectedSectionForLineItem(null); }}}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowCreateLineItemModal(false); setCreateLineItemData({ itemName: '', responsibleRole: 'WORKER', description: '', estimatedMinutes: 30, alertDays: 1, addToAllWorkflows: false }); setSelectedSectionForLineItem(null); }}}
+        >
+          <div className="wf-dialog wf-dialog--sm">
+            <div className="wf-dialog-header">
+              <h3>Create New Line Item</h3>
+              <button className="wf-dialog-close" onClick={() => { setShowCreateLineItemModal(false); setCreateLineItemData({ itemName: '', responsibleRole: 'WORKER', description: '', estimatedMinutes: 30, alertDays: 1, addToAllWorkflows: false }); setSelectedSectionForLineItem(null); }} aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleCreateLineItem}>
+              <div className="wf-dialog-body">
+                <div className="wf-field">
+                  <label>Section</label>
                   <select
                     value={selectedSectionForLineItem?.id || ''}
                     onChange={(e) => {
-                      // Find the section across all phases
                       let foundSection = null;
                       for (const phase of currentWorkflowPhases) {
                         const section = phase.items.find(s => s.id === e.target.value);
-                        if (section) {
-                          foundSection = section;
-                          break;
-                        }
+                        if (section) { foundSection = section; break; }
                       }
                       setSelectedSectionForLineItem(foundSection);
                     }}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="">Select a section</option>
                     {currentWorkflowPhases.map((phase) => (
                       <optgroup key={phase.id} label={phase.label}>
                         {phase.items.map((section) => (
-                          <option key={section.id} value={section.id}>
-                            {section.label}
-                          </option>
+                          <option key={section.id} value={section.id}>{section.label}</option>
                         ))}
                       </optgroup>
                     ))}
                   </select>
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Item Name *
-                  </label>
+                <div className="wf-field">
+                  <label>Item Name *</label>
                   <input
                     type="text"
                     value={createLineItemData.itemName}
                     onChange={(e) => setCreateLineItemData({...createLineItemData, itemName: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter item name"
                     required
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Responsible Role *
-                  </label>
+                <div className="wf-field">
+                  <label>Responsible Role *</label>
                   <select
                     value={createLineItemData.responsibleRole}
                     onChange={(e) => setCreateLineItemData({...createLineItemData, responsibleRole: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     required
                   >
                     <option value="OFFICE">Office</option>
@@ -2279,52 +2292,40 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     <option value="OFFICE_STAFF">Office Staff</option>
                   </select>
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
+                <div className="wf-field">
+                  <label>Description</label>
                   <textarea
                     value={createLineItemData.description}
                     onChange={(e) => setCreateLineItemData({...createLineItemData, description: e.target.value})}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="Enter description (optional)"
                     rows="3"
                   />
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Estimated Minutes
-                    </label>
+                <div className="grid grid-cols-2 gap-4" style={{ marginTop: 16 }}>
+                  <div className="wf-field">
+                    <label>Estimated Minutes</label>
                     <input
                       type="number"
                       value={createLineItemData.estimatedMinutes}
                       onChange={(e) => setCreateLineItemData({...createLineItemData, estimatedMinutes: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="30"
                       min="1"
                     />
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Alert Days
-                    </label>
+                  <div className="wf-field">
+                    <label>Alert Days</label>
                     <input
                       type="number"
                       value={createLineItemData.alertDays}
                       onChange={(e) => setCreateLineItemData({...createLineItemData, alertDays: e.target.value})}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                       placeholder="1"
                       min="1"
                     />
                   </div>
                 </div>
-                
                 {/* Add to all workflows checkbox */}
-                <div className="mb-4">
-                  <label className="flex items-center">
+                <div style={{ marginTop: 16 }}>
+                  <label className="flex items-center" style={{ display: 'flex', alignItems: 'center', marginBottom: 0 }}>
                     <input
                       type="checkbox"
                       checked={createLineItemData.addToAllWorkflows}
@@ -2335,91 +2336,79 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                       Add this line item to every workflow permanently
                     </span>
                   </label>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1" style={{ marginLeft: 24 }}>
                     When checked, this line item will be added to all existing and future workflows of the same type
                   </p>
                 </div>
-                
-                <div className="flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateLineItemModal(false);
-                      setCreateLineItemData({
-                        itemName: '',
-                        responsibleRole: 'WORKER',
-                        description: '',
-                        estimatedMinutes: 30,
-                        alertDays: 1,
-                        addToAllWorkflows: false
-                      });
-                      setSelectedSectionForLineItem(null);
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingLineItem || !selectedSectionForLineItem || !createLineItemData.itemName.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-[var(--color-success-green)] rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {creatingLineItem ? 'Creating...' : 'Create Line Item'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div className="wf-dialog-footer">
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateLineItemModal(false); setCreateLineItemData({ itemName: '', responsibleRole: 'WORKER', description: '', estimatedMinutes: 30, alertDays: 1, addToAllWorkflows: false }); setSelectedSectionForLineItem(null); }}
+                  className="wf-dialog-btn wf-dialog-btn--secondary"
+                >Cancel</button>
+                <button
+                  type="submit"
+                  disabled={creatingLineItem || !selectedSectionForLineItem || !createLineItemData.itemName.trim()}
+                  className="wf-dialog-btn wf-dialog-btn--success"
+                >{creatingLineItem ? 'Creating...' : 'Create Line Item'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
       
       {/* Create Custom Workflow Modal */}
       {showCreateWorkflowModal && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div
+          className="wf-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Create Custom Workflow"
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowCreateWorkflowModal(false); setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] }); }}}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowCreateWorkflowModal(false); setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] }); }}}
+        >
+          <div className="wf-dialog wf-dialog--md">
+            <div className="wf-dialog-header">
+              <h3>
+                <span className="wf-dialog-icon wf-dialog-icon--purple">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                   </svg>
                 </span>
                 Create Custom Workflow
               </h3>
-              <form onSubmit={handleCreateCustomWorkflow}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Workflow Name *
-                  </label>
+              <button className="wf-dialog-close" onClick={() => { setShowCreateWorkflowModal(false); setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] }); }} aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleCreateCustomWorkflow}>
+              <div className="wf-dialog-body">
+                <div className="wf-field">
+                  <label>Workflow Name *</label>
                   <input
                     type="text"
                     autoFocus
                     value={createWorkflowData.name}
                     onChange={(e) => setCreateWorkflowData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="e.g. Solar Panel Installation"
                     required
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
+                <div className="wf-field">
+                  <label>Description</label>
                   <textarea
                     value={createWorkflowData.description}
                     onChange={(e) => setCreateWorkflowData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Describe this workflow (optional)"
                     rows="2"
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phases
-                  </label>
-                  <p className="text-xs text-gray-500 mb-2">
+                <div className="wf-field">
+                  <label>Phases</label>
+                  <p className="text-xs text-gray-500 mb-2" style={{ marginTop: -2 }}>
                     Define the phases for this workflow. Leave empty to use default phases.
                   </p>
                   <div className="space-y-2">
@@ -2445,9 +2434,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                               setCreateWorkflowData(prev => ({ ...prev, phases: newPhases }));
                             }}
                             className="p-1 text-gray-400 hover:text-red-500"
-                          >
-                            ✕
-                          </button>
+                          >✕</button>
                         )}
                       </div>
                     ))}
@@ -2463,78 +2450,74 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     </button>
                   </div>
                 </div>
-                
-                <div className="flex justify-end space-x-3 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowCreateWorkflowModal(false);
-                      setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] });
-                    }}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creatingWorkflow || !createWorkflowData.name.trim()}
-                    className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {creatingWorkflow ? 'Creating...' : 'Create Workflow'}
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+              <div className="wf-dialog-footer">
+                <button
+                  type="button"
+                  onClick={() => { setShowCreateWorkflowModal(false); setCreateWorkflowData({ name: '', description: '', phases: [{ phaseName: '' }] }); }}
+                  className="wf-dialog-btn wf-dialog-btn--secondary"
+                >Cancel</button>
+                <button
+                  type="submit"
+                  disabled={creatingWorkflow || !createWorkflowData.name.trim()}
+                  className="wf-dialog-btn wf-dialog-btn--purple"
+                >{creatingWorkflow ? 'Creating...' : 'Create Workflow'}</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
       
       {/* Edit Custom Workflow Modal */}
       {showEditWorkflowModal && editWorkflowData && (
-        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-[28rem] shadow-lg rounded-md bg-white">
-            <div className="mt-3">
-              <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
-                  <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div
+          className="wf-dialog-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Edit Custom Workflow"
+          tabIndex={-1}
+          ref={(el) => el?.focus()}
+          onKeyDown={(e) => { if (e.key === 'Escape') { setShowEditWorkflowModal(false); setEditWorkflowData(null); }}}
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowEditWorkflowModal(false); setEditWorkflowData(null); }}}
+        >
+          <div className="wf-dialog wf-dialog--md">
+            <div className="wf-dialog-header">
+              <h3>
+                <span className="wf-dialog-icon wf-dialog-icon--purple">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                   </svg>
                 </span>
                 Edit Custom Workflow
               </h3>
-              <form onSubmit={handleSaveWorkflowEdits}>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Workflow Name *
-                  </label>
+              <button className="wf-dialog-close" onClick={() => { setShowEditWorkflowModal(false); setEditWorkflowData(null); }} aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleSaveWorkflowEdits}>
+              <div className="wf-dialog-body">
+                <div className="wf-field">
+                  <label>Workflow Name *</label>
                   <input
                     type="text"
                     autoFocus
                     value={editWorkflowData.name}
                     onChange={(e) => setEditWorkflowData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Workflow name"
                     required
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description
-                  </label>
+                <div className="wf-field">
+                  <label>Description</label>
                   <textarea
                     value={editWorkflowData.description}
                     onChange={(e) => setEditWorkflowData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
                     placeholder="Update description (optional)"
                     rows="2"
                   />
                 </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Phases
-                  </label>
+                <div className="wf-field">
+                  <label>Phases</label>
                   <div className="space-y-2">
                     {editWorkflowData.phases.map((phase, idx) => (
                       <div 
@@ -2570,19 +2553,15 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                             }}
                             className="p-1 text-green-500 hover:text-green-700 text-xs font-medium"
                             title="Undo delete"
-                          >
-                            Undo
-                          </button>
+                          >Undo</button>
                         ) : (
                           <button
                             type="button"
                             onClick={() => {
                               if (phase.isNew) {
-                                // Just remove new phases immediately
                                 const newPhases = editWorkflowData.phases.filter((_, i) => i !== idx);
                                 setEditWorkflowData(prev => ({ ...prev, phases: newPhases }));
                               } else {
-                                // Mark existing phases for deletion
                                 const activePhases = editWorkflowData.phases.filter(p => !p.isDeleted && p !== phase);
                                 if (activePhases.length === 0) {
                                   alert('A workflow must have at least one phase.');
@@ -2594,9 +2573,7 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                               }
                             }}
                             className="p-1 text-gray-400 hover:text-red-500"
-                          >
-                            ✕
-                          </button>
+                          >✕</button>
                         )}
                       </div>
                     ))}
@@ -2612,37 +2589,27 @@ const ProjectChecklistPage = ({ project, onUpdate, onPhaseCompletionChange, targ
                     </button>
                   </div>
                 </div>
-                
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
+              </div>
+              <div className="wf-dialog-footer wf-dialog-footer--split">
+                <button
+                  type="button"
+                  onClick={() => handleDeleteCustomWorkflow(editWorkflowData.customWorkflowId, editWorkflowData.name)}
+                  className="wf-dialog-btn wf-dialog-btn--danger"
+                >Delete Workflow</button>
+                <div className="flex gap-3">
                   <button
                     type="button"
-                    onClick={() => handleDeleteCustomWorkflow(editWorkflowData.customWorkflowId, editWorkflowData.name)}
-                    className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md hover:bg-red-100 hover:text-red-700 transition-colors"
-                  >
-                    Delete Workflow
-                  </button>
-                  <div className="flex space-x-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setShowEditWorkflowModal(false);
-                        setEditWorkflowData(null);
-                      }}
-                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={savingWorkflowEdit || !editWorkflowData.name.trim()}
-                      className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {savingWorkflowEdit ? 'Saving...' : 'Save Changes'}
-                    </button>
-                  </div>
+                    onClick={() => { setShowEditWorkflowModal(false); setEditWorkflowData(null); }}
+                    className="wf-dialog-btn wf-dialog-btn--secondary"
+                  >Cancel</button>
+                  <button
+                    type="submit"
+                    disabled={savingWorkflowEdit || !editWorkflowData.name.trim()}
+                    className="wf-dialog-btn wf-dialog-btn--purple"
+                  >{savingWorkflowEdit ? 'Saving...' : 'Save Changes'}</button>
                 </div>
-              </form>
-            </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

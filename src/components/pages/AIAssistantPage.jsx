@@ -3023,18 +3023,17 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
             )}
 
             {/* Transcript and Summary Modal */}
-            {console.log('[Transcript] render showTranscriptModal:', showTranscriptModal, 'transcriptSummary:', !!transcriptSummary)}
             {showTranscriptModal && transcriptSummary && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-8" style={{ zIndex: 999999 }}>
-                    <div className="bg-white rounded-lg shadow-2xl max-w-4xl w-full mx-4 max-h-[90vh] flex flex-col" style={{ zIndex: 999999 }}>
+                <div className="wf-dialog-backdrop" style={{ zIndex: 999999 }}>
+                    <div className="wf-dialog wf-dialog--lg" style={{ zIndex: 999999 }}>
                         {/* Modal Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                        <div className="wf-dialog-header">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <span className="wf-dialog-icon wf-dialog-icon--blue">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
-                                </div>
+                                </span>
                                 <div>
                                     <h2 className="text-xl font-semibold text-gray-900">Voice Call Transcript & Summary</h2>
                                     <p className="text-sm text-gray-600">
@@ -3044,7 +3043,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                             </div>
                             <button
                                 onClick={closeTranscriptModal}
-                                className="text-gray-400 hover:text-gray-600 transition-colors"
+                                className="wf-dialog-close" aria-label="Close"
                             >
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -3053,7 +3052,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         </div>
 
                         {/* Modal Content - Scrollable */}
-                        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+                        <div className="wf-dialog-body" style={{ padding: '24px' }}>
                             {/* Project Info */}
                             {transcriptSummary.metadata.project && (
                                 <div className="bg-gray-50 rounded-lg p-4">
@@ -3224,7 +3223,7 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                         </div>
 
                         {/* Modal Footer */}
-                        <div className="border-t border-gray-200 p-6">
+                        <div className="wf-dialog-footer" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '16px' }}>
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 {/* File Format Selection */}
                                 <div>
@@ -3253,14 +3252,14 @@ ${summary.actions.map(action => `|Å“â€¦ ${action}`).join('\n')}
                                 <div className="flex items-center gap-3">
                                     <button
                                         onClick={closeTranscriptModal}
-                                        className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                                        className="wf-dialog-btn wf-dialog-btn--secondary"
                                     >
                                         Close
                                     </button>
                                     <button
                                         onClick={handleDownloadFiles}
                                         disabled={selectedFileFormats.length === 0 || isGeneratingFiles}
-                                        className={`px-6 py-2 text-sm font-medium text-white rounded-lg transition-colors ${
+                                        className={`wf-dialog-btn ${
                                             selectedFileFormats.length === 0 || isGeneratingFiles
                                                 ? 'bg-gray-400 cursor-not-allowed'
                                                 : 'bg-[var(--color-primary-blueprint-blue)] hover:bg-blue-700'

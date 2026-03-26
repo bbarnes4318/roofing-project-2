@@ -99,52 +99,8 @@ export default function App() {
     const [projectsLoading, setProjectsLoading] = useState(false);
     const [projectsError, setProjectsError] = useState(null);
     const profileDropdownRef = useRef(null);
-    // Prevent global scroll-to-top during targeted back navigation
+    // Suppress scroll-to-top during targeted back navigation (scrollIntoView to data-section)
     const suppressScrollTopUntilRef = useRef(0);
-    const suppressScrollTopUntil = suppressScrollTopUntilRef.current;
-    
-    // Track per-page scroll positions to restore on back navigation
-    const pageScrollPositionsRef = useRef({});
-    const getPrimaryScrollTop = () => {
-        try {
-            const candidates = [
-                window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0,
-                (document.querySelector('.flex-1.overflow-y-auto')?.scrollTop) || 0,
-                (document.querySelector('main')?.scrollTop) || 0,
-                (document.querySelector('#root')?.scrollTop) || 0,
-                (document.querySelector('.overflow-y-auto')?.scrollTop) || 0
-            ];
-            return Math.max(...candidates);
-        } catch (_) {
-            return window.pageYOffset || 0;
-        }
-    };
-    const recordScrollFor = (pageName) => {
-        try {
-            if (!pageName) return;
-            pageScrollPositionsRef.current[pageName] = getPrimaryScrollTop();
-        } catch (_) {}
-    };
-    const restoreScrollFor = (pageName) => {
-        try {
-            const pos = pageScrollPositionsRef.current[pageName];
-            if (pos == null) return;
-            const apply = () => {
-                window.scrollTo({ top: pos, left: 0, behavior: 'auto' });
-                const containers = [
-                    document.querySelector('.flex-1.overflow-y-auto'),
-                    document.querySelector('main'),
-                    document.querySelector('#root'),
-                    document.querySelector('.overflow-y-auto')
-                ];
-                containers.forEach(el => { if (el) el.scrollTop = pos; });
-            };
-            apply();
-            setTimeout(apply, 50);
-            setTimeout(apply, 120);
-            setTimeout(apply, 250);
-        } catch (_) {}
-    };
 
     const [navigationState, setNavigationState] = useState({
         selectedProject: null,
@@ -594,113 +550,19 @@ const apiUrl = window.location.hostname === 'localhost'
         };
     }, []);
 
-    // Scroll to top whenever activePage changes
+    // Scroll to top on page transitions — single predictable reset
     useEffect(() => {
-        // Skip global scroll-to-top when doing a back navigation; instead restore saved position
-        if (Date.now() < suppressScrollTopUntilRef.current) {
-            restoreScrollFor(activePage);
-            return;
-        }
-        // IMMEDIATE scroll to top - multiple methods
-        window.scrollTo({ top: 0, behavior: 'auto' });
-        document.body.scrollTop = 0;
-        document.documentElement.scrollTop = 0;
-        document.documentElement.scrollLeft = 0;
-        document.body.scrollLeft = 0;
-        
-        // Force scroll on all possible containers
-        const containers = [
-            document.querySelector('main'),
-            document.querySelector('#root'),
-            document.querySelector('.overflow-y-auto'),
-            document.querySelector('.flex-1'),
-            document.querySelector('[data-section]'),
-            document.querySelector('.h-full'),
-            document.querySelector('[class*="overflow"]'),
-            document.querySelector('.scroll-container'),
-            document.querySelector('.content-area'),
-            document.querySelector('.flex-1.overflow-y-auto')
-        ];
-        
-        containers.forEach(container => {
-            if (container) {
-                container.scrollTop = 0;
-                container.scrollLeft = 0;
-            }
-        });
-        
-        // Multiple aggressive attempts
-        const forceScroll = () => {
-            window.scrollTo({ top: 0, behavior: 'auto' });
-            document.body.scrollTop = 0;
-            document.documentElement.scrollTop = 0;
-            containers.forEach(container => {
-                if (container) {
-                    container.scrollTop = 0;
-                }
-            });
-        };
-        
-        // Execute immediately and multiple times
-        forceScroll();
-        setTimeout(forceScroll, 5);
-        setTimeout(forceScroll, 15);
-        setTimeout(forceScroll, 30);
-        setTimeout(forceScroll, 60);
-        setTimeout(forceScroll, 120);
-        setTimeout(forceScroll, 250);
-        setTimeout(forceScroll, 500);
-        
-        // Final smooth scroll
-        setTimeout(() => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }, 600);
-    }, [activePage]);
+        // Skip when a back-navigation is handling its own scroll target
+        if (Date.now() < suppressScrollTopUntilRef.current) return;
 
-    // Additional useEffect specifically for when selectedProject changes
-    useEffect(() => {
-        if (navigationState.selectedProject) {
-            const scrollToTop = () => {
-                // Target the specific scroll container
-                const scrollContainer = document.querySelector('.flex-1.overflow-y-auto');
-                if (scrollContainer) {
-                    scrollContainer.scrollTop = 0;
-                }
-                
-                // Also try window
-                window.scrollTo(0, 0);
-                
-                // And all other containers
-                const containers = [
-                    document.querySelector('main'),
-                    document.querySelector('#root'),
-                    document.querySelector('.overflow-y-auto'),
-                    document.querySelector('.flex-1'),
-                    document.querySelector('[data-section]'),
-                    document.querySelector('.h-full'),
-                    document.querySelector('[class*="overflow"]'),
-                    document.querySelector('.scroll-container'),
-                    document.querySelector('.content-area'),
-                    document.querySelector('.flex-1.overflow-y-auto')
-                ];
-                
-                containers.forEach(container => {
-                    if (container) {
-                        container.scrollTop = 0;
-                        container.scrollLeft = 0;
-                    }
-                });
-            };
-            
-            // Execute multiple times
-            scrollToTop();
-            setTimeout(scrollToTop, 10);
-            setTimeout(scrollToTop, 50);
-            setTimeout(scrollToTop, 100);
-            setTimeout(scrollToTop, 500);
-            setTimeout(scrollToTop, 1000);
-        }
-    }, [navigationState.selectedProject]);
+        // Use rAF to execute after the paint — one frame, no retries
+        requestAnimationFrame(() => {
+            window.scrollTo(0, 0);
+            // Also reset the primary content container
+            const main = document.querySelector('main');
+            if (main) main.scrollTop = 0;
+        });
+    }, [activePage, navigationState.selectedProject]);
 
     //                 <p className="text-gray-600">Loading...</p>
     //             </div>
@@ -880,8 +742,6 @@ const apiUrl = window.location.hostname === 'localhost'
     const navigate = (page) => { 
         console.log('🔍 APP: navigate called with page:', page);
         console.log('🔍 APP: Current activePage:', activePage);
-        // Record current page scroll before navigating
-        recordScrollFor(activePage);
         
         // Enhanced navigation with proper state management
         setNavigationState(prev => ({
@@ -914,9 +774,8 @@ const apiUrl = window.location.hostname === 'localhost'
     const handleBackButton = () => {
         console.log('🔍 APP: handleBackButton called');
         console.log('🔍 APP: navigationState:', navigationState);
-        // Record current scroll and suppress scroll-to-top, we will restore target page position
-        recordScrollFor(activePage);
-        suppressScrollTopUntilRef.current = Date.now() + 1500;
+        // Record current scroll and suppress scroll-to-top, we will scrollIntoView target section
+        suppressScrollTopUntilRef.current = Date.now() + 2000;
         
         if (navigationState.selectedProject) {
             console.log('🔍 APP: Going back from project detail');
@@ -1637,7 +1496,7 @@ const apiUrl = window.location.hostname === 'localhost'
         return (
             <QueryClientProvider client={queryClient}>
                 <AuthProvider>
-                    <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center">
+                    <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--ui-bg)' }}>
                         <div className="text-center">
                             <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Setting up your workspace...</h2>
@@ -1655,9 +1514,8 @@ const apiUrl = window.location.hostname === 'localhost'
             <AuthProvider>
             <NavigationProvider>
             <SubjectsProvider>
-            <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500 ${colorMode 
-                ? 'bg-[#1e293b] text-gray-100' 
-                : 'bg-[#F8FAFC] text-gray-900'}`}>
+            <div className={`flex h-screen font-sans overflow-hidden transition-colors duration-500`}
+                style={{ backgroundColor: 'var(--ui-bg)', color: 'var(--ui-text-primary)' }}>
             {/* Mobile menu overlay */}
             {sidebarOpen && (
                 <div 
@@ -1668,29 +1526,29 @@ const apiUrl = window.location.hostname === 'localhost'
             
             {/* Sidebar */}
             <aside 
-                className={`fixed lg:static inset-y-0 left-0 z-50 flex flex-col transition-all duration-300 ease-in-out
-                ${colorMode 
-                    ? 'bg-neutral-900 border-r border-neutral-700 text-white' 
-                    : 'bg-white shadow-soft border-r border-[#E2E8F0] text-gray-900'}
+                className={`sidebar-shell fixed lg:static inset-y-0 left-0 z-50 flex flex-col shadow-soft
                 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 mobile-safe-area`}
                 style={{
-                    width: sidebarCollapsed && !sidebarPinned ? '64px' : '288px'
+                    width: sidebarCollapsed && !sidebarPinned ? '64px' : '288px',
+                    backgroundColor: 'var(--ui-surface)',
+                    borderRight: '1px solid var(--ui-border)',
+                    color: 'var(--ui-text-primary)'
                 }}
                 onMouseEnter={() => !sidebarPinned && setSidebarCollapsed(false)}
                 onMouseLeave={() => !sidebarPinned && setTimeout(() => setSidebarCollapsed(true), 300)}
             > 
                 {/* Sidebar header (logo) */}
-                <div className={`p-3 flex flex-col items-center border-b ${colorMode ? 'border-neutral-700 bg-neutral-900' : 'border-[#E2E8F0] bg-white'}`}>
+                <div className="p-3 flex flex-col items-center border-b" style={{ borderColor: 'var(--ui-border)', backgroundColor: 'var(--ui-surface)' }}>
                     {!sidebarCollapsed ? (
                         <>
-                            <div className={`w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2 ${colorMode ? 'bg-neutral-800 border-brand-500' : 'bg-white border-neutral-200'}`}>
+                            <div className="w-40 h-16 rounded-xl flex items-center justify-center shadow-brand-glow overflow-hidden border-2" style={{ backgroundColor: 'var(--ui-surface)', borderColor: 'var(--ui-border)' }}>
                                 <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-full h-full object-contain rounded-xl" />
                             </div>
                             <AIPoweredBadge />
                         </>
                     ) : (
-                        <div className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl ${colorMode ? 'bg-brand-500 text-white' : 'bg-blue-600 text-white'} shadow-lg`}>
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xl text-white shadow-lg" style={{ backgroundColor: 'var(--ui-trust)' }}>
                             K
                         </div>
                     )}
@@ -1705,7 +1563,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                 setSidebarCollapsed(true);
                             }
                         }}
-                        className={`mt-2 p-1.5 rounded-lg transition-colors ${colorMode ? 'hover:bg-neutral-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
+                        className="shell-btn mt-2" style={{ color: 'var(--ui-text-secondary)' }}
                         title={sidebarPinned ? 'Auto-collapse sidebar' : 'Pin sidebar'}
                     >
                         {sidebarPinned ? (
@@ -1720,114 +1578,91 @@ const apiUrl = window.location.hostname === 'localhost'
                     </button>
                 </div>
                 {/* Sidebar nav (improved spacing) */}
-                <nav className={`flex-1 py-3 space-y-1.5 overflow-hidden transition-all duration-300 ${sidebarCollapsed ? 'px-2' : 'pl-5 pr-4'}`}>
+                <nav className={`flex-1 py-3 space-y-1 overflow-hidden ${sidebarCollapsed ? 'px-2' : 'px-3'}`}>
                     {navigationItems.map((item, idx) => (
                         item.isAIAssistant ? (
                             <button
                                 key={item.name}
                                 onClick={() => navigate(item.page)}
-                                className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
-                                activePage === item.page && !navigationState.selectedProject 
-                                    ? colorMode 
-                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
-                                    : colorMode 
-                                        ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
-                            }`}>
-                                <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                                {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                                className="shell-nav-item"
+                                aria-current={activePage === item.page && !navigationState.selectedProject ? 'page' : undefined}
+                            >
+                                <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">{item.icon}</span>
+                                {!sidebarCollapsed && <span className="flex-1 truncate">{item.name}</span>}
                             </button>
                         ) : item.isDropdown ? (
                             <div key={item.name} className="relative group">
                                 <button
-                                    className={`w-full text-left flex items-center gap-3 py-2.5 px-4 font-bold rounded-lg uppercase tracking-wide text-[9px] transition-all duration-200 ${colorMode ? 'text-[#f2fcfe] hover:bg-[#232526]/60' : 'text-gray-700 hover:bg-white/80'}`}
+                                    className="shell-nav-item uppercase tracking-wide"
+                                    style={{ fontSize: '11px', fontWeight: 700 }}
                                     tabIndex={0}
                                     aria-haspopup="true"
                                     aria-expanded="false"
                                 >
-                                    <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
-                                    {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
-                                    {!sidebarCollapsed && <span className="ml-auto"><ChevronDownIcon className="w-3 h-3" /></span>}
+                                    <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">{item.icon}</span>
+                                    {!sidebarCollapsed && <span className="flex-1 truncate">{item.name}</span>}
+                                    {!sidebarCollapsed && <span className="ml-auto"><ChevronDownIcon className="w-4 h-4" /></span>}
                                 </button>
                                 {/* Dropdown menu */}
-                                <div className="absolute left-0 top-full z-20 min-w-[180px] bg-gradient-to-b from-[#232b4d] to-[#181f3a] shadow-xl rounded-lg py-2 opacity-0 group-hover:opacity-100 group-hover:pointer-events-auto pointer-events-none transition-all duration-200 border border-[#3b82f6] text-white" style={{marginTop: 2}}>
+                                <div className="absolute left-0 top-full z-20 min-w-[200px] shadow-xl rounded-xl py-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-hover:pointer-events-auto group-focus-within:pointer-events-auto pointer-events-none transition-opacity duration-180" style={{marginTop: 4, backgroundColor: 'var(--ui-surface-elevated)', border: '1px solid var(--ui-border)', color: 'var(--ui-text-primary)'}}>
                                     {item.children.map((child) => (
                                         <button
                                             key={child.name}
                                             onClick={() => navigate(child.page)}
-                                            className="w-full text-left flex items-center gap-3 py-2 px-4 text-[9px] font-semibold rounded-lg hover:bg-[#232526]/60 hover:text-[#26d0ce] transition-all duration-200"
+                                            className="shell-nav-item"
+                                            style={{ borderRadius: '8px', margin: '2px 8px', width: 'calc(100% - 16px)' }}
                                         >
-                                            <span>{child.icon}</span>
-                                            <span>{child.name}</span>
+                                            <span className="flex-shrink-0">{child.icon}</span>
+                                            <span className="truncate">{child.name}</span>
                                         </button>
                                     ))}
                                 </div>
                             </div>
                         ) : item.isSection ? (
-                            <div key={item.name} className={`mt-4 mb-2 flex items-center gap-3 font-bold text-[9px] uppercase tracking-wide ${colorMode ? 'text-[#f2fcfe] drop-shadow-lg' : 'text-gray-700 dark:text-gray-200'}`}> 
-                                <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
-                                <span>{item.name}</span>
+                            <div key={item.name} className="shell-section-label">
+                                <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">{item.icon}</span>
+                                {!sidebarCollapsed && <span>{item.name}</span>}
                             </div>
                         ) : item.isSubItem ? (
                             <button key={item.name} onClick={() => navigate(item.page)}
-                                className={`w-full text-left flex items-center gap-3 py-2 px-4 ml-4 text-[9px] font-semibold rounded-lg transition-all duration-200 ${
-                                activePage === item.page && !navigationState.selectedProject 
-                                    ? colorMode 
-                                        ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                        : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
-                                    : colorMode 
-                                        ? 'text-[#f2fcfe] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                        : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
-                                }`}> 
-                                <span className="w-4 h-4 flex items-center justify-center">{item.icon}</span>
-                                {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
+                                className="shell-nav-item ml-4"
+                                aria-current={activePage === item.page && !navigationState.selectedProject ? 'page' : undefined}
+                            >
+                                <span className="w-5 h-5 flex items-center justify-center flex-shrink-0">{item.icon}</span>
+                                {!sidebarCollapsed && <span className="flex-1 truncate">{item.name}</span>}
                             </button>
                         ) : item.isBullet ? (
                             <button key={item.name} onClick={() => navigate(item.page)}
-                                className={`w-full text-left flex items-center gap-3 pl-12 pr-4 py-2 text-[9px] font-medium rounded transition-all duration-200 group ${colorMode ? 'text-[#e0eaff] hover:bg-[#232526]/40 hover:text-[#26d0ce]' : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700 dark:hover:bg-blue-900/30'}`}> 
-                                <span className={`inline-block w-1.5 h-1.5 rounded-full bg-gradient-to-tr ${colorMode ? 'from-[#26d0ce] to-[#1a2980]' : 'from-blue-400 to-emerald-400'} mr-2 group-hover:from-blue-600 group-hover:to-emerald-600`}></span>
-                                <span>{item.name}</span>
+                                className="shell-nav-item pl-12">
+                                <span className="inline-block w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: 'var(--ui-trust)' }}></span>
+                                <span className="truncate">{item.name}</span>
                             </button>
                         ) : item.isSeparator ? (
-                            <div key={idx} className={`my-3 mx-4 border-t ${colorMode ? 'border-[#26d0ce]/40' : 'border-gray-300 dark:border-gray-700'}`} />
+                            <div key={idx} className="shell-separator" />
                         ) : (
                         <button key={item.name} onClick={() => !item.isDisabled && navigate(item.page)}
                                 disabled={item.isDisabled}
-                                className={`w-full text-left flex items-center gap-3 py-2 px-4 text-[10px] font-semibold rounded-lg transition-all duration-200 ${
-                                item.isDisabled 
-                                    ? colorMode 
-                                        ? 'text-gray-500 cursor-not-allowed opacity-50' 
-                                        : 'text-gray-400 cursor-not-allowed opacity-50'
-                                    : activePage === item.page && !navigationState.selectedProject 
-                                        ? colorMode 
-                                            ? 'bg-gradient-to-r from-[#232526] via-[#26d0ce] to-[#1a2980] text-white shadow-md' 
-                                            : 'bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-md'
-                                        : colorMode 
-                                            ? 'text-[#e0eaff] hover:bg-[#232526]/60 hover:text-[#26d0ce]' 
-                                    : 'text-gray-700 hover:bg-white/80 hover:text-primary-700 hover:shadow-soft'
-                            }`}>
-                            <span className="w-4 h-4 flex items-center justify-center relative">
+                                className="shell-nav-item"
+                                aria-current={!item.isDisabled && activePage === item.page && !navigationState.selectedProject ? 'page' : undefined}
+                                aria-disabled={item.isDisabled ? 'true' : undefined}
+                            >
+                            <span className="w-5 h-5 flex items-center justify-center relative flex-shrink-0">
                                 {item.icon}
-                                {/* Red dot for collapsed sidebar - shows on icon for badges or unread messages */}
+                                {/* Red dot for collapsed sidebar */}
                                 {sidebarCollapsed && (item.badge > 0 || item.hasUnread) && (
-                                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                                    <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse"></span>
                                 )}
                             </span>
-                            {!sidebarCollapsed && <span className="flex-1">{item.name}</span>}
-                            {/* Red dot for expanded sidebar - shows when there are unread messages */}
+                            {!sidebarCollapsed && <span className="flex-1 truncate">{item.name}</span>}
+                            {/* Unread dot — always visible */}
                             {!sidebarCollapsed && item.hasUnread && (
-                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse shadow-lg ml-2" title="New messages"></span>
+                                <span className="w-2.5 h-2.5 bg-red-500 rounded-full ml-auto flex-shrink-0" title="New messages"></span>
                             )}
                             {!sidebarCollapsed && item.badge && item.badge > 0 && (
-                                <span className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[7px] font-bold rounded-full ml-2 ${
+                                <span className={`shell-badge ml-auto flex-shrink-0 ${
                                     item.page === 'Project Messages' 
-                                        ? colorMode 
-                                            ? 'bg-blue-500 text-white shadow-lg' 
-                                            : 'bg-blue-500 text-white shadow-md'
-                                        : colorMode 
-                                            ? 'bg-red-500 text-white shadow-lg' 
-                                            : 'bg-red-500 text-white shadow-md'
+                                        ? 'bg-blue-500'
+                                        : 'bg-red-500'
                                 }`}>
                                     {item.badge > 99 ? '99+' : item.badge}
                                 </span>
@@ -1840,13 +1675,13 @@ const apiUrl = window.location.hostname === 'localhost'
             </aside>
             
             {/* Main content */}
-            <main className={`flex-1 flex flex-col min-w-0 text-xs font-sans transition-colors duration-500 ${colorMode ? 'bg-neutral-900 text-white' : 'bg-[#F8FAFC]'}`} style={{ minWidth: 0, fontSize: '12px' }}>
+            <main className="flex-1 flex flex-col min-w-0 font-sans transition-colors duration-500" style={{ minWidth: 0, backgroundColor: 'var(--ui-bg)', color: 'var(--ui-text-primary)' }}>
                 {/* Desktop header with user profile */}
-                <header className={`hidden lg:flex items-center justify-between p-4 border-b transition-all duration-300 z-[9999] ${colorMode ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-[#E2E8F0] shadow-soft'}`}>
+                <header className="hidden lg:flex items-center justify-between p-4 border-b transition-all duration-300 z-[9999] shadow-soft" style={{ backgroundColor: 'var(--ui-surface)', borderColor: 'var(--ui-border)', color: 'var(--ui-text-primary)' }}>
                     <div className="flex items-center flex-1 min-w-0">
                         {activePage !== 'Overview' && (
                             <div className="flex-shrink-0">
-                                <h1 className={`text-xl font-bold ${colorMode ? 'text-white' : 'text-gray-800'}`}>
+                                <h1 className="text-xl font-bold" style={{ color: 'var(--ui-text-primary)' }}>
                                     {activePage === 'Alerts' ? 'Project Alerts' :
                                         activePage === 'Company Calendar' ? 'Company Calendar' :
                                         activePage === 'Email History' ? 'Email History' :
@@ -1859,7 +1694,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         activePage === 'Projects' ? 'Project Workflow' :
                                         activePage}
                                 </h1>
-                                <p className={`text-sm font-medium ${colorMode ? 'text-gray-200' : 'text-gray-600'}`}>
+                                <p className="text-sm font-medium" style={{ color: 'var(--ui-text-secondary)' }}>
                                     {activePage === 'Alerts' ? 'Monitor project alerts, tasks, and urgent notifications.' :
                                         activePage === 'Project Schedules' ? 'Plan and organize project timelines and milestones' :
                                         activePage === 'Company Calendar' ? 'Company-wide events, meetings, and project schedules' :
@@ -1894,16 +1729,17 @@ const apiUrl = window.location.hostname === 'localhost'
                         {/* Add Project Button */}
                         <button
                             onClick={() => setShowAddProjectModal(true)}
-                            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 bg-[#0089D1] text-white shadow-soft hover:shadow-medium hover:-translate-y-0.5 border border-[#0089D1]/20"
+                            className="shell-action-btn text-white shadow-soft"
+                            style={{ backgroundColor: 'var(--ui-trust)' }}
                         >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
                             <span>Add Project</span>
                         </button>
                         
                         {/* Notifications */}
-                        <button className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}>
+                        <button className="shell-btn" style={{ color: 'var(--ui-text-primary)' }} aria-label="Notifications">
                             <BellIcon />
                         </button>
                         
@@ -1911,10 +1747,12 @@ const apiUrl = window.location.hostname === 'localhost'
                         <div className="relative" ref={profileDropdownRef}>
                             <button 
                                 onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                                className={`flex items-center gap-3 p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#1e293b] hover:bg-[#232b4d] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                                className="shell-btn gap-3 px-2"
+                                aria-expanded={profileDropdownOpen}
+                                aria-haspopup="true"
                             >
                                 {currentUser?.avatar ? (
-                                    <div className="w-8 h-8 rounded-full overflow-hidden border-2 border-blue-500">
+                                    <div className="w-8 h-8 rounded-full overflow-hidden border-2" style={{ borderColor: 'var(--ui-trust)' }}>
                                         <img 
                                             key={currentUser.avatar} // Force re-render when avatar changes
                                             src={currentUser.avatar.startsWith('spaces://') 
@@ -1934,7 +1772,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                         />
                                     </div>
                                 ) : (
-                                    <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
+                                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold text-sm" style={{ backgroundColor: 'var(--ui-trust)' }}>
                                         {getUserInitials(currentUser)}
                                     </div>
                                 )}
@@ -1942,18 +1780,18 @@ const apiUrl = window.location.hostname === 'localhost'
                             
                             {/* Dropdown Menu */}
                             {profileDropdownOpen && (
-                                <div className={`absolute right-0 top-full mt-2 w-56 rounded-lg shadow-xl z-[99999] border ${colorMode ? 'bg-[#1e293b] border-brand-500/40 text-white' : 'bg-white border-gray-200'}`}>
+                                <div className="absolute right-0 top-full mt-2 w-60 rounded-xl shadow-xl z-[99999] border" style={{ backgroundColor: 'var(--ui-surface-elevated)', borderColor: 'var(--ui-border)', color: 'var(--ui-text-primary)' }}>
                                     <div className="py-2">
-                                        <div className={`px-4 pb-2 text-[10px] ${colorMode ? 'text-gray-300' : 'text-gray-500'}`}>Signed in as</div>
-                                        <div className={`px-4 pb-2 text-sm font-medium truncate ${colorMode ? 'text-white' : 'text-gray-900'}`} title={getUserEmail()}>{getUserEmail()}</div>
-                                        <div className={`${colorMode ? 'border-[#3b82f6]/30' : 'border-gray-200'} border-t my-2`}></div>
+                                        <div className="px-4 pb-1 text-xs" style={{ color: 'var(--ui-text-secondary)' }}>Signed in as</div>
+                                        <div className="px-4 pb-2 text-sm font-medium truncate" style={{ color: 'var(--ui-text-primary)' }} title={getUserEmail()}>{getUserEmail()}</div>
+                                        <div className="shell-separator" />
                                         <button 
                                             onClick={() => { setProfileDropdownOpen(false); navigate('Settings'); }}
-                                            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${colorMode ? 'text-white hover:bg-[#232b4d]' : 'text-gray-700 hover:bg-gray-100'}`}
+                                            className="shell-nav-item mx-2" style={{ width: 'calc(100% - 16px)', minHeight: '40px' }}
                                         >
                                             <CogIcon /> Settings
                                         </button>
-                                        <div className={`${colorMode ? 'border-[#3b82f6]/30' : 'border-gray-200'} border-t my-2`}></div>
+                                        <div className="shell-separator" />
                                         <button 
                                             onClick={(e) => { 
                                                 e.preventDefault();
@@ -1961,7 +1799,7 @@ const apiUrl = window.location.hostname === 'localhost'
                                                 setProfileDropdownOpen(false);
                                                 handleLogout();
                                             }}
-                                            className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 ${colorMode ? 'text-red-300 hover:bg-[#3b0f0f]' : 'text-red-600 hover:bg-red-50'}`}
+                                            className="shell-nav-item mx-2 text-red-600 hover:bg-red-50" style={{ width: 'calc(100% - 16px)', minHeight: '40px' }}
                                         >
                                             <LogoutIcon /> Logout
                                         </button>
@@ -1973,10 +1811,11 @@ const apiUrl = window.location.hostname === 'localhost'
                 </header>
                 
                 {/* Mobile header */}
-                <header className={`lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500 ${colorMode ? 'bg-neutral-800 border-neutral-700 text-white' : 'bg-white border-[#E2E8F0]'}`}>
+                <header className="lg:hidden border-b p-3 flex items-center justify-between transition-colors duration-500" style={{ backgroundColor: 'var(--ui-surface)', borderColor: 'var(--ui-border)', color: 'var(--ui-text-primary)' }}>
                     <button 
                         onClick={() => setSidebarOpen(true)}
-                        className={`p-2 rounded-lg transition-colors ${colorMode ? 'bg-[#232b4d] hover:bg-[#1e293b] text-white' : 'bg-gray-100 hover:bg-gray-200'}`}
+                        className="shell-btn"
+                        aria-label="Open menu"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
@@ -1984,7 +1823,7 @@ const apiUrl = window.location.hostname === 'localhost'
                     </button>
                     <div className="flex items-center">
                         <img src={colorMode ? "/kenstruction-logo-dark.png" : "/kenstruction-logo.png"} alt="Kenstruction Logo" className="w-8 h-8 rounded-lg" />
-                        <span className={`ml-2 font-semibold ${colorMode ? 'text-white' : 'text-gray-800'}`}>Kenstruction</span>
+                        <span className="ml-2 font-semibold" style={{ color: 'var(--ui-text-primary)' }}>Kenstruction</span>
                     </div>
                     <div className="w-10"></div> {/* Spacer for centering */}
                 </header>

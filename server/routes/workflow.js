@@ -1583,6 +1583,80 @@ router.post('/line-items/:id/delete', asyncHandler(async (req, res) => {
 }));
 
 // ============================================================
+// REORDER ROUTES (explicit move-up / move-down)
+// ============================================================
+
+// @desc    Reorder sections within a phase
+// @route   PATCH /api/workflows/sections/reorder
+// @access  Private
+router.patch('/sections/reorder',
+  [
+    body('phaseId').isString().withMessage('Phase ID is required'),
+    body('orderedIds').isArray({ min: 1 }).withMessage('orderedIds must be a non-empty array')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { phaseId, orderedIds } = req.body;
+
+    // Update displayOrder for each section in a transaction
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.workflowSection.update({
+          where: { id },
+          data: { displayOrder: index + 1 }
+        })
+      )
+    );
+
+    console.log(`✅ WORKFLOW: Reordered ${orderedIds.length} sections in phase ${phaseId}`);
+
+    res.status(200).json({
+      success: true,
+      message: `Reordered ${orderedIds.length} sections`
+    });
+  })
+);
+
+// @desc    Reorder line items within a section
+// @route   PATCH /api/workflows/line-items/reorder
+// @access  Private
+router.patch('/line-items/reorder',
+  [
+    body('sectionId').isString().withMessage('Section ID is required'),
+    body('orderedIds').isArray({ min: 1 }).withMessage('orderedIds must be a non-empty array')
+  ],
+  asyncHandler(async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: 'Validation failed', errors: formatValidationErrors(errors) });
+    }
+
+    const { sectionId, orderedIds } = req.body;
+
+    // Update displayOrder for each line item in a transaction
+    await prisma.$transaction(
+      orderedIds.map((id, index) =>
+        prisma.workflowLineItem.update({
+          where: { id },
+          data: { displayOrder: index + 1 }
+        })
+      )
+    );
+
+    console.log(`✅ WORKFLOW: Reordered ${orderedIds.length} line items in section ${sectionId}`);
+
+    res.status(200).json({
+      success: true,
+      message: `Reordered ${orderedIds.length} line items`
+    });
+  })
+);
+
+// ============================================================
 // CUSTOM WORKFLOW CRUD ROUTES
 // ============================================================
 
